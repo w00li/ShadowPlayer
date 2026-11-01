@@ -14,10 +14,25 @@ public class SourceStore(Database db)
     public long Add(SourceKind kind, string location, string name, long? parentPlaylistId = null)
     {
         using var c = db.Open();
-        return (long)Database.Exec(c,
+        using var tx = c.BeginTransaction();
+        // Manual EPG sources go above the url-tvg children, so a guide the user chose outranks the playlist's own.
+        var at = kind == SourceKind.Epg && parentPlaylistId is null
+            ? Database.Exec(c, "SELECT MIN(position) FROM source WHERE kind=@0 AND parent_playlist_id IS NOT NULL", (int)kind)
+            : null;
+        if (at is not null) Database.Exec(c, "UPDATE source SET position=position+1 WHERE kind=@0 AND position>=@1", (int)kind, at);
+        var id = (long)Database.Exec(c,
             "INSERT INTO source(kind,location,name,position,parent_playlist_id) " +
-            "VALUES(@0,@1,@2,(SELECT COALESCE(MAX(position),-1)+1 FROM source WHERE kind=@0),@3) RETURNING id",
-            (int)kind, location, name, parentPlaylistId)!;
+            "VALUES(@0,@1,@2,COALESCE(@4,(SELECT COALESCE(MAX(position),-1)+1 FROM source WHERE kind=@0)),@3) RETURNING id",
+            (int)kind, location, name, parentPlaylistId, at)!;
+        tx.Commit();
+        return id;
+    }
+
+    /// <summary>Points a source at a new address; the old validators belong to the old address, so they and the last attempt are cleared (the source becomes due).</summary>
+    public void SetLocation(long id, string location)
+    {
+        using var c = db.Open();
+        Database.Exec(c, "UPDATE source SET location=@0, etag=NULL, last_modified=NULL, last_attempt=NULL WHERE id=@1", location, id);
     }
 
     public IReadOnlyList<Source> List(SourceKind kind)

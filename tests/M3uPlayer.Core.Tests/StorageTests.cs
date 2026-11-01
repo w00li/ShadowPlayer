@@ -105,6 +105,27 @@ public sealed class StorageTests : IDisposable
     }
 
     [Fact]
+    public void Add_manual_epg_goes_above_url_tvg_children()
+    {
+        var pl = _sources.Add(SourceKind.Playlist, "p", "P");
+        var m1 = _sources.Add(SourceKind.Epg, "m1", "M1");
+        var child = _sources.Add(SourceKind.Epg, "u", "child", pl);
+        var m2 = _sources.Add(SourceKind.Epg, "m2", "M2");
+        Assert.Equal([m1, m2, child], _sources.List(SourceKind.Epg).Select(s => s.Id));
+        Assert.Equal([0, 1, 2], _sources.List(SourceKind.Epg).Select(s => s.Position));
+    }
+
+    [Fact]
+    public void SetLocation_clears_validators_and_attempt()
+    {
+        var id = _sources.Add(SourceKind.Epg, "old", "E");
+        _sources.RecordSuccess(id, Now, "etag", "lm", 0);
+        _sources.SetLocation(id, "new");
+        var s = _sources.List(SourceKind.Epg).Single();
+        Assert.Equal(("new", null, null, null, Now), (s.Location, s.ETag, s.LastModified, s.LastAttempt, s.LastSuccess));
+    }
+
+    [Fact]
     public void Remove_playlist_removes_its_channels_and_child_url_tvg_source()
     {
         var (pl, _) = Linked();
