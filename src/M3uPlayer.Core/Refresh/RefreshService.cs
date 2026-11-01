@@ -23,38 +23,25 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
     {
         if (!source.AutoRefresh) return false;
         var last = atStartup ? source.LastSuccess : source.LastAttempt;
-        return last is null || now - last >= TimeSpan.FromMinutes(source.IntervalMinutes);
+        // A timestamp in the future (clock change) must not stop refreshing.
+        return last is null || last > now || now - last >= TimeSpan.FromMinutes(source.IntervalMinutes);
     }
 
-    public async Task RefreshAsync(long sourceId, CancellationToken ct)
-    {
-        var changed = false;
-        await _gate.WaitAsync(ct);
-        try
-        {
-            var source = _sources.List(SourceKind.Playlist).Concat(_sources.List(SourceKind.Epg)).FirstOrDefault(s => s.Id == sourceId);
-            if (source is not null && (changed = await RefreshOneAsync(source, ct))) _programmes.RebuildMatches();
-        }
-        finally { _gate.Release(); }
-        if (changed) DataChanged?.Invoke();
-    }
+    public Task RefreshAsync(long sourceId, CancellationToken ct) => RefreshLockedAsync(sourceId, null, ct);
 
-    public async Task RefreshDueAsync(CancellationToken ct) => await RefreshDueAsync(false, ct);
+    public Task RefreshDueAsync(CancellationToken ct) => RefreshDueAsync(false, ct);
 
     private async Task RefreshDueAsync(bool atStartup, CancellationToken ct)
     {
-        var changed = 0;
+        // Playlists first, then EPG sources by position (re-listed, so a url-tvg child just added is included).
+        // The gate is taken per source so a manual refresh can get in between sources.
+        foreach (var kind in new[] { SourceKind.Playlist, SourceKind.Epg })
+            foreach (var id in _sources.List(kind).Select(s => s.Id))
+                await RefreshLockedAsync(id, atStartup, ct);
         await _gate.WaitAsync(ct);
-        try
-        {
-            // Playlists first, then EPG sources by position (re-listed, so a url-tvg child just added is included).
-            foreach (var kind in new[] { SourceKind.Playlist, SourceKind.Epg })
-                foreach (var s in _sources.List(kind))
-                    if (IsDue(s, clock.GetUtcNow(), atStartup) && await RefreshOneAsync(s, ct)) changed++;
-            if (changed > 0) _programmes.RebuildMatches();
-        }
+        try { _programmes.Prune(clock.GetUtcNow(), Retention()); } // 304-answering sources never reach ImportEpg's own pruning
+        catch (Exception ex) when (ex is not OperationCanceledException) { SafeLog("Pruning failed: " + Redactor.Redact(ex.Message)); }
         finally { _gate.Release(); }
-        for (var i = 0; i < changed; i++) DataChanged?.Invoke();
     }
 
     public async Task RunAsync(CancellationToken ct)
@@ -78,21 +65,64 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         catch (Exception ex) { SafeLog("Refresh loop failed: " + Redactor.Redact(ex.Message)); }
     }
 
-    /// <returns>True when new data was applied.</returns>
+    /// <param name="dueAtStartup">Null refreshes unconditionally; otherwise only when the source is due.</param>
+    private async Task RefreshLockedAsync(long id, bool? dueAtStartup, CancellationToken ct)
+    {
+        bool changed;
+        await _gate.WaitAsync(ct);
+        try
+        {
+            var source = _sources.List(SourceKind.Playlist).Concat(_sources.List(SourceKind.Epg)).FirstOrDefault(s => s.Id == id);
+            if (source is null || (dueAtStartup is { } startup && !IsDue(source, clock.GetUtcNow(), startup))) return;
+            changed = await RefreshOneAsync(source, ct);
+            if (changed)
+                try { _programmes.RebuildMatches(); }
+                catch (Exception ex) when (ex is not OperationCanceledException) { SafeLog("Rebuilding matches failed: " + Redactor.Redact(ex.Message)); }
+        }
+        finally { _gate.Release(); }
+        if (changed) Raise();
+    }
+
+    private void Raise()
+    {
+        foreach (Action handler in DataChanged?.GetInvocationList() ?? [])
+            try { handler(); }
+            catch (Exception ex) { SafeLog("DataChanged handler failed: " + Redactor.Redact(ex.Message)); }
+    }
+
+    private int Retention() => _channels.MaxCatchupDays() is var d and > 0 ? d : 1;
+
+    /// <returns>True when new data was applied (even if a later bookkeeping step failed).</returns>
     private async Task<bool> RefreshOneAsync(Source source, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         string? temp = null;
+        var applied = false;
         try
         {
             var fetched = await fetcher.FetchAsync(source, ct);
             temp = fetched.TempFilePath;
             if (fetched.NotModified)
             {
-                _sources.RecordAttempt(source.Id, now, null);
+                if (source.LastSuccess is null) throw new InvalidOperationException("The server reported no changes, but no data was ever loaded.");
+                _sources.RecordSuccess(source.Id, now, source.ETag, source.LastModified, source.SkippedCount);
                 return false;
             }
-            var skipped = source.Kind == SourceKind.Playlist ? ImportPlaylist(source, temp!) : ImportEpg(source, temp!, now);
+            int skipped;
+            if (source.Kind == SourceKind.Playlist)
+            {
+                var doc = ParsePlaylist(source, temp!);
+                _channels.Replace(source.Id, doc.Entries);
+                applied = true;
+                SyncUrlTvg(source, doc.EpgUrl);
+                skipped = doc.SkippedCount;
+            }
+            else
+            {
+                using var stream = File.OpenRead(temp!);
+                skipped = _programmes.ImportEpg(source.Id, stream, now, Retention());
+                applied = true;
+            }
             _sources.RecordSuccess(source.Id, now, fetched.ETag, fetched.LastModified, skipped);
             return true;
         }
@@ -100,31 +130,27 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         catch (Exception ex)
         {
             var message = Redactor.Redact(ex.Message);
-            _sources.RecordAttempt(source.Id, now, message);
+            try { _sources.RecordAttempt(source.Id, now, message); }
+            catch (Exception recordError) { SafeLog($"Recording the error of source {source.Id} failed: {Redactor.Redact(recordError.Message)}"); }
             SafeLog($"Refresh of source {source.Id} failed: {message}");
-            return false;
+            return applied;
         }
         finally
         {
-            if (temp is not null) try { File.Delete(temp); } catch (IOException) { }
+            if (temp is not null) try { File.Delete(temp); } catch (Exception) { }
         }
     }
 
-    private int ImportPlaylist(Source source, string path)
+    private static M3uDocument ParsePlaylist(Source source, string path)
     {
         using var reader = new StreamReader(path, Encoding.UTF8, true);
         var doc = M3uParser.Parse(reader);
         if (doc.Entries.Count == 0) throw new InvalidDataException("The playlist contains no channels.");
-        _channels.Replace(source.Id, doc.Entries);
-        SyncUrlTvg(source, doc.EpgUrl);
-        return doc.SkippedCount;
-    }
-
-    private int ImportEpg(Source source, string path, DateTimeOffset now)
-    {
-        var days = _channels.MaxCatchupDays();
-        using var stream = File.OpenRead(path);
-        return _programmes.ImportEpg(source.Id, stream, now, days == 0 ? 1 : days);
+        // A truncated or "account expired" list is valid M3U; refuse to let it wipe a large list.
+        if (source.ChannelCount >= 10 && doc.Entries.Count * 2 < source.ChannelCount)
+            throw new InvalidDataException($"The list now has {doc.Entries.Count} entries but {source.ChannelCount} were loaded before, so it was not applied. " +
+                "Remove and re-add the list to accept a smaller one.");
+        return doc;
     }
 
     // url-tvg may list several addresses; only the first is followed.
