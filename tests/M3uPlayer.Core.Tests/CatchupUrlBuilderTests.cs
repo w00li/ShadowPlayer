@@ -82,4 +82,13 @@ public class CatchupUrlBuilderTests
     [Fact] public void IsAvailable_zero_days_false() => Assert.False(Avail("fs", 0, Start, Start.AddHours(2)));
     [Fact] public void IsAvailable_future_programme_false() => Assert.False(Avail("fs", 3, Start, Start.AddMinutes(-1)));
     [Fact] public void IsAvailable_programme_in_progress_true() => Assert.True(Avail("fs", 3, Start, Start.AddMinutes(30)));
+
+    [Fact] public void IsAvailable_huge_days_does_not_throw() => Assert.True(Avail("fs", int.MaxValue, Start, Start.AddHours(1)));
+
+    [Fact]
+    public void Build_fs_and_shift_keep_encoded_token()
+    {
+        Assert.Equal($"http://h/ch/{N}-1793556000-3600.m3u8?token=a%2Bb%3D", B("fs", "http://h/ch/mono.m3u8?token=a%2Bb%3D"));
+        Assert.Equal("http://h/ch.m3u8?token=a%2Bb%3D&utc=1793556000&lutc=1793563200", B("shift", "http://h/ch.m3u8?token=a%2Bb%3D"));
+    }
 }
