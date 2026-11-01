@@ -99,4 +99,40 @@ public class PlaybackMonitorTests
         }
         Assert.Equal([TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(8), null], delays);
     }
+
+    [Fact]
+    public void Brief_progress_then_freeze_never_reports_Stable_and_exhausts_the_policy()
+    {
+        var policy = new ReconnectPolicy();
+        var m = new PlaybackMonitor(live: true);
+        var now = 0.0;
+        var delays = new List<TimeSpan?>();
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            m.OnOpening(At(now));
+            m.OnPlaying(At(now));
+            m.OnTime(At(now + 1), 1000);
+            m.OnTime(At(now + 2), 2000);
+            for (var s = 3; s <= 20; s++)
+            {
+                var v = m.Tick(At(now + s));
+                Assert.NotEqual(MonitorVerdict.Stable, v);
+                if (v == MonitorVerdict.Stalled) { delays.Add(policy.NextDelay()); break; }
+            }
+            now += 30;
+        }
+        Assert.Equal([TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(8), null], delays);
+    }
+
+    [Fact]
+    public void Resume_after_pause_does_not_report_false_Stable()
+    {
+        var m = new PlaybackMonitor(live: true);
+        m.OnOpening(At(0));
+        m.OnPlaying(At(0));
+        m.OnTime(At(1), 1000);
+        m.OnPaused();
+        m.OnPlaying(At(100));
+        Assert.Equal(MonitorVerdict.None, m.Tick(At(101)));
+    }
 }

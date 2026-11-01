@@ -16,6 +16,7 @@ public class PlaybackMonitor(bool live)
     private Phase _phase;
     private DateTime _since;        // start of Opening, or the last position change while Playing
     private DateTime? _progressFrom; // first position change of this attempt
+    private DateTime _lastProgress;   // latest position change; unlike _since, a resume does not move it
     private long _lastMs = -1;
     private bool _stableReported;
 
@@ -40,6 +41,7 @@ public class PlaybackMonitor(bool live)
         _lastMs = ms;
         _since = now;
         _progressFrom ??= now;
+        _lastProgress = now;
     }
 
     public void OnPaused() => _phase = Phase.Paused;
@@ -52,7 +54,7 @@ public class PlaybackMonitor(bool live)
             case Phase.Playing when live && now - _since >= StallAfter:
                 _phase = Phase.Idle;
                 return MonitorVerdict.Stalled;
-            case Phase.Playing when !_stableReported && _progressFrom is { } from && _since > from && now - from >= StableAfter:
+            case Phase.Playing when !_stableReported && _progressFrom is { } from && _lastProgress - from >= StableAfter:
                 _stableReported = true;
                 return MonitorVerdict.Stable;
             default:

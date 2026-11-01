@@ -7,7 +7,8 @@ public enum PlayerState { Idle, Opening, Playing, Paused, Reconnecting, Failed }
 public record TrackInfo(int Id, string Name);
 
 /// <remarks>
-/// StateChanged and PositionChanged fire on a non-UI thread; the view model must dispatch to the UI thread.
+/// StateChanged and PositionChanged fire on a non-UI thread while the player holds its internal lock: handlers must only
+/// dispatch to the UI thread and must not block. Attach and Dispose of VlcPlayer must be called on the UI thread.
 /// </remarks>
 public interface IPlayer
 {

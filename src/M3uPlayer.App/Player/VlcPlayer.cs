@@ -46,9 +46,12 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
 
     private void EnsureStarted()
     {
-        if (_worker is not null) return;
-        _worker = Task.Run(RunWorker);
-        _watchdog = new Timer(_ => Tick(), null, 1000, 1000);
+        lock (_gate)
+        {
+            if (_worker is not null || _disposed) return;
+            _worker = Task.Run(RunWorker);
+            _watchdog = new Timer(_ => Tick(), null, 1000, 1000);
+        }
     }
 
     /// <summary>Call before the view initializes. Calling again with a new view (page navigation) retires the old player.</summary>
@@ -57,7 +60,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         EnsureStarted();
         lock (_gate)
         {
-            if (_disposed) return;
+            if (_disposed || ReferenceEquals(_view, view)) return; // the same view keeps its working player
             if (_view is { } old)
             {
                 old.Initialized -= OnInitialized;
@@ -67,6 +70,11 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             _view = view;
         }
         view.Initialized += OnInitialized;
+        // A view that is already loaded will not raise Initialized again; its swap chain options are readable only then.
+        string[] options;
+        try { options = view.SwapChainOptions; }
+        catch (InvalidOperationException) { return; }
+        Initialize(view, options);
     }
 
     private void RetirePlayerLocked()
@@ -86,10 +94,12 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         });
     }
 
-    private void OnInitialized(object? sender, InitializedEventArgs e)
+    private void OnInitialized(object? sender, InitializedEventArgs e) => Initialize((VideoView)sender!, e.SwapChainOptions);
+
+    private void Initialize(VideoView view, string[] swapChainOptions)
     {
-        // Must be created here with the swap chain options, or video opens in its own window.
-        var lib = new LibVLC(e.SwapChainOptions);
+        // Must be created with the swap chain options, or video opens in its own window.
+        var lib = new LibVLC(swapChainOptions);
         var mp = new MediaPlayer(lib);
         mp.Playing += (_, _) => OnPlaying(mp);
         mp.EndReached += (_, _) => OnEnded(mp);
@@ -98,16 +108,18 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         mp.LengthChanged += (_, a) => Cache(mp, () => _lenMs = a.Length);
         mp.SeekableChanged += (_, a) => Cache(mp, () => _seekable = a.Seekable != 0);
         mp.ESAdded += (_, _) => Enqueue(RefreshTracks);
+        mp.ESDeleted += (_, _) => Enqueue(RefreshTracks);
         int gen;
         lock (_gate)
         {
-            if (_disposed || !ReferenceEquals(sender, _view)) { lib.Dispose(); mp.Dispose(); return; }
+            if (_disposed || !ReferenceEquals(view, _view)) { mp.Dispose(); lib.Dispose(); return; }
             RetirePlayerLocked(); // a repeated Initialized must not leave the first player running
             _lib = lib;
             _mp = mp;
-            _view!.MediaPlayer = mp;
+            view.MediaPlayer = mp;
             Enqueue(() => { mp.Volume = _volume; mp.Mute = _muted; });
-            if (_req is null || _userPaused) return; // paused requests restart from Resume
+            if (_req is null || _state is PlayerState.Idle or PlayerState.Failed) return; // nothing to replay
+            if (_userPaused) { _needsRestart = true; return; } // the new player has no media; Resume starts it
             gen = ++_gen; // resume the current request on the new view
             _monitor.OnOpening(Now);
             SetLocked(PlayerState.Opening);
@@ -164,7 +176,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         lock (_gate)
         {
             if (_disposed || _req is null || _state is PlayerState.Idle or PlayerState.Failed or PlayerState.Paused) return;
-            if (_state == PlayerState.Reconnecting) _needsRestart = true; // nothing is playing to pause
+            if (_state is PlayerState.Reconnecting or PlayerState.Opening) _needsRestart = true; // no open stream to resume
             _userPaused = true;
             _retry.Cancel();
             _retry = new();
@@ -234,13 +246,14 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
     private void RefreshTracks()
     {
         if (Mp() is not { } m) return;
-        var audio = Tracks(m.AudioTrackDescription);
-        var subs = Tracks(m.SpuDescription);
-        lock (_gate) { if (ReferenceEquals(m, _mp)) (_audio, _subs) = (audio, subs); }
+        var audio = Tracks(m.AudioTrackDescription, keepOff: false);
+        var subs = Tracks(m.SpuDescription, keepOff: true);
+        lock (_gate) { if (Accept(m)) (_audio, _subs) = (audio, subs); } // never an old stream's tracks
     }
 
-    private static IReadOnlyList<TrackInfo> Tracks(TrackDescription[]? d) =>
-        d is null ? [] : [.. d.Select(t => new TrackInfo(t.Id, t.Name ?? ""))];
+    // LibVLC lists a "Disable" pseudo-entry (Id -1): a useful "off" for subtitles, meaningless for audio.
+    private static IReadOnlyList<TrackInfo> Tracks(TrackDescription[]? d, bool keepOff) =>
+        d is null ? [] : [.. d.Where(t => keepOff || t.Id >= 0).Select(t => new TrackInfo(t.Id, t.Id < 0 ? "Wyłączone" : t.Name ?? ""))];
 
     private MediaPlayer? Mp() { lock (_gate) return _mp; }
     private bool Current(int gen) { lock (_gate) return gen == _gen && !_disposed; }
@@ -329,6 +342,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
     {
         if (_state is PlayerState.Idle or PlayerState.Failed) return;
         _accepting = false;
+        _userPaused = _needsRestart = false;
         LastError = message;
         var gen = _gen;
         SetLocked(PlayerState.Failed);
