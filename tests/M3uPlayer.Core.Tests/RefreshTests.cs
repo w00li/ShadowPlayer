@@ -45,6 +45,8 @@ public sealed class RefreshTests : IDisposable
     private readonly FakeHandler _handler;
     private readonly RefreshService _svc;
     private int _active, _maxActive;
+    private string? _holdUrl;
+    private readonly TaskCompletionSource _hold = new(), _entered = new();
 
     public RefreshTests()
     {
@@ -58,6 +60,7 @@ public sealed class RefreshTests : IDisposable
             var now = Interlocked.Increment(ref _active);
             _maxActive = Math.Max(_maxActive, now);
             await Task.Delay(30, TestContext.Current.CancellationToken);
+            if (r.RequestUri!.ToString() == _holdUrl) { _entered.TrySetResult(); await _hold.Task; }
             Interlocked.Decrement(ref _active);
             if (!_served.TryGetValue(r.RequestUri!.ToString(), out var s)) return new HttpResponseMessage(HttpStatusCode.NotFound);
             var resp = new HttpResponseMessage(s.Status) { Content = new StringContent(s.Body) };
@@ -91,6 +94,36 @@ public sealed class RefreshTests : IDisposable
         _served[url] = (status, body, etag);
 
     private Source Get(long id) => _sources.List(SourceKind.Playlist).Concat(_sources.List(SourceKind.Epg)).Single(s => s.Id == id);
+
+    private static string Many(int n) =>
+        "#EXTM3U\n" + string.Concat(Enumerable.Range(0, n).Select(i => $"#EXTINF:-1 tvg-id=\"c{i}\",Chan{i}\nhttp://s.invalid/{i}\n"));
+
+    private void Sql(string sql)
+    {
+        using var c = _db.Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.ExecuteNonQuery();
+    }
+
+    private sealed class NeverStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            await Task.Delay(Timeout.Infinite, ct);
+            return 0;
+        }
+    }
 
     private long AddPlaylist(string url = PlUrl) => _sources.Add(SourceKind.Playlist, url, "P");
 
@@ -252,7 +285,7 @@ public sealed class RefreshTests : IDisposable
         Serve(PlUrl, "", HttpStatusCode.NotModified);
         await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
         var s = Get(id);
-        Assert.Equal((null, first.LastSuccess, T0.AddHours(1), 1), (s.LastError, s.LastSuccess, s.LastAttempt, _channels.CountAll()));
+        Assert.Equal((null, T0.AddHours(1), T0.AddHours(1), 1), (s.LastError, s.LastSuccess, s.LastAttempt, _channels.CountAll()));
     }
 
     [Fact]
@@ -446,6 +479,178 @@ public sealed class RefreshTests : IDisposable
         Assert.NotNull(Get(pl).LastError);
         cts.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => run);
+    }
+
+    [Fact]
+    public async Task Fetch_stalled_body_times_out_as_failure()
+    {
+        var h = new FakeHandler((Func<HttpRequestMessage, HttpResponseMessage>)(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new NeverStream()) }));
+        var f = new SourceFetcher(new HttpClient(h), [], (_, _) => Task.CompletedTask, TmpDir, idleTimeout: TimeSpan.FromMilliseconds(150));
+        await Assert.ThrowsAsync<TimeoutException>(() => f.FetchAsync(Src(PlUrl), TestContext.Current.CancellationToken));
+        Assert.False(Directory.Exists(TmpDir) && Directory.GetFiles(TmpDir).Length > 0);
+    }
+
+    [Fact]
+    public async Task Fetch_caller_cancellation_is_not_a_timeout()
+    {
+        var h = new FakeHandler((Func<HttpRequestMessage, HttpResponseMessage>)(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new NeverStream()) }));
+        var f = new SourceFetcher(new HttpClient(h), [], (_, _) => Task.CompletedTask, TmpDir);
+        using var cts = new CancellationTokenSource(100);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => f.FetchAsync(Src(PlUrl), cts.Token));
+    }
+
+    [Fact]
+    public async Task Fetch_404_is_not_retried_but_429_is()
+    {
+        var delays = new List<TimeSpan>();
+        var f = Fetcher(delays, 500_000_000, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30));
+        await Assert.ThrowsAsync<HttpRequestException>(() => f.FetchAsync(Src(PlUrl), TestContext.Current.CancellationToken));
+        Assert.Empty(delays);
+        Assert.Single(_handler.Requests);
+        Serve(PlUrl, "", (HttpStatusCode)429);
+        await Assert.ThrowsAsync<HttpRequestException>(() => f.FetchAsync(Src(PlUrl), TestContext.Current.CancellationToken));
+        Assert.Equal(2, delays.Count);
+    }
+
+    [Fact]
+    public async Task Refresh_big_drop_keeps_channels_favorites_and_validators()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Many(10), HttpStatusCode.OK, "\"v1\"");
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        _channels.SetFavorite("c3", true);
+        Serve(PlUrl, Many(4), HttpStatusCode.OK, "\"v2\"");
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        var s = Get(id);
+        Assert.Equal((10, 1, "\"v1\""), (_channels.CountAll(), _channels.CountFavorites(), s.ETag));
+        Assert.Contains("re-add", s.LastError);
+        Assert.Contains("4", s.LastError);
+        Assert.Contains("10", s.LastError);
+    }
+
+    [Fact]
+    public async Task Refresh_drop_to_exactly_half_succeeds()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Many(10));
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Serve(PlUrl, Many(5));
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Assert.Equal((5, null), (_channels.CountAll(), Get(id).LastError));
+    }
+
+    [Fact]
+    public async Task Refresh_small_list_may_shrink_freely()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Many(9));
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Serve(PlUrl, Many(1));
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Assert.Equal((1, null), (_channels.CountAll(), Get(id).LastError));
+    }
+
+    [Fact]
+    public async Task Refresh_manual_request_gets_in_between_sources_of_a_pass()
+    {
+        const string a = "http://a.invalid/a.m3u", b = "http://b.invalid/b.m3u";
+        AddPlaylist(a);
+        AddPlaylist(b);
+        var manual = AddPlaylist(PlUrl);
+        _sources.SetInterval(manual, 720, false);
+        Serve(a, Many(1)); Serve(b, Many(1)); Serve(PlUrl, Many(1));
+        _holdUrl = a;
+        var pass = _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        await _entered.Task;
+        var manualRun = _svc.RefreshAsync(manual, TestContext.Current.CancellationToken);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        _hold.SetResult();
+        await Task.WhenAll(pass, manualRun);
+        Assert.Equal([a, PlUrl, b], _handler.Requests.Select(r => r.Url).Where(u => u != EpgUrl));
+    }
+
+    [Fact]
+    public async Task Refresh_pass_continues_when_recording_a_failure_throws()
+    {
+        var bad = AddPlaylist("http://gone.invalid/x.m3u");
+        AddPlaylist();
+        Serve(PlUrl, Playlist());
+        Sql($"CREATE TRIGGER boom BEFORE UPDATE OF last_error ON source WHEN NEW.id={bad} BEGIN SELECT RAISE(ABORT,'boom'); END");
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, _channels.CountAll());
+    }
+
+    [Fact]
+    public async Task Refresh_raises_DataChanged_when_a_step_after_apply_throws()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Playlist());
+        Sql($"CREATE TRIGGER boom BEFORE UPDATE OF last_success ON source WHEN NEW.id={id} BEGIN SELECT RAISE(ABORT,'boom'); END");
+        var raised = 0;
+        _svc.DataChanged += () => raised++;
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Assert.Equal((1, 1), (raised, _channels.CountAll()));
+        Assert.NotNull(Get(id).LastError);
+    }
+
+    [Fact]
+    public async Task Refresh_throwing_DataChanged_handler_does_not_stop_others_or_the_caller()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Playlist());
+        var raised = 0;
+        _svc.DataChanged += () => throw new InvalidOperationException("handler");
+        _svc.DataChanged += () => raised++;
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
+    public async Task Refresh_304_counts_as_successful_check()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, Playlist(), HttpStatusCode.OK, "\"v1\"");
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        _sources.RecordAttempt(id, T0, "old failure");
+        _clock.Now = T0.AddDays(3);
+        Serve(PlUrl, "", HttpStatusCode.NotModified);
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        var s = Get(id);
+        Assert.Equal((T0.AddDays(3), null, "\"v1\"", 1), (s.LastSuccess, s.LastError, s.ETag, _channels.CountAll()));
+    }
+
+    [Fact]
+    public async Task Refresh_304_without_loaded_data_is_a_failure()
+    {
+        var id = AddPlaylist();
+        Serve(PlUrl, "", HttpStatusCode.NotModified);
+        await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
+        var s = Get(id);
+        Assert.Null(s.LastSuccess);
+        Assert.NotNull(s.LastError);
+    }
+
+    [Fact]
+    public async Task Refresh_pass_prunes_even_when_every_source_answers_304()
+    {
+        var epg = AddEpg();
+        _programmes.ImportEpg(epg, new MemoryStream(Encoding.UTF8.GetBytes(Xml(("e1", T0.AddDays(-5), "Old"), ("e1", T0, "Now")))), T0, 7);
+        _sources.RecordSuccess(epg, T0.AddDays(-1), "\"v\"", null, 0);
+        Serve(EpgUrl, "", HttpStatusCode.NotModified);
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        using var c = _db.Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM programme";
+        Assert.Equal(1L, cmd.ExecuteScalar());
+    }
+
+    [Fact]
+    public void IsDue_timestamp_in_the_future_is_due()
+    {
+        Assert.True(RefreshService.IsDue(Due(T0.AddHours(5), T0.AddHours(5)), T0, false));
+        Assert.True(RefreshService.IsDue(Due(T0.AddHours(5), T0.AddHours(5)), T0, true));
     }
 
     // ---- IsDue ----

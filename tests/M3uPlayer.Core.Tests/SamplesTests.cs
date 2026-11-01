@@ -33,9 +33,11 @@ public sealed class SamplesTests : IDisposable
     public async Task Real_playlist_and_epg_refresh_end_to_end()
     {
         var samples = SamplesDir();
-        var playlist = samples is null ? null : Directory.GetFiles(samples, "*.m3u").SingleOrDefault();
+        var playlists = samples is null ? [] : Directory.GetFiles(samples, "*.m3u");
+        if (playlists.Length != 1) { Assert.Skip("samples/ needs exactly one playlist."); return; }
+        var playlist = playlists[0];
         var epgFile = samples is null ? null : Path.Combine(samples, "epg", "pl.gz");
-        if (playlist is null || !File.Exists(epgFile)) { Assert.Skip("samples/ has no playlist or EPG."); return; }
+        if (!File.Exists(epgFile)) { Assert.Skip("samples/ has no playlist or EPG."); return; }
 
         M3uDocument doc;
         using (var r = new StreamReader(playlist)) doc = M3uParser.Parse(r);

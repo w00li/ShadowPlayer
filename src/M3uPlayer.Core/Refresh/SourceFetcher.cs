@@ -7,8 +7,10 @@ public record FetchResult(bool NotModified, string? TempFilePath, string? ETag, 
 
 /// <summary>Downloads a source (URL or local file) to a temp file. The caller owns, and must delete, the returned file.</summary>
 public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays, Func<TimeSpan, CancellationToken, Task> delay,
-    string tempDir, long maxBytes = 500L * 1024 * 1024)
+    string tempDir, long maxBytes = 500L * 1024 * 1024, TimeSpan? idleTimeout = null)
 {
+    private readonly TimeSpan _idle = idleTimeout ?? TimeSpan.FromSeconds(60);
+
     public static bool IsHttp(string location) =>
         Uri.TryCreate(location, UriKind.Absolute, out var u) && u.Scheme is "http" or "https";
 
@@ -24,17 +26,36 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         for (var attempt = 0; ; attempt++)
         {
             try { return await DownloadAsync(source, ct); }
-            // A timeout surfaces as TaskCanceledException while ct is not cancelled; that is retryable like any network error.
-            catch (Exception ex) when (attempt < retryDelays.Count && !ct.IsCancellationRequested
-                && ex is HttpRequestException or IOException or TaskCanceledException)
+            catch (Exception ex) when (attempt < retryDelays.Count && Retryable(ex))
             {
                 await delay(retryDelays[attempt], ct);
             }
         }
     }
 
-    private async Task<FetchResult> DownloadAsync(Source source, CancellationToken ct)
+    // Permanent client errors would only burn minutes of delays.
+    private static bool Retryable(Exception ex) => ex switch
     {
+        HttpRequestException { StatusCode: { } sc } => (int)sc is < 400 or >= 500 || (int)sc is 408 or 425 or 429,
+        HttpRequestException or IOException or TimeoutException => true,
+        _ => false,
+    };
+
+    private async Task<FetchResult> DownloadAsync(Source source, CancellationToken callerCt)
+    {
+        // HttpClient.Timeout stops at the headers, so a stalled body needs its own idle timer, reset by every read.
+        using var idle = CancellationTokenSource.CreateLinkedTokenSource(callerCt);
+        idle.CancelAfter(_idle);
+        try { return await DownloadCoreAsync(source, idle); }
+        catch (OperationCanceledException) when (!callerCt.IsCancellationRequested)
+        {
+            throw new TimeoutException("The server stopped responding.");
+        }
+    }
+
+    private async Task<FetchResult> DownloadCoreAsync(Source source, CancellationTokenSource idle)
+    {
+        var ct = idle.Token;
         using var request = new HttpRequestMessage(HttpMethod.Get, source.Location);
         if (source.ETag is not null) request.Headers.TryAddWithoutValidation("If-None-Match", source.ETag);
         if (source.LastModified is not null) request.Headers.TryAddWithoutValidation("If-Modified-Since", source.LastModified);
@@ -47,7 +68,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
             throw new HttpRequestException("The server redirected to an unsupported address.");
 
         await using var body = await response.Content.ReadAsStreamAsync(ct);
-        var path = await CopyToTempAsync(body, ct);
+        var path = await CopyToTempAsync(body, ct, idle);
         return new FetchResult(false, path, response.Headers.ETag?.ToString(),
             response.Content.Headers.LastModified?.UtcDateTime.ToString("R", CultureInfo.InvariantCulture));
     }
@@ -59,10 +80,10 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         var modified = info.LastWriteTimeUtc.ToString("O", CultureInfo.InvariantCulture);
         if (source.LastSuccess is not null && modified == source.LastModified) return new FetchResult(true, null, null, modified);
         await using var input = info.OpenRead();
-        return new FetchResult(false, await CopyToTempAsync(input, ct), null, modified);
+        return new FetchResult(false, await CopyToTempAsync(input, ct, null), null, modified);
     }
 
-    private async Task<string> CopyToTempAsync(Stream input, CancellationToken ct)
+    private async Task<string> CopyToTempAsync(Stream input, CancellationToken ct, CancellationTokenSource? idle)
     {
         Directory.CreateDirectory(tempDir);
         var path = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + ".tmp");
@@ -75,6 +96,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
                 int n;
                 while ((n = await input.ReadAsync(buffer, ct)) > 0)
                 {
+                    idle?.CancelAfter(_idle);
                     total += n;
                     if (total > maxBytes) throw new InvalidDataException("The source is larger than the allowed size.");
                     await output.WriteAsync(buffer.AsMemory(0, n), ct);
@@ -84,7 +106,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         }
         catch
         {
-            File.Delete(path);
+            try { File.Delete(path); } catch (Exception) { }
             throw;
         }
     }
