@@ -26,7 +26,7 @@ public static partial class M3uParser
         string? line;
         do line = reader.ReadLine()?.Trim('﻿', ' ', '\t'); while (line is { Length: 0 });
         if (line is null || !line.StartsWith("#EXTM3U", StringComparison.OrdinalIgnoreCase))
-            throw new FormatException("Missing #EXTM3U header.");
+            throw new FormatException("To nie wygląda na listę M3U (brak nagłówka #EXTM3U). Zostały poprzednie dane.");
 
         var header = Attrs(line);
         var epg = NonEmpty(header, "url-tvg") ?? NonEmpty(header, "x-tvg-url");

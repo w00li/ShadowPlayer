@@ -559,7 +559,7 @@ public sealed class RefreshTests : IDisposable
         await _svc.RefreshAsync(id, TestContext.Current.CancellationToken);
         var s = Get(id);
         Assert.Equal((10, 1, "\"v1\""), (_channels.CountAll(), _channels.CountFavorites(), s.ETag));
-        Assert.Contains("re-add", s.LastError);
+        Assert.Contains("dodaj ją ponownie", s.LastError);
         Assert.Contains("4", s.LastError);
         Assert.Contains("10", s.LastError);
     }

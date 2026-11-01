@@ -104,7 +104,7 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
             temp = fetched.TempFilePath;
             if (fetched.NotModified)
             {
-                if (source.LastSuccess is null) throw new InvalidOperationException("The server reported no changes, but no data was ever loaded.");
+                if (source.LastSuccess is null) throw new InvalidOperationException("Serwer nie zgłosił zmian, ale dane nie zostały jeszcze wczytane. Spróbujemy ponownie o następnej porze odświeżania.");
                 _sources.RecordSuccess(source.Id, now, source.ETag, source.LastModified, source.SkippedCount);
                 return false;
             }
@@ -145,11 +145,11 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
     {
         using var reader = new StreamReader(path, Encoding.UTF8, true);
         var doc = M3uParser.Parse(reader);
-        if (doc.Entries.Count == 0) throw new InvalidDataException("The playlist contains no channels.");
+        if (doc.Entries.Count == 0) throw new InvalidDataException("Lista nie zawiera kanałów, więc zostały poprzednie dane.");
         // A truncated or "account expired" list is valid M3U; refuse to let it wipe a large list.
         if (source.ChannelCount >= 10 && doc.Entries.Count * 2 < source.ChannelCount)
-            throw new InvalidDataException($"The list now has {doc.Entries.Count} entries but {source.ChannelCount} were loaded before, so it was not applied. " +
-                "Remove and re-add the list to accept a smaller one.");
+            throw new InvalidDataException($"Lista ma teraz {doc.Entries.Count} pozycji, a poprzednio {source.ChannelCount}, więc jej nie zastosowano. " +
+                "Usuń listę i dodaj ją ponownie, jeśli ma być mniejsza.");
         return doc;
     }
 
