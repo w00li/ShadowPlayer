@@ -491,6 +491,40 @@ public sealed class RefreshTests : IDisposable
         Assert.False(Directory.Exists(TmpDir) && Directory.GetFiles(TmpDir).Length > 0);
     }
 
+    private sealed class SlowStream(int chunks) : Stream
+    {
+        private int _left = chunks;
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            if (_left == 0) return 0;
+            await Task.Delay(50, ct);
+            _left--;
+            buffer.Span[0] = (byte)'x';
+            return 1;
+        }
+    }
+
+    [Fact]
+    public async Task Fetch_slow_body_is_not_killed_by_idle_timeout()
+    {
+        var h = new FakeHandler((Func<HttpRequestMessage, HttpResponseMessage>)(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new SlowStream(8)) }));
+        var f = new SourceFetcher(new HttpClient(h), [], (_, _) => Task.CompletedTask, TmpDir, idleTimeout: TimeSpan.FromMilliseconds(150));
+        var r = await f.FetchAsync(Src(PlUrl), TestContext.Current.CancellationToken);
+        Assert.Equal(8, new FileInfo(r.TempFilePath!).Length);
+        File.Delete(r.TempFilePath!);
+    }
+
     [Fact]
     public async Task Fetch_caller_cancellation_is_not_a_timeout()
     {
