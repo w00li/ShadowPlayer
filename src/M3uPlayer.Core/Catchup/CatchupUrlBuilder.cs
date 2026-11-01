@@ -20,7 +20,7 @@ public static partial class CatchupUrlBuilder
 
     public static bool IsAvailable(CatchupInfo info, DateTimeOffset programmeStart, DateTimeOffset programmeStop, DateTimeOffset now) =>
         info.Type is { } t && Supported.Contains(t) && info.Days > 0
-        && programmeStart <= now && programmeStart >= now - TimeSpan.FromDays(info.Days);
+        && programmeStart <= now && (now - programmeStart).TotalDays <= info.Days;
 
     public static string? Build(CatchupInfo info, string liveUrl, DateTimeOffset start, DateTimeOffset stop, DateTimeOffset now)
     {
