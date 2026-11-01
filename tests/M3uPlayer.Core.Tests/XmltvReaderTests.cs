@@ -144,4 +144,49 @@ public class XmltvReaderTests
                                     "<display-name>ViDocTV 4К</display-name></channel></tv>").Channels).DisplayNames;
         Assert.Equal(new[] { "TVP 3 Gdańsk", "ViDocTV 4К" }, names);
     }
+
+    private static byte[] Gzip(int programmes)
+    {
+        var xml = new StringBuilder("<tv>");
+        for (var i = 0; i < programmes; i++)
+            xml.Append($"<programme start=\"20261101120000\" channel=\"c\"><title>T{i} {Guid.NewGuid()}</title></programme>");
+        xml.Append("</tv>");
+        var ms = new MemoryStream();
+        using (var gz = new GZipStream(ms, CompressionLevel.Fastest, leaveOpen: true))
+            gz.Write(Encoding.UTF8.GetBytes(xml.ToString()));
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public void Read_rejects_non_seekable_stream() =>
+        Assert.Throws<ArgumentException>(() => R(new NonSeekable(S("<tv/>"))));
+
+    [Fact]
+    public void Read_truncated_gzip_throws()
+    {
+        var data = Gzip(2000);
+        Assert.Throws<XmlException>(() => R(new MemoryStream(data, 0, data.Length / 2)));
+    }
+
+    [Fact]
+    public void Read_corrupt_gzip_throws()
+    {
+        var data = Gzip(2000);
+        for (var i = data.Length / 2; i < data.Length / 2 + 64; i++) data[i] ^= 0xFF;
+        Assert.Throws<InvalidDataException>(() => R(new MemoryStream(data)));
+    }
+
+    private sealed class NonSeekable(Stream inner) : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => inner.Read(buffer, offset, count);
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
 }

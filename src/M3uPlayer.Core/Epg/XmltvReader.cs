@@ -16,7 +16,7 @@ public static class XmltvReader
     /// <summary>Streams channels and programmes to the callbacks; returns the number of skipped programmes.</summary>
     public static int Read(Stream stream, Action<XmltvChannel> onChannel, Action<XmltvProgramme> onProgramme)
     {
-        // shortcut: gzip sniffing needs a seekable stream, so download to a file first.
+        // shortcut: gzip sniffing seeks back, so only seekable streams work, upgrade to a prefix-replaying stream when a caller must read a network stream directly.
         if (!stream.CanSeek) throw new ArgumentException("Stream must be seekable.", nameof(stream));
         var b0 = stream.ReadByte();
         var b1 = stream.ReadByte();
