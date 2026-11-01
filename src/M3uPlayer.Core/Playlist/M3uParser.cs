@@ -90,7 +90,7 @@ public static partial class M3uParser
         var days = NonEmpty(a, "catchup-days") ?? NonEmpty(a, "timeshift");
         return new M3uEntry(
             key, name, url, tvgId, NonEmpty(a, "tvg-name"), NonEmpty(a, "tvg-logo"),
-            double.TryParse(NonEmpty(a, "tvg-shift"), NumberStyles.Float, CultureInfo.InvariantCulture, out var shift) ? shift : 0,
+            double.TryParse(NonEmpty(a, "tvg-shift"), NumberStyles.Float, CultureInfo.InvariantCulture, out var shift) && Math.Abs(shift) <= 24 ? shift : 0, // NaN fails the comparison too
             NonEmpty(a, "group-title") ?? "Inne",
             NonEmpty(a, "catchup"), NonEmpty(a, "catchup-source"),
             int.TryParse(days, NumberStyles.Integer, CultureInfo.InvariantCulture, out var d) ? d : 0,

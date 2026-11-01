@@ -60,6 +60,15 @@ public class M3uParserTests
         Assert.Equal("http://h/1", e.Url);
     }
 
+    [Theory]
+    [InlineData("NaN")]
+    [InlineData("Infinity")]
+    [InlineData("1e300")]
+    [InlineData("25")]
+    [InlineData("-24.5")]
+    public void Parse_tvg_shift_untrusted_value_becomes_zero(string raw) =>
+        Assert.Equal(0, One($"#EXTINF:-1 tvg-shift=\"{raw}\",A").ShiftHours);
+
     [Fact]
     public void Parse_tvg_shift_in_hours() => Assert.Equal(-1.5, One("#EXTINF:-1 tvg-shift=\"-1.5\",A").ShiftHours);
 

@@ -27,6 +27,11 @@ public class ChannelStore(Database db)
     {
         using var c = db.Open();
         using var tx = c.BeginTransaction();
+        var oldKeys = Database.Rows(c, "SELECT key FROM channel WHERE source_id=@0", r => r.GetString(0), sourceId).ToHashSet();
+        // The delete cascades to channel_match; keep the rows of surviving keys so the guide survives until the next rebuild.
+        var oldMatches = Database.Rows(c,
+            "SELECT m.channel_key,m.source_id,m.epg_channel_id FROM channel_match m JOIN channel ch ON ch.key=m.channel_key WHERE ch.source_id=@0",
+            r => (Key: r.GetString(0), Source: r.GetInt64(1), Epg: r.GetString(2)), sourceId);
         Database.Exec(c, "DELETE FROM channel WHERE source_id=@0", sourceId);
         using var exists = Database.Cmd(c, "SELECT 1 FROM channel WHERE key=@k");
         var k = exists.Parameters.AddWithValue("@k", "");
@@ -37,7 +42,10 @@ public class ChannelStore(Database db)
         foreach (var e in entries)
         {
             k.Value = e.Key;
-            var key = exists.ExecuteScalar() is null ? e.Key : $"{e.Key}#{sourceId}";
+            // Reuse the key this source held before, so a star never flips between lists; otherwise append "#id" until free.
+            var suffix = $"#{sourceId}";
+            var key = new[] { e.Key, e.Key + suffix, e.Key + suffix + suffix }.FirstOrDefault(oldKeys.Contains) ?? e.Key;
+            for (k.Value = key; exists.ExecuteScalar() is not null; k.Value = key) key += suffix;
             object?[] values =
             [
                 key, sourceId, e.Name, TextNormalizer.ForSearch(e.Name), e.Url, e.Logo, e.Category, e.ShiftHours,
@@ -46,6 +54,9 @@ public class ChannelStore(Database db)
             for (var i = 0; i < p.Length; i++) p[i].Value = values[i] ?? DBNull.Value;
             insert.ExecuteNonQuery();
         }
+        foreach (var m in oldMatches)
+            Database.Exec(c, "INSERT OR IGNORE INTO channel_match(channel_key,source_id,epg_channel_id) " +
+                "SELECT @0,@1,@2 WHERE EXISTS(SELECT 1 FROM channel WHERE key=@0)", m.Key, m.Source, m.Epg);
         Database.Exec(c, "UPDATE source SET channel_count=@1 WHERE id=@0", sourceId, entries.Count);
         tx.Commit();
     }
@@ -54,8 +65,8 @@ public class ChannelStore(Database db)
     {
         using var c = db.Open();
         return Database.Rows(c,
-            "SELECT c.category, COUNT(*) FROM channel c JOIN source s ON s.id=c.source_id " +
-            "GROUP BY c.category ORDER BY MIN(s.position), MIN(c.rowid)",
+            "SELECT category, COUNT(*) FROM (SELECT c.category, ROW_NUMBER() OVER (ORDER BY s.position, c.rowid) rn " +
+            "FROM channel c JOIN source s ON s.id=c.source_id) GROUP BY category ORDER BY MIN(rn)",
             r => new CategoryCount(r.GetString(0), r.GetInt32(1)));
     }
 

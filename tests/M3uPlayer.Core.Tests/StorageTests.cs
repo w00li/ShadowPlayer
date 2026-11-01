@@ -26,6 +26,7 @@ public sealed class StorageTests : IDisposable
 
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         foreach (var f in Directory.GetFiles(Path.GetTempPath(), Path.GetFileName(_path) + "*")) File.Delete(f);
     }
 
@@ -394,6 +395,146 @@ public sealed class StorageTests : IDisposable
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(60), $"took {sw.Elapsed}");
         using var c = _db.Open();
         Assert.Equal(110000L, Scalar(c, "SELECT COUNT(*) FROM programme"));
+    }
+
+    private static MemoryStream Raw(string body) => new(Encoding.UTF8.GetBytes("<tv>" + body + "</tv>"));
+
+    private static string Prog(string ch, DateTimeOffset start, string title) =>
+        $"<programme start=\"{Stamp(start)}\" stop=\"{Stamp(start.AddMinutes(30))}\" channel=\"{ch}\"><title>{title}</title></programme>";
+
+    private static string Decl(string ch) => $"<channel id=\"{ch}\"><display-name>{ch}</display-name></channel>";
+
+    private (long A, long B) TwoLists()
+    {
+        var a = _sources.Add(SourceKind.Playlist, "a", "A");
+        var b = _sources.Add(SourceKind.Playlist, "b", "B");
+        _channels.Replace(a, [Entry("K")]);
+        _channels.Replace(b, [Entry("K")]);
+        return (a, b);
+    }
+
+    [Fact]
+    public void Favorite_on_suffixed_key_stays_when_other_list_drops_and_returns()
+    {
+        var (a, b) = TwoLists();
+        _channels.SetFavorite($"K#{b}", true);
+        _channels.Replace(a, []);
+        _channels.Replace(b, [Entry("K")]);
+        _channels.Replace(a, [Entry("K")]);
+        var fav = _channels.Favorites().Single();
+        Assert.Equal(($"K#{b}", b), (fav.Key, fav.SourceId));
+    }
+
+    [Fact]
+    public void Favorite_on_plain_key_does_not_move_to_other_list()
+    {
+        var (a, b) = TwoLists();
+        _channels.SetFavorite("K", true);
+        _channels.Replace(a, []);
+        _channels.Replace(b, [Entry("K")]);
+        _channels.Replace(a, [Entry("K")]);
+        var fav = _channels.Favorites().Single();
+        Assert.Equal(("K", a), (fav.Key, fav.SourceId));
+    }
+
+    [Fact]
+    public void Favorite_on_suffixed_key_survives_removal_of_other_list()
+    {
+        var (a, b) = TwoLists();
+        _channels.SetFavorite($"K#{b}", true);
+        _sources.Remove(a);
+        _channels.Replace(b, [Entry("K")]);
+        Assert.Equal(1, _channels.CountFavorites());
+    }
+
+    [Fact]
+    public void Replace_keeps_epg_matches_of_surviving_channels()
+    {
+        var (pl, epg) = Linked();
+        _programmes.ImportEpg(epg, Xml("e1", (Now, Now.AddHours(1), "show")), Now, 7);
+        _programmes.RebuildMatches();
+        _channels.Replace(pl, [Entry("A", tvgId: "e1"), Entry("New")]);
+        Assert.Equal("show", _programmes.GetNowNext("A", Now.AddMinutes(1)).Now?.Title);
+    }
+
+    [Fact]
+    public void Replace_resolves_key_collision_with_already_suffixed_key()
+    {
+        var a = _sources.Add(SourceKind.Playlist, "a", "A");
+        var b = _sources.Add(SourceKind.Playlist, "b", "B");
+        _channels.Replace(a, [Entry("K"), Entry($"K#{b}")]);
+        _channels.Replace(b, [Entry("K")]);
+        var keys = _channels.All().Select(c => c.Key).ToList();
+        Assert.Equal(3, keys.Distinct().Count());
+        _channels.Replace(b, [Entry("K")]);
+        Assert.Equal(keys, _channels.All().Select(c => c.Key));
+    }
+
+    [Fact]
+    public void Categories_keep_order_after_a_list_refreshes()
+    {
+        var a = _sources.Add(SourceKind.Playlist, "a", "A");
+        var b = _sources.Add(SourceKind.Playlist, "b", "B");
+        _channels.Replace(a, [Entry("1", category: "Zeta"), Entry("2", category: "Sport")]);
+        _channels.Replace(b, [Entry("3", category: "Sport")]);
+        _channels.Replace(a, [Entry("1", category: "Zeta"), Entry("2", category: "Sport")]);
+        Assert.Equal(["Zeta", "Sport"], _channels.Categories().Select(c => c.Name));
+    }
+
+    [Fact]
+    public void New_source_defaults_to_twelve_hour_interval()
+    {
+        _sources.Add(SourceKind.Playlist, "a", "A");
+        var s = _sources.List(SourceKind.Playlist).Single();
+        Assert.Equal((720, true), (s.IntervalMinutes, s.AutoRefresh));
+    }
+
+    [Fact]
+    public void Source_timestamps_are_stored_as_integers()
+    {
+        var id = _sources.Add(SourceKind.Playlist, "a", "A");
+        _sources.RecordAttempt(id, Now, null);
+        _sources.RecordSuccess(id, Now, null, null, 0);
+        using var c = _db.Open();
+        Assert.Equal("integer|integer", Scalar(c, "SELECT typeof(last_attempt)||'|'||typeof(last_success) FROM source"));
+    }
+
+    [Fact]
+    public void Source_ids_are_not_reused()
+    {
+        var first = _sources.Add(SourceKind.Playlist, "a", "A");
+        _sources.Remove(first);
+        Assert.NotEqual(first, _sources.Add(SourceKind.Playlist, "b", "B"));
+    }
+
+    [Fact]
+    public void Import_clears_future_rows_of_channels_without_new_programmes_but_keeps_past()
+    {
+        var pl = _sources.Add(SourceKind.Playlist, "p", "P");
+        var epg = _sources.Add(SourceKind.Epg, "e", "E");
+        var h = (int n) => Now.AddHours(n);
+        _programmes.ImportEpg(epg, Raw(Decl("e1") + Decl("e2") + Decl("e3") +
+            Prog("e1", h(-3), "e1past") + Prog("e1", h(1), "e1old") + Prog("e2", h(-3), "e2past") +
+            Prog("e2", h(1), "e2future") + Prog("e3", h(1), "e3future")), Now, 7);
+        _programmes.ImportEpg(epg, Raw(Decl("e1") + Decl("e3") + Prog("e1", h(2), "e1new")), Now, 7);
+        using var c = _db.Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT title FROM programme ORDER BY title";
+        using var r = cmd.ExecuteReader();
+        var titles = new List<string>();
+        while (r.Read()) titles.Add(r.GetString(0));
+        Assert.Equal(["e1new", "e1old", "e1past", "e2past"], titles);
+    }
+
+    [Fact]
+    public void Import_with_only_expired_programmes_throws_and_keeps_old_data()
+    {
+        var (_, epg) = Linked();
+        _programmes.ImportEpg(epg, Xml("e1", (Now, Now.AddHours(1), "old")), Now, 7);
+        Assert.Throws<InvalidDataException>(() =>
+            _programmes.ImportEpg(epg, Xml("e1", (Now.AddDays(-20), Now.AddDays(-20).AddHours(1), "stale")), Now, 7));
+        _programmes.RebuildMatches();
+        Assert.Equal("old", _programmes.GetNowNext("A", Now.AddMinutes(1)).Now?.Title);
     }
 
     private sealed class HookStream(byte[] data, Action onFirstRead) : MemoryStream(data)
