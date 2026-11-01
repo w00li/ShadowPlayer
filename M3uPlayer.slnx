@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/M3uPlayer.App/M3uPlayer.App.csproj" />
+    <Project Path="src/M3uPlayer.Core/M3uPlayer.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/M3uPlayer.Core.Tests/M3uPlayer.Core.Tests.csproj" />
+  </Folder>
+</Solution>
