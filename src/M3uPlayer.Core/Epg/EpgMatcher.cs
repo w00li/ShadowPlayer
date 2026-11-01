@@ -19,7 +19,7 @@ public class EpgMatcher
                 var p = TextNormalizer.ParseChannelName(name);
                 if (p.Base.Length == 0) continue;
                 if (!_byBase.TryGetValue(p.Base, out var list)) _byBase[p.Base] = list = [];
-                if (!list.Exists(c => c.Id == ch.Id)) list.Add((ch.Id, p.Quality));
+                if (!list.Contains((ch.Id, p.Quality))) list.Add((ch.Id, p.Quality));
             }
         }
     }

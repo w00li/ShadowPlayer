@@ -46,4 +46,12 @@ public class EpgMatcherTests
     [Fact]
     public void Match_empty_base_never_matches_by_name() =>
         Assert.Null(new EpgMatcher([Ch("a", "---")]).Match(null, "HD", "---"));
+
+    [Fact]
+    public void Match_same_quality_uses_any_display_name_of_channel() =>
+        Assert.Equal("x", new EpgMatcher([Ch("x", "Foo", "Foo HD"), Ch("y", "Foo HD")]).Match(null, "Foo HD", null));
+
+    [Fact]
+    public void Match_same_quality_uses_any_display_name_of_channel_reverse() =>
+        Assert.Equal("x", new EpgMatcher([Ch("x", "Foo HD", "Foo"), Ch("y", "Foo")]).Match(null, "Foo", null));
 }
