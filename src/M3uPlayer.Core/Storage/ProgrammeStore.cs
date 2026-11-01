@@ -69,6 +69,9 @@ public class ProgrammeStore(Database db)
 
         Database.Exec(c, "DELETE FROM programme WHERE source_id=@0 AND start_utc >= " +
             "(SELECT MIN(t.start) FROM import_programme t WHERE t.ch=programme.epg_channel_id)", sourceId);
+        // Channels without new programmes (declared empty or dropped) must not keep stale future rows; past rows stay as archive.
+        Database.Exec(c, "DELETE FROM programme WHERE source_id=@0 AND start_utc>=@1 AND epg_channel_id NOT IN (SELECT ch FROM import_programme)",
+            sourceId, now.ToUnixTimeSeconds());
         Database.Exec(c, "INSERT INTO programme(source_id,epg_channel_id,start_utc,stop_utc,title,title_norm,sub_title,description,category,icon_url) " +
             "SELECT @0,ch,start,stop,title,title_norm,sub_title,description,category,icon_url FROM import_programme", sourceId);
         Database.Exec(c, "DELETE FROM programme WHERE source_id=@0 AND stop_utc<@1", sourceId, cutoff);

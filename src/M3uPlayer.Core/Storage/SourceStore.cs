@@ -28,7 +28,7 @@ public class SourceStore(Database db)
             "last_attempt,last_success,last_error,skipped_count,matched_count,channel_count FROM source WHERE kind=@0 ORDER BY position",
             r => new Source(r.GetInt64(0), (SourceKind)r.GetInt32(1), r.GetString(2), r.GetString(3), r.GetInt32(4),
                 r.GetInt32(5), r.GetInt32(6) != 0, Nullable(r, 7, r.GetInt64), Str(r, 8), Str(r, 9),
-                Nullable(r, 10, r.GetDateTimeOffset), Nullable(r, 11, r.GetDateTimeOffset), Str(r, 12),
+                Time(r, 10), Time(r, 11), Str(r, 12),
                 r.GetInt32(13), r.GetInt32(14), r.GetInt32(15)), (int)kind);
     }
 
@@ -60,7 +60,7 @@ public class SourceStore(Database db)
     public void RecordAttempt(long id, DateTimeOffset at, string? error)
     {
         using var c = db.Open();
-        Database.Exec(c, "UPDATE source SET last_attempt=@0, last_error=@1 WHERE id=@2", at, error, id);
+        Database.Exec(c, "UPDATE source SET last_attempt=@0, last_error=@1 WHERE id=@2", at.ToUnixTimeSeconds(), error, id);
     }
 
     public void RecordSuccess(long id, DateTimeOffset at, string? etag, string? lastModified, int skipped)
@@ -68,10 +68,13 @@ public class SourceStore(Database db)
         using var c = db.Open();
         Database.Exec(c,
             "UPDATE source SET last_attempt=@0, last_success=@0, last_error=NULL, etag=@1, last_modified=@2, skipped_count=@3 WHERE id=@4",
-            at, etag, lastModified, skipped, id);
+            at.ToUnixTimeSeconds(), etag, lastModified, skipped, id);
     }
 
     private static string? Str(SqliteDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
+
+    private static DateTimeOffset? Time(SqliteDataReader r, int i) =>
+        r.IsDBNull(i) ? null : DateTimeOffset.FromUnixTimeSeconds(r.GetInt64(i));
 
     private static T? Nullable<T>(SqliteDataReader r, int i, Func<int, T> get) where T : struct =>
         r.IsDBNull(i) ? null : get(i);

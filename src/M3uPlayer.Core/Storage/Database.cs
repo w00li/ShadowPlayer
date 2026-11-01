@@ -6,10 +6,10 @@ public class Database
 {
     private const string Schema = """
         CREATE TABLE source(
-            id INTEGER PRIMARY KEY, kind INTEGER NOT NULL, location TEXT NOT NULL, name TEXT NOT NULL,
-            position INTEGER NOT NULL, interval_minutes INTEGER NOT NULL DEFAULT 1440, auto_refresh INTEGER NOT NULL DEFAULT 1,
+            id INTEGER PRIMARY KEY AUTOINCREMENT, kind INTEGER NOT NULL, location TEXT NOT NULL, name TEXT NOT NULL,
+            position INTEGER NOT NULL, interval_minutes INTEGER NOT NULL DEFAULT 720, auto_refresh INTEGER NOT NULL DEFAULT 1,
             parent_playlist_id INTEGER REFERENCES source(id) ON DELETE CASCADE,
-            etag TEXT, last_modified TEXT, last_attempt TEXT, last_success TEXT, last_error TEXT,
+            etag TEXT, last_modified TEXT, last_attempt INTEGER, last_success INTEGER, last_error TEXT,
             skipped_count INTEGER NOT NULL DEFAULT 0, matched_count INTEGER NOT NULL DEFAULT 0, channel_count INTEGER NOT NULL DEFAULT 0);
         CREATE TABLE channel(
             key TEXT PRIMARY KEY, source_id INTEGER NOT NULL REFERENCES source(id) ON DELETE CASCADE,
@@ -37,8 +37,7 @@ public class Database
 
     public Database(string path)
     {
-        // Pooling off: the file must be deletable once connections are disposed.
-        _connectionString = new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString();
+        _connectionString = new SqliteConnectionStringBuilder { DataSource = path }.ToString();
         using var c = Open();
         Exec(c, "PRAGMA journal_mode=WAL");
         var version = Convert.ToInt32(Exec(c, "PRAGMA user_version"));
@@ -54,10 +53,18 @@ public class Database
     public SqliteConnection Open()
     {
         var c = new SqliteConnection(_connectionString);
-        c.Open();
-        Exec(c, "PRAGMA foreign_keys=ON");
-        Exec(c, "PRAGMA busy_timeout=10000");
-        return c;
+        try
+        {
+            c.Open();
+            Exec(c, "PRAGMA foreign_keys=ON");
+            Exec(c, "PRAGMA busy_timeout=10000");
+            return c;
+        }
+        catch
+        {
+            c.Dispose();
+            throw;
+        }
     }
 
     public string? GetSetting(string key)
