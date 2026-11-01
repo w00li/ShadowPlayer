@@ -1,0 +1,13 @@
+.superpowers/
+samples/
+*.m3u
+*.m3u8
+*.xml.gz
+!tests/**/*.m3u
+!tests/**/*.m3u8
+!tests/**/*.xml.gz
+
+bin/
+obj/
+.vs/
+*.user
