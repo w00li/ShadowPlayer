@@ -31,6 +31,7 @@ public class PlaybackMonitor(bool live)
 
     public void OnPlaying(DateTime now)
     {
+        if (_phase == Phase.Paused) _progressFrom = null; // a pause must not count as progress
         _phase = Phase.Playing;
         _since = now;
     }
