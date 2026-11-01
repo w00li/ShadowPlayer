@@ -135,4 +135,24 @@ public class PlaybackMonitorTests
         m.OnPlaying(At(100));
         Assert.Equal(MonitorVerdict.None, m.Tick(At(101)));
     }
+
+    [Fact]
+    public void Resume_then_one_tick_is_not_stable()
+    {
+        var m = new PlaybackMonitor(live: true);
+        m.OnOpening(At(0));
+        m.OnPlaying(At(0));
+        m.OnTime(At(1), 1000);
+        m.OnPaused();
+        m.OnPlaying(At(101));
+        m.OnTime(At(101), 1500);
+        Assert.Equal(MonitorVerdict.None, m.Tick(At(101)));
+        for (var s = 102; s < 111; s++)
+        {
+            m.OnTime(At(s), 1500 + (s - 101) * 1000);
+            Assert.Equal(MonitorVerdict.None, m.Tick(At(s)));
+        }
+        m.OnTime(At(111), 11500);
+        Assert.Equal(MonitorVerdict.Stable, m.Tick(At(111)));
+    }
 }
