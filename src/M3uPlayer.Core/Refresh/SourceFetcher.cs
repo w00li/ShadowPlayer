@@ -79,17 +79,28 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         if (!info.Exists) throw new FileNotFoundException("Nie znaleziono pliku. Sprawdź, czy nie został przeniesiony lub usunięty.");
         var modified = info.LastWriteTimeUtc.ToString("O", CultureInfo.InvariantCulture);
         if (source.LastSuccess is not null && modified == source.LastModified) return new FetchResult(true, null, null, modified);
-        await using var input = info.OpenRead();
-        return new FetchResult(false, await CopyToTempAsync(input, ct, null), null, modified);
+        FileStream input;
+        try { input = info.OpenRead(); }
+        // OS messages carry the full path (home folder, provider file name), so they are replaced.
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new IOException("Nie można odczytać pliku. Sprawdź, czy inny program go nie używa i czy masz do niego dostęp.");
+        }
+        await using (input) return new FetchResult(false, await CopyToTempAsync(input, ct, null), null, modified);
     }
 
     private async Task<string> CopyToTempAsync(Stream input, CancellationToken ct, CancellationTokenSource? idle)
     {
-        Directory.CreateDirectory(tempDir);
         var path = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + ".tmp");
         try
         {
-            await using (var output = File.Create(path))
+            FileStream created;
+            try { Directory.CreateDirectory(tempDir); created = File.Create(path); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                throw new IOException("Nie można zapisać pliku tymczasowego. Sprawdź wolne miejsce na dysku i uprawnienia.");
+            }
+            await using (var output = created)
             {
                 var buffer = new byte[81920];
                 long total = 0;

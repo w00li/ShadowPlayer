@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using M3uPlayer.Core.Diagnostics;
 using M3uPlayer.Core.Refresh;
 using M3uPlayer.Core.Storage;
@@ -19,22 +20,33 @@ public partial class App : Application
         public static FileLog Log { get; internal set; } = null!;
     }
 
-    private readonly CancellationTokenSource _stop = new();
+    private static readonly CancellationTokenSource Stop = new();
+    private static Task? _dialogClosed;
     private MainWindow? _window;
 
     public static MainWindow? MainWindow => ((App)Current)._window;
+
+    /// <summary>Cancelled when the window closes; every background refresh should honour it.</summary>
+    public static CancellationToken Shutdown => Stop.Token;
 
     public App()
     {
         InitializeComponent();
         UnhandledException += (_, e) =>
         {
+            if (_window is null) { Fatal(e.Exception); return; } // nothing visible to keep alive
             e.Handled = true;
             _ = ReportAsync(e.Exception);
         };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        try { Start(); }
+        catch (Exception ex) { Fatal(ex); }
+    }
+
+    private void Start()
     {
         var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "M3uPlayer");
         Directory.CreateDirectory(dir);
@@ -43,23 +55,62 @@ public partial class App : Application
         Services.Sources = new SourceStore(Services.Db);
         Services.Channels = new ChannelStore(Services.Db);
         Services.Programmes = new ProgrammeStore(Services.Db);
+        var tmp = Path.Combine(dir, "tmp");
         var fetcher = new SourceFetcher(new HttpClient(), [TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120)],
-            Task.Delay, Path.Combine(dir, "tmp"));
+            Task.Delay, tmp);
         Services.Refresh = new RefreshService(Services.Db, fetcher, TimeProvider.System, Services.Log);
+        DeleteLeftovers(tmp);
 
         _window = new MainWindow();
-        _window.Closed += (_, _) => _stop.Cancel();
-        _window.Activate();
         // RunAsync parses and imports synchronously between awaits, so keep it off the UI thread.
-        _ = Task.Run(async () =>
+        var loop = Task.Run(async () =>
         {
-            try { await Services.Refresh.RunAsync(_stop.Token); }
+            try { await Services.Refresh.RunAsync(Stop.Token); }
             catch (OperationCanceledException) { }
             catch (Exception ex) { SafeLog("Refresh loop ended: " + ex.Message); }
         });
+        _window.Closed += (_, _) =>
+        {
+            Stop.Cancel();
+            try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
+        };
+        _window.Activate();
     }
 
-    /// <summary>Logs the exception and, if a window is up, tells the user in plain words. Never throws.</summary>
+    // Only the files directly inside the app's own tmp folder: nothing a crashed run left behind is worth keeping.
+    private static void DeleteLeftovers(string tmp)
+    {
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(tmp))
+                try { File.Delete(file); } catch (Exception) { }
+        }
+        catch (Exception) { }
+    }
+
+    /// <summary>Startup failed or crashed with no window: say so in plain words, then exit instead of lingering invisibly.</summary>
+    private static void Fatal(Exception ex)
+    {
+        SafeLog(ex.ToString());
+        MessageBoxW(0, "Nie udało się uruchomić aplikacji. Szczegóły zapisano w dzienniku w folderze M3uPlayer w danych lokalnych. Zamknij inne kopie aplikacji i spróbuj ponownie.",
+            "M3U Player", 0x10);
+        Environment.Exit(1);
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int MessageBoxW(nint hwnd, string text, string caption, uint type);
+
+    /// <summary>Shows a dialog; one already open is waited for, because WinUI allows only one at a time.</summary>
+    public static async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
+    {
+        while (_dialogClosed is { } open) await open;
+        var done = new TaskCompletionSource();
+        _dialogClosed = done.Task;
+        try { return await dialog.ShowAsync(); }
+        finally { _dialogClosed = null; done.SetResult(); }
+    }
+
+    /// <summary>Logs the exception and, if a window is up, tells the user in plain words (after any open dialog). Never throws.</summary>
     public static async Task ReportAsync(Exception ex)
     {
         SafeLog(ex.ToString());
@@ -72,15 +123,15 @@ public partial class App : Application
             {
                 try
                 {
-                    await new ContentDialog
+                    await ShowDialogAsync(new ContentDialog
                     {
                         Title = "Coś poszło nie tak",
                         Content = "Aplikacja napotkała nieoczekiwany problem. Szczegóły zapisano w dzienniku. Spróbuj powtórzyć czynność; jeśli problem wraca, uruchom aplikację ponownie.",
                         CloseButtonText = "Zamknij komunikat",
                         XamlRoot = window.Content.XamlRoot,
-                    }.ShowAsync();
+                    });
                 }
-                catch (Exception) { } // e.g. another dialog is already open
+                catch (Exception) { }
                 finally { tcs.TrySetResult(); }
             })) return;
             await tcs.Task;

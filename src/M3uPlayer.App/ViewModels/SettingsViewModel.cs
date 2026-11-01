@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using M3uPlayer.Core.Sources;
 using M3uPlayer.Core.Storage;
 using M3uPlayer.Core.Text;
@@ -14,23 +15,54 @@ public sealed record IntervalChoice(int Minutes, string Label)
     ];
 }
 
-/// <summary>Immutable snapshot of one source for display; the view model rebuilds rows when anything changes.</summary>
-public sealed class SourceRow
+/// <summary>One source for display. Rows are updated in place so a background reload never rebuilds a focused control.</summary>
+public sealed class SourceRow : INotifyPropertyChanged
 {
-    public SourceRow(Source s, int totalChannels, bool isRefreshing, bool showProgress, bool isFirst, bool isLast, string? parentName)
+    public SourceRow(Source s, int totalChannels, bool isRefreshing, bool showProgress, bool isFirst, bool isLast, string? parentName) =>
+        Update(s, totalChannels, isRefreshing, showProgress, isFirst, isLast, parentName);
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public Source Source { get; private set; } = null!;
+    public long Id { get; private set; }
+    public string Name { get; private set; } = "";
+    public bool IsEpg { get; private set; }
+    public bool IsRefreshing { get; private set; }
+    public bool ShowProgress { get; private set; }
+    public bool CanRefresh { get; private set; }
+    public bool CanMoveUp { get; private set; }
+    public bool CanMoveDown { get; private set; }
+    public bool CanRemove { get; private set; }
+    public string AutoAddedText { get; private set; } = "";
+    public string Location { get; private set; } = "";
+    public int IntervalIndex { get; private set; }
+    public bool AutoRefresh { get; private set; }
+    public string LastSuccessText { get; private set; } = "";
+    public string ResultText { get; private set; } = "";
+    public string SkippedText { get; private set; } = "";
+    public string ErrorText { get; private set; } = "";
+    public bool HasResult { get; private set; }
+    public bool HasSkipped { get; private set; }
+    public bool HasError { get; private set; }
+    public bool HasAutoAdded { get; private set; }
+    public string RemoveLabel => "Usuń " + Name;
+
+    /// <summary>A failure of a local action (e.g. saving the schedule); shown instead of the source's own error until the next success.</summary>
+    public string? Notice { get; private set; }
+
+    public void Update(Source s, int totalChannels, bool isRefreshing, bool showProgress, bool isFirst, bool isLast, string? parentName)
     {
         Source = s;
         Id = s.Id;
-        Name = s.Name;
+        Name = Redactor.Redact(s.Name);
         IsEpg = s.Kind == SourceKind.Epg;
         IsRefreshing = isRefreshing;
         ShowProgress = showProgress;
         CanRefresh = !isRefreshing;
         CanMoveUp = !isFirst;
         CanMoveDown = !isLast;
-        IsAutoAdded = s.ParentPlaylistId is not null;
-        CanRemove = !IsAutoAdded;
-        AutoAddedText = parentName is null ? "" : $"Dodane automatycznie z listy „{parentName}”. Usuń listę, aby usunąć to źródło.";
+        CanRemove = s.ParentPlaylistId is null;
+        AutoAddedText = parentName is null ? "" : $"Dodane automatycznie z listy „{Redactor.Redact(parentName)}”. Usuń listę, aby usunąć to źródło.";
         Location = SourceInput.DisplayLocation(s.Location);
         IntervalIndex = Math.Max(0, IntervalChoice.All.ToList().FindIndex(c => c.Minutes == s.IntervalMinutes));
         AutoRefresh = s.AutoRefresh;
@@ -40,52 +72,44 @@ public sealed class SourceRow
             ? $"Dopasowano {s.MatchedCount} z {totalChannels} kanałów"
             : $"{s.ChannelCount} kanałów, z programem TV: {s.MatchedCount}";
         SkippedText = s.SkippedCount > 0 ? $"Pominięto {s.SkippedCount} uszkodzonych pozycji" : "";
-        ErrorText = s.LastError is { Length: > 0 } e ? "Błąd: " + Redactor.Redact(e) : "";
         HasResult = ResultText.Length > 0;
         HasSkipped = SkippedText.Length > 0;
-        HasError = ErrorText.Length > 0;
         HasAutoAdded = AutoAddedText.Length > 0;
+        ApplyError();
     }
 
-    public Source Source { get; }
-    public long Id { get; }
-    public string Name { get; }
-    public bool IsEpg { get; }
-    public bool IsRefreshing { get; }
-    public bool ShowProgress { get; }
-    public bool CanRefresh { get; }
-    public bool CanMoveUp { get; }
-    public bool CanMoveDown { get; }
-    public bool IsAutoAdded { get; }
-    public bool CanRemove { get; }
-    public string AutoAddedText { get; }
-    public string Location { get; }
-    public int IntervalIndex { get; set; } // mutable: updated in place so the focused control is not rebuilt
-    public bool AutoRefresh { get; set; }
-    public string LastSuccessText { get; }
-    public string ResultText { get; }
-    public string SkippedText { get; }
-    public string ErrorText { get; }
-    public bool HasResult { get; }
-    public bool HasSkipped { get; }
-    public bool HasError { get; }
-    public bool HasAutoAdded { get; }
-    public string RemoveLabel => "Usuń " + Name;
+    public void SetSchedule(int index, bool auto, string? notice)
+    {
+        IntervalIndex = index;
+        AutoRefresh = auto;
+        Notice = notice;
+        ApplyError();
+    }
+
+    private void ApplyError()
+    {
+        ErrorText = Notice ?? (Source.LastError is { Length: > 0 } e ? "Błąd: " + Redactor.Redact(e) : "");
+        HasError = ErrorText.Length > 0;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    }
 }
 
 public sealed class SettingsViewModel
 {
     private static readonly TimeSpan ProgressDelay = TimeSpan.FromMilliseconds(400);
     private readonly HashSet<long> _refreshing = [], _progress = [];
+    private int _version, _writes;
 
     public ObservableCollection<SourceRow> Playlists { get; } = [];
     public ObservableCollection<SourceRow> Epgs { get; } = [];
 
-    /// <summary>Call from the UI thread; the database work runs off it, the collections are filled back on it.</summary>
+    /// <summary>Call from the UI thread. Only the newest read is applied, and none while a write is in flight (its own reload follows).</summary>
     public async Task ReloadAsync()
     {
+        var version = ++_version;
         var (playlists, epgs, total) = await Task.Run(() =>
             (App.Services.Sources.List(SourceKind.Playlist), App.Services.Sources.List(SourceKind.Epg), App.Services.Channels.CountAll()));
+        if (version != _version || _writes > 0) return;
         var names = playlists.ToDictionary(p => p.Id, p => p.Name);
         Fill(Playlists, playlists, total, names);
         Fill(Epgs, epgs, total, names);
@@ -93,10 +117,26 @@ public sealed class SettingsViewModel
 
     private void Fill(ObservableCollection<SourceRow> target, IReadOnlyList<Source> sources, int total, Dictionary<long, string> names)
     {
-        var rows = sources.Select((s, i) => new SourceRow(s, total, _refreshing.Contains(s.Id), _progress.Contains(s.Id), i == 0, i == sources.Count - 1,
-            s.ParentPlaylistId is { } p && names.TryGetValue(p, out var n) ? n : null)).ToList();
-        target.Clear();
-        foreach (var r in rows) target.Add(r);
+        var old = target.ToDictionary(r => r.Id);
+        var wanted = new List<SourceRow>();
+        for (var i = 0; i < sources.Count; i++)
+        {
+            var s = sources[i];
+            var parent = s.ParentPlaylistId is { } p && names.TryGetValue(p, out var n) ? n : null;
+            var refreshing = _refreshing.Contains(s.Id);
+            var progress = _progress.Contains(s.Id);
+            if (old.TryGetValue(s.Id, out var row)) row.Update(s, total, refreshing, progress, i == 0, i == sources.Count - 1, parent);
+            else row = new SourceRow(s, total, refreshing, progress, i == 0, i == sources.Count - 1, parent);
+            wanted.Add(row);
+        }
+        for (var i = target.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(target[i])) target.RemoveAt(i);
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            if (i < target.Count && target[i] == wanted[i]) continue;
+            var at = target.IndexOf(wanted[i]);
+            if (at >= 0) target.Move(at, i); else target.Insert(i, wanted[i]);
+        }
     }
 
     public IEnumerable<string> ExistingNames => Playlists.Concat(Epgs).Select(r => r.Name);
@@ -109,6 +149,7 @@ public sealed class SettingsViewModel
 
     public async Task AddAsync(SourceKind kind, string location, string name)
     {
+        name = SourceInput.SanitizeName(name, SuggestName(kind));
         var id = await Task.Run(() => App.Services.Sources.Add(kind, location, name));
         await ReloadAsync();
         await RefreshAsync(id);
@@ -116,16 +157,17 @@ public sealed class SettingsViewModel
 
     public async Task RefreshAsync(long id)
     {
-        _refreshing.Add(id);
+        if (!_refreshing.Add(id)) return; // a second click while the first refresh runs
         await ReloadAsync();
         // Quick checks must not flicker a spinner: show it only if the refresh outlasts the delay.
         var reveal = Task.Delay(ProgressDelay).ContinueWith(_ => { }, TaskScheduler.FromCurrentSynchronizationContext());
-        var work = Task.Run(() => App.Services.Refresh.RefreshAsync(id, CancellationToken.None));
+        var work = Task.Run(() => App.Services.Refresh.RefreshAsync(id, App.Shutdown));
         try
         {
             if (await Task.WhenAny(work, reveal) == reveal && _refreshing.Contains(id)) { _progress.Add(id); await ReloadAsync(); }
             await work;
         }
+        catch (OperationCanceledException) when (App.Shutdown.IsCancellationRequested) { }
         finally
         {
             _refreshing.Remove(id);
@@ -157,6 +199,21 @@ public sealed class SettingsViewModel
         await ReloadAsync();
     }
 
-    public Task SetScheduleAsync(SourceRow row, int minutes, bool auto) =>
-        Task.Run(() => App.Services.Sources.SetInterval(row.Id, minutes, auto));
+    /// <summary>Shows the new values at once; if saving fails the old ones come back with an inline message.</summary>
+    public async Task SetScheduleAsync(SourceRow row, int index, bool auto)
+    {
+        if (index == row.IntervalIndex && auto == row.AutoRefresh) return;
+        var (oldIndex, oldAuto) = (row.IntervalIndex, row.AutoRefresh);
+        row.SetSchedule(index, auto, null);
+        _writes++;
+        try { await Task.Run(() => App.Services.Sources.SetInterval(row.Id, IntervalChoice.All[index].Minutes, auto)); }
+        catch (Exception ex)
+        {
+            App.Services.Log.Write("Saving the schedule failed: " + ex.Message);
+            row.SetSchedule(oldIndex, oldAuto, "Nie udało się zapisać ustawienia odświeżania. Spróbuj ponownie.");
+            return;
+        }
+        finally { _writes--; }
+        await ReloadAsync();
+    }
 }

@@ -22,10 +22,17 @@ public static partial class SourceInput
     public static string? ValidateUrl(string? url)
     {
         url = url?.Trim();
-        if (string.IsNullOrEmpty(url)) return "Wpisz adres, który zaczyna się od http:// lub https://.";
+        if (string.IsNullOrEmpty(url)) return "Wpisz adres, który zaczyna się od http:// lub https://, albo wybierz plik z dysku.";
         return SourceFetcher.IsHttp(url) && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Host.Length > 0
             ? null
             : "Ten adres nie jest obsługiwany. Wpisz pełny adres zaczynający się od http:// lub https://.";
+    }
+
+    /// <summary>A typed name is shown everywhere, so it is redacted, and an address pasted into it is replaced by the default.</summary>
+    public static string SanitizeName(string typed, string fallback)
+    {
+        var name = Redactor.Redact(typed.Trim());
+        return name.Length == 0 || name.Contains("://") ? fallback : name;
     }
 
     public static bool IsHashLike(string name) => LongHex().IsMatch(name);

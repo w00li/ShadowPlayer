@@ -16,6 +16,7 @@
             <TextBlock x:Name="FileText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="240"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
+        <TextBlock x:Name="FileError" Visibility="Collapsed" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
         <TextBox x:Name="NameBox" Header="Nazwa" TextChanged="NameBox_TextChanged" />
         <TextBlock x:Name="NameError" Visibility="Collapsed" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
     </StackPanel>

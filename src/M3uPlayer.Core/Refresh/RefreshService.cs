@@ -164,7 +164,7 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
             if (child.Location != url) _sources.SetLocation(child.Id, url);
         }
         else if (epgs.All(e => e.Location != url))
-            _sources.Add(SourceKind.Epg, url, playlist.Name + " (url-tvg)", playlist.Id);
+            _sources.Add(SourceKind.Epg, url, Redactor.Redact(playlist.Name) + " (url-tvg)", playlist.Id);
     }
 
     // A failing log must never mask the original failure or abort a refresh.
