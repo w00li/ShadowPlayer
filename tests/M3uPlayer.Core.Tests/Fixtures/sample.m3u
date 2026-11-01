@@ -1,0 +1,7 @@
+#EXTM3U url-tvg="http://epg.example.invalid/guide.xml.gz"
+#EXTINF:-1 tvg-id="TVP 1" tvg-name="TVP 1 HD" tvg-logo="http://logo.example.invalid/tvp1.png" group-title="Polska" catchup="fs" timeshift="10",TVP 1 HD
+http://tv.example.invalid:8080/live/user/pass/1.ts
+#EXTINF:-1 tvg-name="Bez id" group-title="Sport, Live",Kanał 1
+#EXTVLCOPT:http-user-agent=TestAgent/1.0
+#EXTVLCOPT:http-referrer=http://ref.example.invalid/
+https://tv.example.invalid/2.m3u8
