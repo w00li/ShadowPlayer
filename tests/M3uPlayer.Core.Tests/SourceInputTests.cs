@@ -49,4 +49,21 @@ public class SourceInputTests
         Assert.Equal("Plik: Moja lista.m3u", SourceInput.DisplayLocation(@"C:\Users\test\Moja lista.m3u"));
         Assert.Equal("Plik lokalny", SourceInput.DisplayLocation(@"C:\Users\test\0123456789abcdef0123456789abcdef.m3u"));
     }
+
+    [Theory]
+    [InlineData("0123456789abcde", false)]  // 15 hex characters
+    [InlineData("0123456789abcdef", true)]   // 16
+    public void IsHashLike_boundary(string name, bool expected) => Assert.Equal(expected, SourceInput.IsHashLike(name));
+
+    [Theory]
+    [InlineData("  Moja lista ", "Moja lista")]
+    [InlineData("http://h.invalid/get.php?username=joe&password=secret", "Lista 1")]
+    [InlineData("Lista ftp://u:p@h.invalid/x", "Lista 1")]
+    [InlineData("Dom ?token=abc123", "Dom ?token=***")]
+    public void SanitizeName_redacts_and_never_keeps_an_address(string typed, string expected)
+        => Assert.Equal(expected, SourceInput.SanitizeName(typed, "Lista 1"));
+
+    [Fact]
+    public void ValidateUrl_empty_message_mentions_choosing_a_file()
+        => Assert.Contains("plik", SourceInput.ValidateUrl(""));
 }

@@ -54,21 +54,37 @@ public sealed partial class AddSourceDialog : ContentDialog
         return error is null;
     }
 
+    private void ShowFileError(string message)
+    {
+        FileError.Text = message;
+        FileError.Visibility = Visibility.Visible;
+    }
+
     private async void Pick_Click(object sender, RoutedEventArgs e)
     {
+        FileError.Visibility = Visibility.Collapsed;
         try
         {
             var picker = new FileOpenPicker();
             InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
             picker.FileTypeFilter.Add("*");
             if (await picker.PickSingleFileAsync() is not { } file) return;
+            if (string.IsNullOrEmpty(file.Path))
+            {
+                ShowFileError("Ten plik nie jest dostępny na dysku (np. jest tylko w chmurze). Pobierz go na dysk albo wybierz inny.");
+                return;
+            }
             UrlBox.Text = "";
             _file = file.Path;
             UrlError.Visibility = Visibility.Collapsed;
             FileText.Text = SourceInput.DisplayLocation(file.Path);
             if (!_nameEdited) SetName(_suggestName(file.Path));
         }
-        catch (Exception ex) { await App.ReportAsync(ex); }
+        catch (Exception ex)
+        {
+            App.Services.Log.Write("File picker failed: " + ex);
+            ShowFileError("Nie udało się otworzyć okna wyboru pliku. Spróbuj ponownie albo wpisz adres.");
+        }
     }
 
     private void Primary_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -83,6 +99,6 @@ public sealed partial class AddSourceDialog : ContentDialog
         }
         if (!ok) { args.Cancel = true; return; }
         Location = _file ?? UrlBox.Text.Trim();
-        SourceName = name;
+        SourceName = SourceInput.SanitizeName(name, _suggestName(_file));
     }
 }

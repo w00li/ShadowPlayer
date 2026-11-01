@@ -41,7 +41,7 @@ public sealed partial class SettingsPage : Page
     private async Task AddAsync(SourceKind kind)
     {
         var dialog = new AddSourceDialog(kind, file => _vm.SuggestName(kind, file)) { XamlRoot = XamlRoot };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        if (await App.ShowDialogAsync(dialog) == ContentDialogResult.Primary)
             await _vm.AddAsync(kind, dialog.Location, dialog.SourceName);
     }
 
@@ -66,22 +66,23 @@ public sealed partial class SettingsPage : Page
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = XamlRoot,
         };
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary) await _vm.RemoveAsync(row.Id);
+        if (await App.ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
+        await _vm.RemoveAsync(row.Id);
+        // The focused button is gone with its row; keep keyboard users in place.
+        (row.IsEpg ? AddEpgButton : AddPlaylistButton).Focus(FocusState.Programmatic);
     });
 
     private async void Interval_Changed(object sender, SelectionChangedEventArgs e)
     {
         var box = (ComboBox)sender;
         if (box.Tag is not SourceRow row || box.SelectedIndex < 0 || box.SelectedIndex == row.IntervalIndex) return;
-        row.IntervalIndex = box.SelectedIndex;
-        await Guard(() => _vm.SetScheduleAsync(row, IntervalChoice.All[row.IntervalIndex].Minutes, row.AutoRefresh));
+        await Guard(() => _vm.SetScheduleAsync(row, box.SelectedIndex, row.AutoRefresh));
     }
 
     private async void Auto_Toggled(object sender, RoutedEventArgs e)
     {
         var toggle = (ToggleSwitch)sender;
         if (toggle.Tag is not SourceRow row || toggle.IsOn == row.AutoRefresh) return;
-        row.AutoRefresh = toggle.IsOn;
-        await Guard(() => _vm.SetScheduleAsync(row, IntervalChoice.All[row.IntervalIndex].Minutes, row.AutoRefresh));
+        await Guard(() => _vm.SetScheduleAsync(row, row.IntervalIndex, toggle.IsOn));
     }
 }

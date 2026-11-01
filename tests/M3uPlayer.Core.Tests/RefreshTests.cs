@@ -180,6 +180,35 @@ public sealed class RefreshTests : IDisposable
         await Assert.ThrowsAnyAsync<IOException>(() => Fetcher().FetchAsync(Src(Path.Combine(_dir, "none.m3u")), TestContext.Current.CancellationToken));
     }
 
+    [Fact]
+    public async Task Fetch_unreadable_file_reports_polish_message_without_path()
+    {
+        var path = Path.Combine(_dir, "locked-0123456789abcdef0123456789abcdef.m3u");
+        await File.WriteAllTextAsync(path, Playlist(), TestContext.Current.CancellationToken);
+        using var hold = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var ex = await Assert.ThrowsAsync<IOException>(() => Fetcher().FetchAsync(Src(path), TestContext.Current.CancellationToken));
+
+        Assert.DoesNotContain("locked-", ex.Message);
+        Assert.DoesNotContain(_dir, ex.Message);
+        Assert.Contains("Nie można odczytać pliku", ex.Message);
+    }
+
+    [Fact]
+    public async Task Fetch_unwritable_temp_dir_reports_message_without_path()
+    {
+        var blocker = Path.Combine(_dir, "blocker");
+        await File.WriteAllTextAsync(blocker, "x", TestContext.Current.CancellationToken);
+        var f = new SourceFetcher(new HttpClient(_handler), [], (_, _) => Task.CompletedTask, Path.Combine(blocker, "tmp"));
+        var path = Path.Combine(_dir, "ok.m3u");
+        await File.WriteAllTextAsync(path, Playlist(), TestContext.Current.CancellationToken);
+
+        var ex = await Assert.ThrowsAnyAsync<Exception>(() => f.FetchAsync(Src(path), TestContext.Current.CancellationToken));
+
+        Assert.DoesNotContain(_dir, ex.Message);
+        Assert.Contains("tymczasow", ex.Message);
+    }
+
     [Theory]
     [InlineData("ftp://h.invalid/x.m3u")]
     [InlineData("file:///c:/x.m3u")]
