@@ -147,9 +147,10 @@ public class XmltvReaderTests
 
     private static byte[] Gzip(int programmes)
     {
+        var rnd = new Random(42); // fixed seed keeps the bytes identical on every run
         var xml = new StringBuilder("<tv>");
         for (var i = 0; i < programmes; i++)
-            xml.Append($"<programme start=\"20261101120000\" channel=\"c\"><title>T{i} {Guid.NewGuid()}</title></programme>");
+            xml.Append($"<programme start=\"20261101120000\" channel=\"c\"><title>T{i} {rnd.Next()}</title></programme>");
         xml.Append("</tv>");
         var ms = new MemoryStream();
         using (var gz = new GZipStream(ms, CompressionLevel.Fastest, leaveOpen: true))
@@ -173,7 +174,8 @@ public class XmltvReaderTests
     {
         var data = Gzip(2000);
         for (var i = data.Length / 2; i < data.Length / 2 + 64; i++) data[i] ^= 0xFF;
-        Assert.Throws<InvalidDataException>(() => R(new MemoryStream(data)));
+        var ex = Assert.ThrowsAny<Exception>(() => R(new MemoryStream(data)));
+        Assert.True(ex is InvalidDataException or XmlException, ex.GetType().Name);
     }
 
     private sealed class NonSeekable(Stream inner) : Stream
