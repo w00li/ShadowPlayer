@@ -1,0 +1,87 @@
+<Page
+    x:Class="M3uPlayer.App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:M3uPlayer.App.ViewModels">
+    <Page.Resources>
+        <DataTemplate x:Key="SourceRowTemplate" x:DataType="vm:SourceRow">
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}" Padding="16" Margin="0,0,0,8">
+                <StackPanel Spacing="4">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="{x:Bind Location}" Style="{ThemeResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind LastSuccessText}" />
+                            <TextBlock Text="{x:Bind ResultText}" Visibility="{x:Bind HasResult}" />
+                            <TextBlock Text="{x:Bind SkippedText}" Visibility="{x:Bind HasSkipped}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind AutoAddedText}" Visibility="{x:Bind HasAutoAdded}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ErrorText}" Visibility="{x:Bind HasError}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                            <ProgressRing Width="20" Height="20" IsActive="{x:Bind ShowProgress}" Visibility="{x:Bind ShowProgress}"
+                                          AutomationProperties.Name="Odświeżanie trwa" />
+                            <Button Tag="{x:Bind}" IsEnabled="{x:Bind CanMoveUp}" Visibility="{x:Bind IsEpg}" Click="MoveUp_Click"
+                                    ToolTipService.ToolTip="Przesuń wyżej" AutomationProperties.Name="Przesuń wyżej">
+                                <FontIcon Glyph="&#xE70E;" FontSize="14" />
+                            </Button>
+                            <Button Tag="{x:Bind}" IsEnabled="{x:Bind CanMoveDown}" Visibility="{x:Bind IsEpg}" Click="MoveDown_Click"
+                                    ToolTipService.ToolTip="Przesuń niżej" AutomationProperties.Name="Przesuń niżej">
+                                <FontIcon Glyph="&#xE70D;" FontSize="14" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+                        <ComboBox Header="Odświeżaj co" Tag="{x:Bind}" Width="140" SelectedIndex="{x:Bind IntervalIndex}"
+                                  SelectionChanged="Interval_Changed">
+                            <ComboBoxItem Content="1 godzina" />
+                            <ComboBoxItem Content="3 godziny" />
+                            <ComboBoxItem Content="6 godzin" />
+                            <ComboBoxItem Content="12 godzin" />
+                            <ComboBoxItem Content="24 godziny" />
+                            <ComboBoxItem Content="48 godzin" />
+                            <ComboBoxItem Content="7 dni" />
+                        </ComboBox>
+                        <ToggleSwitch Header="Odświeżanie automatyczne" Tag="{x:Bind}" IsOn="{x:Bind AutoRefresh}"
+                                      OnContent="Włączone" OffContent="Wyłączone" Toggled="Auto_Toggled" />
+                        <Button Content="Odśwież teraz" Tag="{x:Bind}" IsEnabled="{x:Bind CanRefresh}" Click="Refresh_Click"
+                                VerticalAlignment="Bottom" />
+                        <Button Content="{x:Bind RemoveLabel}" Tag="{x:Bind}" Visibility="{x:Bind CanRemove}" Click="Remove_Click"
+                                VerticalAlignment="Bottom" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel Padding="32,24" Spacing="8" MaxWidth="960" HorizontalAlignment="Left">
+            <TextBlock Text="Ustawienia" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,0,0,16" />
+
+            <Grid>
+                <TextBlock Text="Listy" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                <Button Content="Dodaj listę" HorizontalAlignment="Right" Click="AddPlaylist_Click" />
+            </Grid>
+            <TextBlock x:Name="NoPlaylists" Text="Brak list. Dodaj pierwszą, żeby zobaczyć kanały."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <ItemsControl x:Name="PlaylistList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+
+            <Grid Margin="0,24,0,0">
+                <TextBlock Text="Źródła EPG" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                <Button Content="Dodaj źródło EPG" HorizontalAlignment="Right" Click="AddEpg_Click" />
+            </Grid>
+            <TextBlock x:Name="NoEpgs" Text="Brak źródeł EPG. Dodaj je, żeby zobaczyć ramówkę. Kolejność ma znaczenie: wyższe źródło wygrywa."
+                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

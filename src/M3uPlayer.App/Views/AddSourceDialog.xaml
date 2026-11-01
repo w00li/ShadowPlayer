@@ -1,0 +1,22 @@
+<ContentDialog
+    x:Class="M3uPlayer.App.Views.AddSourceDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    PrimaryButtonText="Dodaj"
+    CloseButtonText="Anuluj"
+    DefaultButton="Primary"
+    PrimaryButtonClick="Primary_Click">
+    <StackPanel Spacing="12" MinWidth="420">
+        <TextBox x:Name="UrlBox" Header="Adres internetowy" PlaceholderText="https://…" LostFocus="UrlBox_LostFocus"
+                 TextChanged="UrlBox_TextChanged" />
+        <TextBlock x:Name="UrlError" Visibility="Collapsed" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+        <TextBlock Text="albo" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button x:Name="PickButton" Content="Wybierz plik z dysku" Click="Pick_Click" />
+            <TextBlock x:Name="FileText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="240"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+        <TextBox x:Name="NameBox" Header="Nazwa" TextChanged="NameBox_TextChanged" />
+        <TextBlock x:Name="NameError" Visibility="Collapsed" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+    </StackPanel>
+</ContentDialog>

@@ -6,5 +6,12 @@
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
-    <Grid />
+    <NavigationView x:Name="Nav" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+                    OpenPaneLength="220" SelectionChanged="Nav_SelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem x:Name="LiveItem" Content="Na żywo" Tag="live" Icon="Video" />
+            <NavigationViewItem x:Name="SettingsItem" Content="Ustawienia" Tag="settings" Icon="Setting" />
+        </NavigationView.MenuItems>
+        <Frame x:Name="Host" />
+    </NavigationView>
 </Window>

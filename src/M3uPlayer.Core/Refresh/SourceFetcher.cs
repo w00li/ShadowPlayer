@@ -18,7 +18,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
     {
         if (IsHttp(source.Location)) return await FetchHttpAsync(source, ct);
         if (Path.IsPathRooted(source.Location) && !source.Location.Contains("://")) return await FetchFileAsync(source, ct);
-        throw new InvalidOperationException("Unsupported source location.");
+        throw new InvalidOperationException("Nieobsługiwany adres źródła. Usuń to źródło i dodaj je ponownie.");
     }
 
     private async Task<FetchResult> FetchHttpAsync(Source source, CancellationToken ct)
@@ -49,7 +49,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         try { return await DownloadCoreAsync(source, idle); }
         catch (OperationCanceledException) when (!callerCt.IsCancellationRequested)
         {
-            throw new TimeoutException("The server stopped responding.");
+            throw new TimeoutException("Serwer nie odpowiada. Spróbujemy ponownie o następnej porze odświeżania.");
         }
     }
 
@@ -63,9 +63,9 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         if (response.StatusCode == System.Net.HttpStatusCode.NotModified) return new FetchResult(true, null, source.ETag, source.LastModified);
         // Messages deliberately omit the URL: it carries credentials.
         if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}", null, response.StatusCode);
+            throw new HttpRequestException($"Serwer odpowiedział błędem HTTP {(int)response.StatusCode}. Spróbujemy ponownie o następnej porze odświeżania.", null, response.StatusCode);
         if (response.RequestMessage?.RequestUri is { Scheme: not ("http" or "https") })
-            throw new HttpRequestException("The server redirected to an unsupported address.");
+            throw new HttpRequestException("Serwer przekierował na nieobsługiwany adres. Sprawdź adres źródła.");
 
         await using var body = await response.Content.ReadAsStreamAsync(ct);
         var path = await CopyToTempAsync(body, ct, idle);
@@ -76,7 +76,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
     private async Task<FetchResult> FetchFileAsync(Source source, CancellationToken ct)
     {
         var info = new FileInfo(source.Location);
-        if (!info.Exists) throw new FileNotFoundException("The local source file was not found.");
+        if (!info.Exists) throw new FileNotFoundException("Nie znaleziono pliku. Sprawdź, czy nie został przeniesiony lub usunięty.");
         var modified = info.LastWriteTimeUtc.ToString("O", CultureInfo.InvariantCulture);
         if (source.LastSuccess is not null && modified == source.LastModified) return new FetchResult(true, null, null, modified);
         await using var input = info.OpenRead();
@@ -98,7 +98,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
                 {
                     idle?.CancelAfter(_idle);
                     total += n;
-                    if (total > maxBytes) throw new InvalidDataException("The source is larger than the allowed size.");
+                    if (total > maxBytes) throw new InvalidDataException("Źródło jest większe niż dozwolone 500 MB, więc go nie wczytano.");
                     await output.WriteAsync(buffer.AsMemory(0, n), ct);
                 }
             }
