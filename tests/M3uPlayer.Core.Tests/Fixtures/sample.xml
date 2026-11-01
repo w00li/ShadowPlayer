@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tv>
+  <channel id="tvp1.example">
+    <display-name>TVP 1</display-name>
+    <display-name>TVP 1 HD</display-name>
+  </channel>
+  <programme start="20261101120000 +0100" stop="20261101130000 +0100" channel="tvp1.example">
+    <title lang="pl">Wiadomosci</title>
+    <sub-title>Wydanie glowne</sub-title>
+    <desc>Opis programu</desc>
+    <category>News</category>
+    <icon src="http://img.example.invalid/w.png"/>
+  </programme>
+</tv>

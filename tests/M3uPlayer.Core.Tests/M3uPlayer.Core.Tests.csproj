@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Content Include="Fixtures/sample.m3u" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures/sample.xml" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\src\M3uPlayer.Core\M3uPlayer.Core.csproj" />
   </ItemGroup>
 
