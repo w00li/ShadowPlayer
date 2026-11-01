@@ -8,8 +8,6 @@ public class ReconnectPolicy
     /// <summary>The wait before the next attempt, or null when attempts are exhausted.</summary>
     public TimeSpan? NextDelay() => _attempt < Delays.Length ? Delays[_attempt++] : null;
 
-    public void Reset() => _attempt = 0;
-
-    /// <summary>Called once playback has lasted long enough to count as a real connection; only then does the sequence restart.</summary>
-    public void MarkStable() => Reset();
+    /// <summary>Called once playback has really progressed for long enough; only then does the sequence restart.</summary>
+    public void MarkStable() => _attempt = 0;
 }
