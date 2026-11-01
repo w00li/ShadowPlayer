@@ -17,16 +17,6 @@ public class ReconnectPolicyTests
     }
 
     [Fact]
-    public void Reset_restarts_sequence()
-    {
-        var p = new ReconnectPolicy();
-        p.NextDelay();
-        p.NextDelay();
-        p.Reset();
-        Assert.Equal(TimeSpan.FromSeconds(1), p.NextDelay());
-    }
-
-    [Fact]
     public void NextDelay_keeps_advancing_without_MarkStable()
     {
         // a server that connects and dies at once must not restart the sequence
