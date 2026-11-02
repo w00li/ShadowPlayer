@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using M3uPlayer.App.Player;
+using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Media;
 using M3uPlayer.Core.Storage;
@@ -12,10 +13,10 @@ namespace M3uPlayer.App.ViewModels;
 public sealed class LiveViewModel : Observable, IDisposable
 {
     public const string ChannelSetting = "live.channel", CategorySetting = "live.category", VolumeSetting = "live.volume",
-        PaneCollapsedSetting = "live.categoriesCollapsed";
+        PaneCollapsedSetting = "live.categoriesCollapsed", MutedSetting = "live.muted";
 
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(250), SpinnerDelay = TimeSpan.FromMilliseconds(400),
-        VisibleDelay = TimeSpan.FromMilliseconds(120), TickEvery = TimeSpan.FromSeconds(30);
+        VisibleDelay = TimeSpan.FromMilliseconds(120), TickEvery = TimeSpan.FromSeconds(30), VolumeSaveDelay = TimeSpan.FromMilliseconds(500);
 
     private readonly DispatcherQueue _dq;
     private readonly IPlayer _player;
@@ -24,7 +25,7 @@ public sealed class LiveViewModel : Observable, IDisposable
     private readonly Database _db;
     private readonly TimeProvider _time;
     private readonly TimeZoneInfo _tz = TimeZoneInfo.Local;
-    private readonly DispatcherQueueTimer _spinnerTimer, _visibleTimer, _tickTimer;
+    private readonly DispatcherQueueTimer _spinnerTimer, _visibleTimer, _tickTimer, _volumeTimer;
     private int _reloadVersion;
     private CancellationTokenSource _nowNextCts = new(), _searchCts = new();
     private IReadOnlyList<ChannelRow> _visible = [];
@@ -40,7 +41,9 @@ public sealed class LiveViewModel : Observable, IDisposable
         _spinnerTimer = Timer(SpinnerDelay, false, () => { _spinnerArmed = true; UpdateOverlay(); });
         _visibleTimer = Timer(VisibleDelay, false, () => Safe.Run(RefreshVisibleAsync));
         _tickTimer = Timer(TickEvery, true, () => Safe.Run(OnTickAsync));
+        _volumeTimer = Timer(VolumeSaveDelay, false, () => Save(VolumeSetting, _player.Volume.ToString()));
         _player.StateChanged += OnPlayerState;
+        _player.PositionChanged += OnPlayerPosition;
     }
 
     private DispatcherQueueTimer Timer(TimeSpan interval, bool repeat, Action tick)
@@ -60,8 +63,8 @@ public sealed class LiveViewModel : Observable, IDisposable
     public CategoryItem? SelectedCategory { get; private set; }
     public ChannelRow? SelectedChannel { get; private set; }
 
-    /// <summary>The archive task adds the other mode; for now the screen only plays live.</summary>
-    public bool IsLiveMode => true;
+    public ArchiveModel Archive { get; } = new();
+    public bool IsLiveMode => !Archive.Active;
 
     public bool ShowLayout { get; private set; }
     public bool ShowEmpty { get; private set; }
@@ -69,6 +72,50 @@ public sealed class LiveViewModel : Observable, IDisposable
     public bool HasListMessage => ListMessage.Length > 0;
     public bool CanClearSearch { get; private set; }
     public string GuideTitle => SelectedChannel?.Name ?? "";
+
+    // ---- player controls ----
+    public double Volume
+    {
+        get => _player.Volume;
+        set
+        {
+            var v = (int)Math.Round(Math.Clamp(value, 0, 100));
+            if (v == _player.Volume) return;
+            _player.Volume = v;
+            if (v > 0 && _player.Muted) SetMuted(false);
+            _volumeTimer.Stop(); // saving waits until the slider rests
+            _volumeTimer.Start();
+            Raise(nameof(Volume));
+        }
+    }
+
+    public bool Muted => _player.Muted;
+    public void ToggleMute() => SetMuted(!_player.Muted);
+
+    private void SetMuted(bool on)
+    {
+        _player.Muted = on;
+        Save(MutedSetting, on ? "1" : "0");
+        Raise();
+    }
+
+    private bool ShowsPlay => _state is PlayerState.Paused or PlayerState.Idle or PlayerState.Failed;
+    public string PlayGlyph => ShowsPlay ? "\uE768" : "\uE769";
+    public string PlayName => ShowsPlay ? "Odtwarzaj" : "Pauza";
+    public string PlayTip => PlayName + " (Spacja)";
+    public string MuteGlyph => Muted ? "\uE74F" : "\uE767";
+    public string MuteName => Muted ? "Włącz dźwięk" : "Wycisz";
+    public string MuteTip => MuteName + " (M)";
+
+    public void TogglePause()
+    {
+        switch (_state)
+        {
+            case PlayerState.Paused: _player.Resume(); break;
+            case PlayerState.Playing or PlayerState.Opening or PlayerState.Reconnecting: _player.Pause(); break;
+            default: Retry(); break;
+        }
+    }
 
     public bool CategoriesCollapsed
     {
@@ -106,13 +153,23 @@ public sealed class LiveViewModel : Observable, IDisposable
     public void Start()
     {
         _tickTimer.Start();
-        Safe.Run(ReloadAsync);
+        Safe.Run(async () =>
+        {
+            var first = !_restored;
+            _restored = true;
+            if (first) await RestoreAsync();
+            await ReloadAsync();
+            if (first) SelectRestoredChannel();
+        });
     }
 
     public void Dispose()
     {
         _disposed = true;
+        DisplayAwake.Set(false);
         _player.StateChanged -= OnPlayerState;
+        _player.PositionChanged -= OnPlayerPosition;
+        _volumeTimer.Stop();
         _tickTimer.Stop();
         _spinnerTimer.Stop();
         _visibleTimer.Stop();
@@ -124,7 +181,7 @@ public sealed class LiveViewModel : Observable, IDisposable
     {
         var version = ++_reloadVersion;
         var query = _searchText.Trim();
-        var category = SelectedCategory?.Key ?? CategoryItem.AllKey;
+        var category = SelectedCategory?.Key ?? _startCategory;
         var now = _time.GetUtcNow();
         var data = await Task.Run(() =>
         {
@@ -192,7 +249,7 @@ public sealed class LiveViewModel : Observable, IDisposable
             Categories.Clear();
             foreach (var w in wanted) Categories.Add(new CategoryItem(w.Key, w.Name, w.Count));
         }
-        var selected = Categories.FirstOrDefault(c => c.Key == (SelectedCategory?.Key ?? CategoryItem.AllKey)) ?? Categories[0];
+        var selected = Categories.FirstOrDefault(c => c.Key == (SelectedCategory?.Key ?? _startCategory)) ?? Categories[0];
         if (!ReferenceEquals(selected, SelectedCategory)) { SelectedCategory = selected; Raise(nameof(SelectedCategory)); }
     }
 
@@ -208,21 +265,59 @@ public sealed class LiveViewModel : Observable, IDisposable
 
     public void ClearSearch() => SearchText = "";
 
+    // ---- restoring the last session ----
+    private bool _restored;
+    private string _startCategory = CategoryItem.AllKey;
+    private string? _restoreChannel;
+
+    // Volume and mute go to the player now, so the first play already has them. Nothing starts playing.
+    private async Task RestoreAsync()
+    {
+        var saved = await Task.Run(() =>
+        {
+            var key = _db.GetSetting(ChannelSetting);
+            return (Category: _db.GetSetting(CategorySetting), Channel: key is null ? null : _channels.All().FirstOrDefault(c => c.Key == key),
+                Known: _channels.Categories().Select(c => "c:" + c.Name).ToHashSet(), Volume: _db.GetSetting(VolumeSetting),
+                Muted: _db.GetSetting(MutedSetting), Collapsed: _db.GetSetting(PaneCollapsedSetting));
+        });
+        if (_disposed) return;
+        var (cat, ch) = (saved.Category, saved.Channel);
+        var known = cat is CategoryItem.AllKey or CategoryItem.FavoritesKey || (cat is not null && saved.Known.Contains(cat));
+        var holds = ch is null || cat == CategoryItem.AllKey || (cat == CategoryItem.FavoritesKey && ch.IsFavorite) || cat == "c:" + ch.Category;
+        _startCategory = known && holds ? cat! : CategoryItem.AllKey; // a category or channel that is gone means "Wszystkie"
+        _restoreChannel = ch?.Key;
+        if (int.TryParse(saved.Volume, out var v)) _player.Volume = v;
+        _player.Muted = saved.Muted == "1";
+        if (saved.Collapsed == "1") { _categoriesCollapsed = true; Raise(nameof(CategoriesCollapsed)); }
+        Raise();
+    }
+
+    private void SelectRestoredChannel()
+    {
+        var key = _restoreChannel;
+        _restoreChannel = null;
+        if (key is null || SelectedChannel is not null || Channels.FirstOrDefault(r => r.Key == key) is not { } row) return;
+        SelectedChannel = row;
+        Raise();
+        UpdateOverlay();
+        SelectedChannelChanged?.Invoke();
+        Safe.Run(() => Guide.LoadAsync(row.Channel));
+    }
+
     // ---- playing ----
     private bool IsActive => _state is PlayerState.Opening or PlayerState.Playing or PlayerState.Reconnecting or PlayerState.Paused;
 
     public void Play(ChannelRow row)
     {
-        if (SelectedChannel?.Key == row.Key && IsActive) return; // a click on what already plays must not restart it
+        if (SelectedChannel?.Key == row.Key && IsActive && IsLiveMode) return; // a click on what already plays must not restart it
+        Archive.Clear(); // choosing a channel always means its live stream
         SelectedChannel = row;
         StartPlayback(row);
-        foreach (var r in Channels) r.SetPlaying(r.Key == row.Key);
         Save(ChannelSetting, row.Key);
-        Save(VolumeSetting, _player.Volume.ToString());
         Raise();
         UpdateOverlay();
         SelectedChannelChanged?.Invoke();
-        Safe.Run(() => Guide.LoadAsync(row.Key));
+        Safe.Run(() => Guide.LoadAsync(row.Channel));
     }
 
     private void StartPlayback(ChannelRow row)
@@ -230,13 +325,81 @@ public sealed class LiveViewModel : Observable, IDisposable
         var c = row.Channel;
         _spinnerArmed = false;
         _player.Play(new PlayRequest(c.Url, c.UserAgent, c.Referrer, true));
+        foreach (var r in Channels) r.SetPlaying(r.Key == row.Key);
     }
 
-    /// <summary>After a failure, or after the screen stopped playback: start the selected channel again.</summary>
+    /// <summary>After a failure, or after the screen stopped playback: start the selected channel again. In archive: continue it, or go live when it ended.</summary>
     public void Retry()
     {
-        if (SelectedChannel is { } row) StartPlayback(row);
+        if (SelectedChannel is null) return;
+        if (Archive.Active && _state != PlayerState.Idle) OpenArchive(Archive.Elapsed);
+        else GoLive();
     }
+
+    // ---- archive ----
+    public void GoLive()
+    {
+        Archive.Clear();
+        if (SelectedChannel is { } row) StartPlayback(row);
+        Raise();
+        UpdateOverlay();
+    }
+
+    /// <summary>Plays a programme from its start. Does nothing unless the archive reaches it.</summary>
+    public void PlayProgramme(GuideItem item)
+    {
+        if (SelectedChannel is null || item.Programme is not { } p || !item.CanReplay) return;
+        var timeline = new ArchiveTimeline(p.Start, p.Stop);
+        if (!TryOpen(timeline, TimeSpan.Zero))
+        {
+            Guide.ShowNotice(NoArchiveAddress);
+            return;
+        }
+        Archive.Begin(timeline, p.Title, _time.GetUtcNow());
+        Raise();
+        UpdateOverlay();
+    }
+
+    private const string NoArchiveAddress = "Nie udało się utworzyć adresu archiwum dla tego programu.";
+
+    /// <summary>Opens the programme at the offset. False when the provider's scheme gives no address.</summary>
+    private bool TryOpen(ArchiveTimeline timeline, TimeSpan offset)
+    {
+        if (SelectedChannel?.Channel is not { } c) return false;
+        var url = CatchupUrlBuilder.Build(c.Catchup, c.Url, timeline.Start + offset, timeline.Stop, _time.GetUtcNow());
+        if (url is null) return false;
+        _spinnerArmed = false;
+        _player.Play(new PlayRequest(url, c.UserAgent, c.Referrer, false));
+        return true;
+    }
+
+    private void OpenArchive(TimeSpan offset)
+    {
+        if (Archive.Timeline is not { } t) return;
+        if (!TryOpen(t, offset)) { Guide.ShowNotice(NoArchiveAddress); return; }
+        Archive.Reopened(offset, _time.GetUtcNow());
+        UpdateOverlay();
+    }
+
+    public void SeekTo(double seconds)
+    {
+        if (Archive.Timeline is not { } t) return;
+        var now = _time.GetUtcNow();
+        var plan = t.SeekTo(TimeSpan.FromSeconds(seconds), now, _player.IsSeekable && IsActive);
+        if (plan.Reopen) OpenArchive(plan.Offset);
+        else
+        {
+            _player.Seek(plan.PlayerPosition);
+            Archive.SetPosition(plan.PlayerPosition, now);
+        }
+    }
+
+    public void SeekBy(TimeSpan delta) => SeekTo((Archive.Elapsed + delta).TotalSeconds);
+
+    private void OnPlayerPosition(TimeSpan p) => _dq.TryEnqueue(() =>
+    {
+        if (!_disposed) Archive.SetPosition(p, _time.GetUtcNow());
+    });
 
     public void SelectNextChannel() => Step(1);
     public void SelectPreviousChannel() => Step(-1);
@@ -263,7 +426,8 @@ public sealed class LiveViewModel : Observable, IDisposable
     {
         if (!_resume) return;
         _resume = false;
-        Retry();
+        if (Archive.Active) OpenArchive(Archive.Elapsed);
+        else if (SelectedChannel is { } row) StartPlayback(row);
     }
 
     public void ToggleFavorite(string key)
@@ -286,13 +450,15 @@ public sealed class LiveViewModel : Observable, IDisposable
     private void ApplyState(PlayerState s)
     {
         _state = s;
+        DisplayAwake.Set(s == PlayerState.Playing);
         _spinnerTimer.Stop();
         if (s == PlayerState.Opening) { if (!_spinnerArmed) _spinnerTimer.Start(); }
         else _spinnerArmed = false;
         UpdateOverlay();
+        Raise(); // the play/pause button
     }
 
-    private void UpdateOverlay() => Overlay.Update(_state, _spinnerArmed, _player.LastError, SelectedChannel?.Name);
+    private void UpdateOverlay() => Overlay.Update(_state, _spinnerArmed, _player.LastError, SelectedChannel?.Name, Archive.Active);
 
     // ---- EPG on visible rows ----
     public void ReportVisible(IEnumerable<ChannelRow> rows)
@@ -352,7 +518,7 @@ public sealed class LiveViewModel : Observable, IDisposable
     public async Task OnDataChangedAsync()
     {
         await ReloadAsync();
-        if (SelectedChannel is { } row) await Guide.LoadAsync(row.Key);
+        if (SelectedChannel is { } row) await Guide.LoadAsync(row.Channel);
     }
 
     // ---- plumbing ----

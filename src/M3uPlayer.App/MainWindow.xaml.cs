@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using M3uPlayer.App.Views;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
@@ -19,12 +20,44 @@ public sealed partial class MainWindow : Window
         var scale = GetDpiForWindow(WindowNative.GetWindowHandle(this)) / 96.0;
         var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min((int)(1400 * scale), work.Width), Math.Min((int)(860 * scale), work.Height)));
+        AppWindow.Changed += (_, a) =>
+        {
+            if (!a.DidPresenterChange) return;
+            Nav.IsPaneVisible = !IsFullscreen; // the video gets the whole window
+            if (!IsFullscreen) HideCursor(false);
+            FullscreenChanged?.Invoke(IsFullscreen);
+        };
         _subclass = OnMessage;
         SetWindowSubclass(WindowNative.GetWindowHandle(this), _subclass, 1, 0);
         Navigate(typeof(LivePage));
     }
 
     private bool _syncing;
+    private AppWindowPresenter? _windowed;
+    private bool _cursorHidden;
+
+    public event Action<bool>? FullscreenChanged;
+
+    public bool IsFullscreen => AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
+
+    public void SetFullscreen(bool on)
+    {
+        if (on == IsFullscreen) return;
+        if (on)
+        {
+            _windowed = AppWindow.Presenter; // the way back keeps maximized or restored as it was
+            AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        }
+        else AppWindow.SetPresenter(_windowed ?? OverlappedPresenter.Create());
+    }
+
+    /// <summary>Hides or shows the mouse pointer; the counter behind ShowCursor needs balanced calls, so only changes count.</summary>
+    public void HideCursor(bool hide)
+    {
+        if (hide == _cursorHidden) return;
+        _cursorHidden = hide;
+        ShowCursor(!hide);
+    }
 
     /// <param name="parameter">Passed to the page, e.g. "add" to open the Add-list dialog.</param>
     public void Navigate(Type page, object? parameter = null)
@@ -59,5 +92,6 @@ public sealed partial class MainWindow : Window
 
     [DllImport("comctl32.dll")] private static extern bool SetWindowSubclass(nint hwnd, SubclassProc proc, nuint id, nuint data);
     [DllImport("comctl32.dll")] private static extern nint DefSubclassProc(nint hwnd, uint msg, nint wParam, nint lParam);
+    [DllImport("user32.dll")] private static extern int ShowCursor(bool show);
     [DllImport("user32.dll")] private static extern uint GetDpiForWindow(nint hwnd);
 }

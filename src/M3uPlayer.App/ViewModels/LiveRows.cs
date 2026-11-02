@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Storage;
 using M3uPlayer.Core.Text;
@@ -95,8 +96,11 @@ public sealed class ChannelRow : Observable
 /// <summary>A day header or a programme in the guide list.</summary>
 public sealed class GuideItem : Observable
 {
-    public GuideItem(GuideRow row, TimeZoneInfo tz)
+    private readonly CatchupInfo _catchup;
+
+    public GuideItem(GuideRow row, TimeZoneInfo tz, CatchupInfo catchup)
     {
+        _catchup = catchup;
         Programme = row.Programme;
         Header = row.Header ?? "";
         IsHeader = row.Header is not null;
@@ -115,16 +119,20 @@ public sealed class GuideItem : Observable
     public bool IsPast { get; private set; }
     public double Progress { get; private set; }
     public Windows.UI.Text.FontWeight TitleWeight => IsCurrent ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal;
-    public double TextOpacity => IsPast ? 0.6 : 1;
+    /// <summary>Started already and the archive reaches back to it.</summary>
+    public bool CanReplay { get; private set; }
+    public bool ReplayMarker => CanReplay && IsPast;
+    public double TextOpacity => IsPast && !CanReplay ? 0.55 : 1;
     public override string ToString() => AutomationName;
-    public string AutomationName => IsHeader ? Header : $"{TimeText} {Title}{(IsCurrent ? ". Teraz" : IsPast ? ". Minął" : "")}";
+    public string AutomationName => IsHeader ? Header : $"{TimeText} {Title}{(IsCurrent ? ". Teraz" : IsPast ? ". Minął" : "")}{(ReplayMarker ? ". Dostępny w archiwum" : "")}";
 
     public void SetTime(DateTimeOffset now)
     {
         if (Programme is not { } p) return;
         var (current, past, progress) = (p.Start <= now && now < p.Stop, p.Stop <= now, GuideFormat.Progress(p.Start, p.Stop, now));
-        if (current == IsCurrent && past == IsPast && Math.Abs(progress - Progress) < 0.005) return;
-        (IsCurrent, IsPast, Progress) = (current, past, progress);
+        var replay = CatchupUrlBuilder.IsAvailable(_catchup, p.Start, p.Stop, now);
+        if (current == IsCurrent && past == IsPast && replay == CanReplay && Math.Abs(progress - Progress) < 0.005) return;
+        (IsCurrent, IsPast, Progress, CanReplay) = (current, past, progress, replay);
         Raise();
     }
 }
