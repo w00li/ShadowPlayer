@@ -98,21 +98,34 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
 
     private void Initialize(VideoView view, string[] swapChainOptions)
     {
-        // Must be created with the swap chain options, or video opens in its own window.
-        var lib = new LibVLC(swapChainOptions);
-        var mp = new MediaPlayer(lib);
-        mp.Playing += (_, _) => OnPlaying(mp);
-        mp.EndReached += (_, _) => OnEnded(mp);
-        mp.EncounteredError += (_, _) => OnError(mp);
-        mp.TimeChanged += (_, a) => OnTime(mp, a.Time);
-        mp.LengthChanged += (_, a) => Cache(mp, () => _lenMs = a.Length);
-        mp.SeekableChanged += (_, a) => Cache(mp, () => _seekable = a.Seekable != 0);
-        mp.ESAdded += (_, _) => Enqueue(RefreshTracks);
-        mp.ESDeleted += (_, _) => Enqueue(RefreshTracks);
+        var ui = view.DispatcherQueue;
+        // LibVLC scans its 321 plugins here: up to 20 s on a cold start, so never on the UI thread. Only handing the player to the view needs that thread.
+        Enqueue(() =>
+        {
+            var took = System.Diagnostics.Stopwatch.StartNew();
+            // Must be created with the swap chain options, or video opens in its own window.
+            var lib = new LibVLC(swapChainOptions);
+            var mp = new MediaPlayer(lib);
+            mp.Playing += (_, _) => OnPlaying(mp);
+            mp.EndReached += (_, _) => OnEnded(mp);
+            mp.EncounteredError += (_, _) => OnError(mp);
+            mp.TimeChanged += (_, a) => OnTime(mp, a.Time);
+            mp.LengthChanged += (_, a) => Cache(mp, () => _lenMs = a.Length);
+            mp.SeekableChanged += (_, a) => Cache(mp, () => _seekable = a.Seekable != 0);
+            mp.ESAdded += (_, _) => Enqueue(RefreshTracks);
+            mp.ESDeleted += (_, _) => Enqueue(RefreshTracks);
+            Log($"LibVLC gotowy po {took.ElapsedMilliseconds} ms");
+            if (!ui.TryEnqueue(() => Install(view, lib, mp))) { mp.Dispose(); lib.Dispose(); }
+        });
+    }
+
+    // On the UI thread. A Play made while LibVLC was starting had no player yet, so it is replayed here.
+    private void Install(VideoView view, LibVLC lib, MediaPlayer mp)
+    {
         int gen;
         lock (_gate)
         {
-            if (_disposed || !ReferenceEquals(view, _view)) { mp.Dispose(); lib.Dispose(); return; }
+            if (_disposed || !ReferenceEquals(view, _view)) { Enqueue(() => { mp.Dispose(); lib.Dispose(); }); return; }
             RetirePlayerLocked(); // a repeated Initialized must not leave the first player running
             _lib = lib;
             _mp = mp;
