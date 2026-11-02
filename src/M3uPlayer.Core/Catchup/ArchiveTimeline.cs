@@ -1,3 +1,5 @@
+using M3uPlayer.Core.Storage;
+
 namespace M3uPlayer.Core.Catchup;
 
 public record SeekPlan(TimeSpan Offset, bool Reopen, TimeSpan PlayerPosition);
@@ -29,6 +31,11 @@ public sealed record ArchiveTimeline(DateTimeOffset Start, DateTimeOffset Stop, 
         var reopen = !seekable || offset < OpenedAt;
         return new SeekPlan(offset, reopen, reopen ? TimeSpan.Zero : offset - OpenedAt);
     }
+
+    /// <summary>The programme to play after the one that started at <paramref name="currentStart"/>; null when the archive has nothing further yet.</summary>
+    /// <param name="guide">Ordered by start, as the guide is.</param>
+    public static Programme? NextProgramme(IEnumerable<Programme> guide, DateTimeOffset currentStart, CatchupInfo catchup, DateTimeOffset now) =>
+        guide.FirstOrDefault(p => p.Start > currentStart) is { } next && CatchupUrlBuilder.IsAvailable(catchup, next.Start, now) ? next : null;
 
     private static TimeSpan Bound(TimeSpan value, TimeSpan max) => value < TimeSpan.Zero ? TimeSpan.Zero : value > max ? max : value;
 

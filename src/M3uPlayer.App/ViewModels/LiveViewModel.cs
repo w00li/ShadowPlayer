@@ -410,6 +410,8 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         _spinnerTimer.Stop();
         if (s == PlayerState.Opening) { if (!_spinnerArmed) _spinnerTimer.Start(); }
         else _spinnerArmed = false;
+        // Stopping for the screen sets _ignorePositions first, and a failed open never reaches Idle: this is the real end of a programme.
+        if (s == PlayerState.Idle && Archive.Active && !_archiveResumable && !_ignorePositions) { PlayNextProgramme(); return; }
         UpdateOverlay();
         Raise(); // the play/pause button
     }
