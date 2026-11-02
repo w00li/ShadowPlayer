@@ -24,7 +24,7 @@ public sealed partial class LivePage : Page
         Vm = new LiveViewModel(DispatcherQueue, App.Services.Player, App.Services.Channels, App.Services.Programmes, App.Services.Db);
         InitializeComponent();
         App.Services.Player.Attach(Video);
-        Vm.ChannelsReplaced += SyncChannelSelection;
+        Vm.ChannelsReplaced += () => { _realized.Clear(); SyncChannelSelection(); }; // new containers must be realized again
         Vm.SelectedChannelChanged += SyncChannelSelection;
         Vm.Guide.Loaded += OnGuideLoaded;
         Vm.Guide.PropertyChanged += (_, _) => _ = LoadPictureAsync();
@@ -79,7 +79,6 @@ public sealed partial class LivePage : Page
     // ---- channels ----
     private void SyncChannelSelection()
     {
-        _realized.Clear();
         var row = Vm.Channels.FirstOrDefault(r => r.Key == Vm.SelectedChannel?.Key);
         if (!ReferenceEquals(ChannelList.SelectedItem, row)) ChannelList.SelectedItem = row;
         if (row is not null) ChannelList.ScrollIntoView(row);
