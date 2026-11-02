@@ -11,3 +11,5 @@ bin/
 obj/
 .vs/
 *.user
+
+artifacts/
