@@ -78,6 +78,7 @@ public partial class App : Application
         _window.Closed += (_, _) =>
         {
             Stop.Cancel();
+            DisplayAwake.Set(false);
             Services.Player.Dispose(); // on the UI thread, as the player requires
             try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
         };

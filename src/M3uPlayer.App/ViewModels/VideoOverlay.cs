@@ -15,9 +15,9 @@ public sealed class VideoOverlay : Observable
     public string ButtonText => _info.ButtonText;
     public double Dim => _info.Dim;
 
-    public void Update(PlayerState state, bool spinnerArmed, string? lastError, string? channelName)
+    public void Update(PlayerState state, bool spinnerArmed, string? lastError, string? channelName, bool archive = false)
     {
-        _info = OverlayInfo.For(state, spinnerArmed, lastError, channelName);
+        _info = OverlayInfo.For(state, spinnerArmed, lastError, channelName, archive);
         Raise();
     }
 }

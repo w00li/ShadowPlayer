@@ -14,6 +14,15 @@
             <Setter Property="CornerRadius" Value="{ThemeResource OverlayCornerRadius}" />
         </Style>
 
+        <Style x:Key="BarButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <Style x:Key="RowItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="12,0,8,0" />
@@ -86,7 +95,16 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="{x:Bind TimeText}" Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="{x:Bind Title}" FontWeight="{x:Bind TitleWeight, Mode=OneWay}" TextWrapping="Wrap" />
+                        <Grid ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{x:Bind Title}" FontWeight="{x:Bind TitleWeight, Mode=OneWay}" TextWrapping="Wrap" />
+                            <FontIcon Grid.Column="1" Glyph="&#xE81C;" FontSize="12" VerticalAlignment="Top" Margin="0,3,0,0"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" Visibility="{x:Bind ReplayMarker, Mode=OneWay}"
+                                      ToolTipService.ToolTip="Dostępne w archiwum" AutomationProperties.AccessibilityView="Raw" />
+                        </Grid>
                         <ProgressBar Minimum="0" Maximum="1" Value="{x:Bind Progress, Mode=OneWay}" Visibility="{x:Bind IsCurrent, Mode=OneWay}"
                                      AutomationProperties.AccessibilityView="Raw" />
                     </StackPanel>
@@ -129,7 +147,7 @@
             </Border>
 
             <!-- Kanały -->
-            <Border Grid.Column="1" Style="{StaticResource PaneCardStyle}">
+            <Border x:Name="ChannelCard" Grid.Column="1" Style="{StaticResource PaneCardStyle}">
                 <Grid RowSpacing="8" Padding="8,8,8,4">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -167,26 +185,11 @@
             <!-- Obraz i ramówka -->
             <Grid x:Name="RightColumn" Grid.Column="2" RowSpacing="8" SizeChanged="RightColumn_SizeChanged">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition x:Name="VideoRow" Height="Auto" />
+                    <RowDefinition x:Name="GuideRow" Height="*" />
                 </Grid.RowDefinitions>
 
-                <Grid x:Name="VideoBox" Background="Black" CornerRadius="{ThemeResource OverlayCornerRadius}" Height="260">
-                    <vlc:VideoView x:Name="Video" />
-                    <Grid x:Name="Overlay" Visibility="{x:Bind Vm.Overlay.Visible, Mode=OneWay}" RequestedTheme="Dark">
-                        <Rectangle Fill="Black" Opacity="{x:Bind Vm.Overlay.Dim, Mode=OneWay}" />
-                        <StackPanel Spacing="12" Padding="16" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
-                            <ProgressRing Width="40" Height="40" IsActive="{x:Bind Vm.Overlay.Spinner, Mode=OneWay}"
-                                          Visibility="{x:Bind Vm.Overlay.Spinner, Mode=OneWay}" AutomationProperties.Name="Łączenie" />
-                            <TextBlock Text="{x:Bind Vm.Overlay.Text, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
-                                       Style="{ThemeResource BodyStrongTextBlockStyle}" AutomationProperties.LiveSetting="Polite" />
-                            <Button Content="{x:Bind Vm.Overlay.ButtonText, Mode=OneWay}" Visibility="{x:Bind Vm.Overlay.Button, Mode=OneWay}"
-                                    HorizontalAlignment="Center" Style="{ThemeResource AccentButtonStyle}" Click="Retry_Click" />
-                        </StackPanel>
-                    </Grid>
-                </Grid>
-
-                <Border Grid.Row="1" Style="{StaticResource PaneCardStyle}">
+                <Border x:Name="GuideCard" Grid.Row="1" Style="{StaticResource PaneCardStyle}">
                     <Grid RowSpacing="8" Padding="12,12,12,12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -198,13 +201,13 @@
                             <TextBlock Text="{x:Bind Vm.GuideTitle, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
                         </StackPanel>
-                        <ListView x:Name="GuideList" Grid.Row="1" ItemsSource="{x:Bind Vm.Guide.Items}" ItemTemplate="{StaticResource GuideTemplate}"
+                        <ListView x:Name="GuideList" Grid.Row="1" DoubleTapped="GuideList_DoubleTapped" ItemsSource="{x:Bind Vm.Guide.Items}" ItemTemplate="{StaticResource GuideTemplate}"
                                   ItemContainerStyle="{StaticResource RowItemStyle}" SelectionMode="Single"
                                   ContainerContentChanging="GuideList_ContainerContentChanging" SelectionChanged="GuideList_SelectionChanged"
                                   AutomationProperties.Name="Ramówka" />
                         <TextBlock Grid.Row="1" Text="{x:Bind Vm.Guide.Message, Mode=OneWay}" Visibility="{x:Bind Vm.Guide.HasMessage, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        <Border Grid.Row="2" Visibility="{x:Bind Vm.Guide.DetailVisible, Mode=OneWay}" MaxHeight="150"
+                        <Border Grid.Row="2" Visibility="{x:Bind Vm.Guide.DetailVisible, Mode=OneWay}" MaxHeight="190"
                                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Padding="12">
                             <Grid ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -218,6 +221,10 @@
                                         <TextBlock Text="{x:Bind Vm.Guide.DetailTitle, Mode=OneWay}" Style="{ThemeResource BodyStrongTextBlockStyle}" TextWrapping="Wrap" />
                                         <TextBlock Text="{x:Bind Vm.Guide.DetailMeta, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                        <Button Content="Oglądaj od początku" Margin="0,4,0,0" Click="Replay_Click"
+                                                Visibility="{x:Bind Vm.Guide.ReplayVisible, Mode=OneWay}" IsEnabled="{x:Bind Vm.Guide.CanReplay, Mode=OneWay}" />
+                                        <TextBlock Text="{x:Bind Vm.Guide.ReplayNote, Mode=OneWay}" Visibility="{x:Bind Vm.Guide.HasReplayNote, Mode=OneWay}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                                         <TextBlock Text="{x:Bind Vm.Guide.DetailDescription, Mode=OneWay}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                     </StackPanel>
                                 </ScrollViewer>
@@ -225,6 +232,95 @@
                         </Border>
                     </Grid>
                 </Border>
+
+                <!-- Obraz: po ramówce w kolejności XAML, więc Tab trafia na niego po ramówce -->
+                <ContentControl x:Name="VideoHost" IsTabStop="True" UseSystemFocusVisuals="True" Padding="0" HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch" VerticalAlignment="Top" GotFocus="VideoHost_GotFocus" AutomationProperties.Name="Obraz">
+                <Grid x:Name="VideoBox" Background="Black" CornerRadius="{ThemeResource OverlayCornerRadius}" Height="260"
+                      PointerMoved="Video_PointerMoved" Tapped="Video_Tapped" DoubleTapped="Video_DoubleTapped">
+                    <vlc:VideoView x:Name="Video" />
+                    <Grid x:Name="Overlay" Visibility="{x:Bind Vm.Overlay.Visible, Mode=OneWay}" RequestedTheme="Dark">
+                        <Rectangle Fill="Black" Opacity="{x:Bind Vm.Overlay.Dim, Mode=OneWay}" />
+                        <StackPanel Spacing="12" Padding="16" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+                            <ProgressRing Width="40" Height="40" IsActive="{x:Bind Vm.Overlay.Spinner, Mode=OneWay}"
+                                          Visibility="{x:Bind Vm.Overlay.Spinner, Mode=OneWay}" AutomationProperties.Name="Łączenie" />
+                            <TextBlock Text="{x:Bind Vm.Overlay.Text, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
+                                       Style="{ThemeResource BodyStrongTextBlockStyle}" AutomationProperties.LiveSetting="Polite" />
+                            <Button Content="{x:Bind Vm.Overlay.ButtonText, Mode=OneWay}" Visibility="{x:Bind Vm.Overlay.Button, Mode=OneWay}"
+                                    HorizontalAlignment="Center" Style="{ThemeResource AccentButtonStyle}" Click="Retry_Click" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Pasek sterowania: nad dolną krawędzią obrazu -->
+                    <Grid x:Name="ControlsBar" VerticalAlignment="Bottom" RequestedTheme="Dark">
+                        <Rectangle Fill="{ThemeResource SolidBackgroundFillColorBaseBrush}" Opacity="0.88" />
+                        <StackPanel Spacing="2" Padding="12,6,12,6">
+                            <StackPanel Visibility="{x:Bind Vm.Archive.Active, Mode=OneWay}" Spacing="2">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind Vm.Archive.Caption, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}"
+                                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="420" />
+                                    <TextBlock Text="Przy końcu nagrania, dalej tylko na żywo" Visibility="{x:Bind Vm.Archive.AtLiveEnd, Mode=OneWay}"
+                                               Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                </StackPanel>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Vm.Archive.ElapsedText, Mode=OneWay}" VerticalAlignment="Center" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                    <Slider x:Name="Timeline" Grid.Column="1" Minimum="0" Maximum="1" IsThumbToolTipEnabled="False" ValueChanged="Timeline_ValueChanged"
+                                            AutomationProperties.Name="Pozycja w programie" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind Vm.Archive.TotalText, Mode=OneWay}" VerticalAlignment="Center" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </StackPanel>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Button Style="{StaticResource BarButtonStyle}" Click="PlayPause_Click"
+                                        ToolTipService.ToolTip="{x:Bind Vm.PlayTip, Mode=OneWay}" AutomationProperties.Name="{x:Bind Vm.PlayName, Mode=OneWay}">
+                                    <FontIcon Glyph="{x:Bind Vm.PlayGlyph, Mode=OneWay}" FontSize="16" />
+                                </Button>
+                                <Button Grid.Column="1" Style="{StaticResource BarButtonStyle}" Click="Mute_Click"
+                                        ToolTipService.ToolTip="{x:Bind Vm.MuteTip, Mode=OneWay}" AutomationProperties.Name="{x:Bind Vm.MuteName, Mode=OneWay}">
+                                    <FontIcon Glyph="{x:Bind Vm.MuteGlyph, Mode=OneWay}" FontSize="16" />
+                                </Button>
+                                <Slider x:Name="VolumeSlider" Grid.Column="2" Width="100" Minimum="0" Maximum="100" VerticalAlignment="Center"
+                                        Value="{x:Bind Vm.Volume, Mode=TwoWay}" AutomationProperties.Name="Głośność" />
+                                <Button Grid.Column="4" Content="Wróć na żywo" Click="GoLive_Click" Margin="0,0,8,0" VerticalAlignment="Center"
+                                        Visibility="{x:Bind Vm.Archive.Active, Mode=OneWay}" />
+                                <Button x:Name="AudioButton" Grid.Column="5" Style="{StaticResource BarButtonStyle}" IsEnabled="False"
+                                        ToolTipService.ToolTip="Ścieżka dźwiękowa" AutomationProperties.Name="Ścieżka dźwiękowa">
+                                    <FontIcon Glyph="&#xE8D6;" FontSize="16" />
+                                    <Button.Flyout>
+                                        <MenuFlyout x:Name="AudioMenu" Placement="TopEdgeAlignedRight" Opening="AudioMenu_Opening" Opened="Menu_Opened" Closed="Menu_Closed" />
+                                    </Button.Flyout>
+                                </Button>
+                                <Button x:Name="SubtitleButton" Grid.Column="6" Style="{StaticResource BarButtonStyle}" IsEnabled="False"
+                                        ToolTipService.ToolTip="Napisy" AutomationProperties.Name="Napisy">
+                                    <FontIcon Glyph="&#xE7F0;" FontSize="16" />
+                                    <Button.Flyout>
+                                        <MenuFlyout x:Name="SubtitleMenu" Placement="TopEdgeAlignedRight" Opening="SubtitleMenu_Opening" Opened="Menu_Opened" Closed="Menu_Closed" />
+                                    </Button.Flyout>
+                                </Button>
+                                <Button x:Name="FullscreenButton" Grid.Column="7" Style="{StaticResource BarButtonStyle}" Click="Fullscreen_Click"
+                                        ToolTipService.ToolTip="Pełny ekran (F)" AutomationProperties.Name="Pełny ekran">
+                                    <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="16" />
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                </ContentControl>
+
             </Grid>
         </Grid>
     </Grid>
