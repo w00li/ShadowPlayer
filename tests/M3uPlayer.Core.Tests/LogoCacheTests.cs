@@ -26,10 +26,64 @@ public sealed class LogoCacheTests : IDisposable
     private static HttpResponseMessage Png(int size = 10, string type = "image/png") =>
         new(HttpStatusCode.OK) { Content = new ByteArrayContent(new byte[size]) { Headers = { ContentType = new(type) } } };
 
-    private (LogoCache Cache, Handler Handler) Make(Func<HttpResponseMessage> respond)
+    private sealed class Clock : TimeProvider
+    {
+        public DateTimeOffset Now = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+
+    private (LogoCache Cache, Handler Handler) Make(Func<HttpResponseMessage> respond, TimeProvider? time = null)
     {
         var h = new Handler(respond);
-        return (new LogoCache(new HttpClient(h), _dir), h);
+        return (new LogoCache(new HttpClient(h), _dir, time), h);
+    }
+
+    [Fact]
+    public async Task GetAsync_parallel_calls_for_one_url_both_get_the_file()
+    {
+        var (cache, h) = Make(() => { Thread.Sleep(100); return Png(); });
+        var results = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Task.Run(() => cache.GetAsync("http://example.invalid/a.png", CancellationToken.None))));
+        Assert.All(results, r => Assert.NotNull(r));
+        Assert.Single(results.Distinct());
+        Assert.Equal(1, h.Calls);
+        Assert.Single(Directory.GetFiles(_dir));
+    }
+
+    [Fact]
+    public async Task GetAsync_cancelled_caller_does_not_fail_the_others()
+    {
+        var (cache, _) = Make(() => { Thread.Sleep(100); return Png(); });
+        using var cts = new CancellationTokenSource();
+        var first = cache.GetAsync("http://example.invalid/a.png", cts.Token);
+        var second = cache.GetAsync("http://example.invalid/a.png", CancellationToken.None);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+        Assert.NotNull(await second);
+    }
+
+    [Fact]
+    public async Task GetAsync_failed_url_is_not_retried_for_an_hour()
+    {
+        var clock = new Clock();
+        var (cache, h) = Make(() => new HttpResponseMessage(HttpStatusCode.NotFound), clock);
+        Assert.Null(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        Assert.Null(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        Assert.Equal(1, h.Calls);
+        clock.Now = clock.Now.AddMinutes(59);
+        Assert.Null(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        Assert.Equal(1, h.Calls);
+        clock.Now = clock.Now.AddMinutes(2);
+        Assert.Null(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        Assert.Equal(2, h.Calls);
+    }
+
+    [Fact]
+    public async Task GetAsync_non_image_and_oversize_are_memoized_too()
+    {
+        var (cache, h) = Make(() => Png(10, "text/html"));
+        await cache.GetAsync("http://example.invalid/b.png", CancellationToken.None);
+        await cache.GetAsync("http://example.invalid/b.png", CancellationToken.None);
+        Assert.Equal(1, h.Calls);
     }
 
     [Fact]

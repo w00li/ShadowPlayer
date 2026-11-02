@@ -4,12 +4,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace M3uPlayer.App.Views;
 
 public sealed partial class LivePage : Page
 {
-    private const double NarrowWidth = 900; // below this the category pane gives way to a drop-down
+    private const double NarrowWidth = 1050, TightWidth = 900; // below these the category pane gives way to a drop-down, then the channel column shrinks
     private readonly Action _onDataChanged;
     private readonly HashSet<ChannelRow> _realized = [];
     private bool _syncing;
@@ -24,34 +25,23 @@ public sealed partial class LivePage : Page
         InitializeComponent();
         App.Services.Player.Attach(Video);
         Vm.ChannelsReplaced += SyncChannelSelection;
-        Vm.SelectedChannelChanged += () => { if (Vm.SelectedChannel is { } r) ChannelList.ScrollIntoView(r); };
-        Vm.GuideLoaded += OnGuideLoaded;
-        Vm.PropertyChanged += (_, e) =>
-        {
-            if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(Vm.DetailIconUrl)) _ = LoadPictureAsync();
-        };
+        Vm.SelectedChannelChanged += SyncChannelSelection;
+        Vm.Guide.Loaded += OnGuideLoaded;
+        Vm.Guide.PropertyChanged += (_, _) => _ = LoadPictureAsync();
         // DataChanged fires on a worker thread.
-        _onDataChanged = () => DispatcherQueue.TryEnqueue(() => Run(Vm.OnDataChangedAsync));
+        _onDataChanged = () => DispatcherQueue.TryEnqueue(() => Safe.Run(Vm.OnDataChangedAsync));
         Loaded += (_, _) =>
         {
             App.Services.Refresh.DataChanged += _onDataChanged;
             Vm.Start();
             UpdateCategoryPane();
+            Vm.ReturnToScreen();
         };
-        // The video surface is destroyed with the page: stop, and let the user start again.
-        Unloaded += (_, _) =>
-        {
-            App.Services.Refresh.DataChanged -= _onDataChanged;
-            Vm.Pause();
-            Vm.StopPlayback();
-        };
+        Unloaded += (_, _) => App.Services.Refresh.DataChanged -= _onDataChanged;
     }
 
-    private static async void Run(Func<Task> work)
-    {
-        try { await work(); }
-        catch (Exception ex) { await App.ReportAsync(ex); }
-    }
+    // Leaving the page destroys the video surface: stop here, and resume in Loaded when the user comes back.
+    protected override void OnNavigatedFrom(NavigationEventArgs e) => Vm.LeaveScreen();
 
     // ---- categories ----
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -78,9 +68,9 @@ public sealed partial class LivePage : Page
         var show = !Vm.CategoriesCollapsed && !narrow;
         CategoryCard.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         CategoryColumn.Width = show ? new GridLength(200) : new GridLength(0);
-        ChannelColumn.Width = new GridLength(narrow ? 280 : 320);
+        ChannelColumn.Width = new GridLength(ActualWidth < TightWidth ? 280 : 320);
         CategoryCombo.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-        CategoryToggle.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
+        CategoryToggle.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible; // below the limit the drop-down is the only way
         // A zero-width column still takes a spacing slot; give it back to the video.
         RightColumn.Margin = new Thickness(show ? 0 : -8, 0, 0, 0);
         Layout.ColumnSpacing = 8;
@@ -90,20 +80,25 @@ public sealed partial class LivePage : Page
     private void SyncChannelSelection()
     {
         _realized.Clear();
-        _syncing = true;
-        try { ChannelList.SelectedItem = Vm.Channels.FirstOrDefault(r => r.Key == Vm.SelectedChannel?.Key); }
-        finally { _syncing = false; }
+        var row = Vm.Channels.FirstOrDefault(r => r.Key == Vm.SelectedChannel?.Key);
+        if (!ReferenceEquals(ChannelList.SelectedItem, row)) ChannelList.SelectedItem = row;
+        if (row is not null) ChannelList.ScrollIntoView(row);
     }
 
-    private void ChannelList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    // Selection changes caused by clicks only select; playing is driven by ItemClick so a click on the selected row works too.
+    private void ChannelList_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (!_syncing && ChannelList.SelectedItem is ChannelRow row) Vm.Play(row);
+        if (e.ClickedItem is ChannelRow row) Vm.Play(row);
     }
 
     private void ChannelList_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         if (args.Item is not ChannelRow row) return;
-        if (args.InRecycleQueue) _realized.Remove(row);
+        if (args.InRecycleQueue)
+        {
+            _realized.Remove(row);
+            if (row.Hover || row.StarFocus) { row.Hover = row.StarFocus = false; row.Refresh(); } // pointer-exit is not delivered to a recycled container
+        }
         else _realized.Add(row);
         Vm.ReportVisible(_realized);
     }
@@ -170,37 +165,39 @@ public sealed partial class LivePage : Page
         // Items are laid out lazily; wait one turn so ScrollIntoView finds the container.
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
         {
-            if (current is not null)
-            {
-                // From the top first: ScrollIntoView from a stale offset can stop short of the item.
-                GuideList.UpdateLayout();
-                if (Vm.Guide.Count > 0) GuideList.ScrollIntoView(Vm.Guide[0]);
-                GuideList.UpdateLayout();
-                GuideList.ScrollIntoView(current, ScrollIntoViewAlignment.Leading);
-            }
-            else if (Vm.Guide.LastOrDefault() is { } last) GuideList.ScrollIntoView(last);
+            var items = Vm.Guide.Items;
+            if (items.Count == 0) return;
+            // Two programmes of the past stay in view above the current one.
+            var at = current is null ? items.Count - 1 : Math.Max(0, items.IndexOf(current) - 2);
+            // From the top first: ScrollIntoView from a stale offset can stop short of the item.
+            GuideList.UpdateLayout();
+            GuideList.ScrollIntoView(items[0]);
+            GuideList.UpdateLayout();
+            GuideList.ScrollIntoView(items[at], ScrollIntoViewAlignment.Leading);
         });
     }
 
     private void GuideList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_syncing && GuideList.SelectedItem is GuideItem g) Vm.SelectProgramme(g);
+        if (!_syncing && GuideList.SelectedItem is GuideItem g) Vm.Guide.Select(g);
     }
 
     private void GuideList_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         if (args.Item is not GuideItem g) return;
         // Day headers are labels, not choices.
+        // Disabled containers are skipped by arrow keys; the header text keeps its own colour.
+        args.ItemContainer.IsEnabled = !g.IsHeader;
         args.ItemContainer.IsHitTestVisible = !g.IsHeader;
-        args.ItemContainer.IsTabStop = !g.IsHeader;
     }
 
     private async Task LoadPictureAsync()
     {
-        var url = Vm.DetailIconUrl;
+        var url = Vm.Guide.DetailIconUrl;
         if (url == _pictureUrl) return; // most notifications are about something else
         _pictureUrl = url;
         _pictureCts?.Cancel();
+        _pictureCts?.Dispose();
         DetailPicture.Source = null;
         DetailPicture.Visibility = Visibility.Collapsed;
         if (string.IsNullOrWhiteSpace(url)) return;

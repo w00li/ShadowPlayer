@@ -2,7 +2,6 @@ using M3uPlayer.Core.Media;
 
 namespace M3uPlayer.App.Player;
 
-public enum PlayerState { Idle, Opening, Playing, Paused, Reconnecting, Failed }
 
 public record TrackInfo(int Id, string Name);
 
