@@ -8,7 +8,7 @@ public record CatchupInfo(string? Type, string? Source, int Days);
 
 public static partial class CatchupUrlBuilder
 {
-    public const string FlussonicPlaylistName = "index";
+    public const string FlussonicPlaylistName = "mono"; // index- ends at once on 16 of the owner's 22 4K channels; mono- plays 21 of them, and every other channel tried
 
     private static readonly HashSet<string> Supported =
         new(["default", "append", "shift", "flussonic", "fs", "xc"], StringComparer.OrdinalIgnoreCase);
