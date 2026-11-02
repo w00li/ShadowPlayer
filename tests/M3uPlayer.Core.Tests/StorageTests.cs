@@ -80,6 +80,15 @@ public sealed class StorageTests : IDisposable
     }
 
     [Fact]
+    public void Find_returns_one_channel_by_key_or_null()
+    {
+        var id = _sources.Add(SourceKind.Playlist, "a", "A");
+        _channels.Replace(id, [Entry("one"), Entry("two")]);
+        Assert.Equal("two", _channels.Find("two")?.Key);
+        Assert.Null(_channels.Find("three"));
+    }
+
+    [Fact]
     public void Source_ordering_and_move()
     {
         var a = _sources.Add(SourceKind.Playlist, "a", "A");

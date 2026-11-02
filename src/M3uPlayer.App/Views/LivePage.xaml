@@ -246,7 +246,7 @@
                                           Visibility="{x:Bind Vm.Overlay.Spinner, Mode=OneWay}" AutomationProperties.Name="Łączenie" />
                             <TextBlock Text="{x:Bind Vm.Overlay.Text, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
                                        Style="{ThemeResource BodyStrongTextBlockStyle}" AutomationProperties.LiveSetting="Polite" />
-                            <Button Content="{x:Bind Vm.Overlay.ButtonText, Mode=OneWay}" Visibility="{x:Bind Vm.Overlay.Button, Mode=OneWay}"
+                            <Button x:Name="OverlayButton" Content="{x:Bind Vm.Overlay.ButtonText, Mode=OneWay}" Visibility="{x:Bind Vm.Overlay.Button, Mode=OneWay}"
                                     HorizontalAlignment="Center" Style="{ThemeResource AccentButtonStyle}" Click="Retry_Click" />
                         </StackPanel>
                     </Grid>

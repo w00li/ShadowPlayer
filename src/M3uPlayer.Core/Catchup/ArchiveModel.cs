@@ -1,10 +1,18 @@
-using M3uPlayer.Core.Catchup;
+using System.ComponentModel;
 
-namespace M3uPlayer.App.ViewModels;
+namespace M3uPlayer.Core.Catchup;
 
 /// <summary>The archive programme being watched and where in it the viewer is. Null timeline means live.</summary>
-public sealed class ArchiveModel : Observable
+public sealed class ArchiveModel : INotifyPropertyChanged
 {
+    // After a reopen or a seek the player still reports the old position for a while (events already queued, seek not yet applied).
+    // Those are ignored until one lands near the new position, or the grace period runs out.
+    private static readonly TimeSpan Tolerance = TimeSpan.FromSeconds(3), Grace = TimeSpan.FromSeconds(5);
+    private TimeSpan _expected;
+    private DateTimeOffset? _giveUpAt;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public ArchiveTimeline? Timeline { get; private set; }
     public bool Active => Timeline is not null;
     public string Caption { get; private set; } = "";
@@ -21,17 +29,28 @@ public sealed class ArchiveModel : Observable
         Timeline = t;
         Caption = "Archiwum: " + title;
         Maximum = Math.Max(1, t.Total.TotalSeconds);
+        Expect(TimeSpan.Zero, now);
         Show(t.OpenedAt, now);
     }
 
     public void Reopened(TimeSpan offset, DateTimeOffset now)
     {
         if (Timeline is { } t) Timeline = t.WithOpenedAt(offset);
+        Expect(TimeSpan.Zero, now);
         Show(offset, now);
+    }
+
+    /// <summary>A seek inside the running stream: show the target now and wait for the player to get there.</summary>
+    public void Seeked(TimeSpan playerPosition, DateTimeOffset now)
+    {
+        if (Timeline is not { } t) return;
+        Expect(playerPosition, now);
+        Show(t.Elapsed(playerPosition), now);
     }
 
     public void Clear()
     {
+        _giveUpAt = null;
         if (Timeline is null) return;
         (Timeline, Elapsed, AtLiveEnd) = (null, TimeSpan.Zero, false);
         Raise();
@@ -40,9 +59,16 @@ public sealed class ArchiveModel : Observable
     public void SetPosition(TimeSpan playerPosition, DateTimeOffset now)
     {
         if (Timeline is not { } t) return;
+        if (_giveUpAt is { } until)
+        {
+            if (now < until && (playerPosition - _expected).Duration() > Tolerance) return;
+            _giveUpAt = null;
+        }
         var elapsed = t.Elapsed(playerPosition);
         if ((long)elapsed.TotalSeconds != (long)Elapsed.TotalSeconds || t.AtLiveEnd(elapsed, now) != AtLiveEnd) Show(elapsed, now);
     }
+
+    private void Expect(TimeSpan playerPosition, DateTimeOffset now) => (_expected, _giveUpAt) = (playerPosition, now + Grace);
 
     private void Show(TimeSpan elapsed, DateTimeOffset now)
     {
@@ -50,4 +76,6 @@ public sealed class ArchiveModel : Observable
         AtLiveEnd = Timeline?.AtLiveEnd(elapsed, now) ?? false;
         Raise();
     }
+
+    private void Raise() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
 }
