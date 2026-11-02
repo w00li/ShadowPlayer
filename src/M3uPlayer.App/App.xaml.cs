@@ -25,6 +25,7 @@ public partial class App : Application
     }
 
     private static readonly CancellationTokenSource Stop = new();
+    private static readonly HashSet<string> LoggedStages = [];
     private static Task? _dialogClosed;
     private MainWindow? _window;
 
@@ -83,6 +84,14 @@ public partial class App : Application
             try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
         };
         _window.Activate();
+        LogStartupOnce("okno");
+    }
+
+    /// <summary>How long each stage of the app start took, for a start that feels slow.</summary>
+    public static void LogStartupOnce(string stage)
+    {
+        if (LoggedStages.Add(stage))
+            SafeLog($"Start: {stage} po {(DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds:0} ms");
     }
 
     // Only the files directly inside the app's own tmp folder: nothing a crashed run left behind is worth keeping.

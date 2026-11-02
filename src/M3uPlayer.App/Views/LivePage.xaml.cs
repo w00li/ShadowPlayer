@@ -49,6 +49,7 @@ public sealed partial class LivePage : Page
             Safe.Run(async () =>
             {
                 await Vm.StartAsync();
+                App.LogStartupOnce("lista");
                 Vm.ReturnToScreen();
                 VideoHost.Focus(FocusState.Programmatic);
             });
