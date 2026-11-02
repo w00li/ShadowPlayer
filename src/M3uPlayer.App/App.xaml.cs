@@ -110,7 +110,7 @@ public partial class App : Application
     {
         SafeLog(ex.ToString());
         MessageBoxW(0, "Nie udało się uruchomić aplikacji. Szczegóły zapisano w dzienniku w folderze M3uPlayer w danych lokalnych. Zamknij inne kopie aplikacji i spróbuj ponownie.",
-            "M3U Player", 0x10);
+            "ShadowPlayer", 0x10);
         Environment.Exit(1);
     }
 
