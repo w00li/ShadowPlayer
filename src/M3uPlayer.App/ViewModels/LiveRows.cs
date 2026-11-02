@@ -7,7 +7,7 @@ namespace M3uPlayer.App.ViewModels;
 
 public sealed class CategoryItem(string key, string name, int count) : Observable
 {
-    public const string AllKey = "*all", FavoritesKey = "*fav";
+    public const string AllKey = SessionRestore.AllKey, FavoritesKey = SessionRestore.FavoritesKey;
 
     public string Key { get; } = key;
     public string Name { get; } = name;

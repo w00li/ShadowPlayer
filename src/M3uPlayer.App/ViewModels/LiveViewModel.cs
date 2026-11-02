@@ -10,7 +10,7 @@ using Microsoft.UI.Dispatching;
 namespace M3uPlayer.App.ViewModels;
 
 /// <summary>State of the "Na żywo" screen. Touches no controls; everything that reaches the UI goes through the dispatcher queue.</summary>
-public sealed class LiveViewModel : Observable, IDisposable
+public sealed partial class LiveViewModel : Observable, IDisposable
 {
     public const string ChannelSetting = "live.channel", CategorySetting = "live.category", VolumeSetting = "live.volume",
         PaneCollapsedSetting = "live.categoriesCollapsed", MutedSetting = "live.muted";
@@ -87,6 +87,15 @@ public sealed class LiveViewModel : Observable, IDisposable
             _volumeTimer.Start();
             Raise(nameof(Volume));
         }
+    }
+
+    /// <summary>Writes a volume change that is still waiting for the slider to rest (the app is closing or the screen is left).</summary>
+    public void FlushVolume()
+    {
+        if (!_volumeTimer.IsRunning) return;
+        _volumeTimer.Stop();
+        try { _db.SetSetting(VolumeSetting, _player.Volume.ToString()); }
+        catch (Exception ex) { App.Services.Log.Write("Saving the volume failed: " + ex.Message); }
     }
 
     public bool Muted => _player.Muted;
@@ -267,7 +276,7 @@ public sealed class LiveViewModel : Observable, IDisposable
 
     // ---- restoring the last session ----
     private bool _restored;
-    private string _startCategory = CategoryItem.AllKey;
+    private string _startCategory = SessionRestore.AllKey;
     private string? _restoreChannel;
 
     // Volume and mute go to the player now, so the first play already has them. Nothing starts playing.
@@ -276,16 +285,13 @@ public sealed class LiveViewModel : Observable, IDisposable
         var saved = await Task.Run(() =>
         {
             var key = _db.GetSetting(ChannelSetting);
-            return (Category: _db.GetSetting(CategorySetting), Channel: key is null ? null : _channels.All().FirstOrDefault(c => c.Key == key),
+            return (Category: _db.GetSetting(CategorySetting), Channel: key is null ? null : _channels.Find(key),
                 Known: _channels.Categories().Select(c => "c:" + c.Name).ToHashSet(), Volume: _db.GetSetting(VolumeSetting),
                 Muted: _db.GetSetting(MutedSetting), Collapsed: _db.GetSetting(PaneCollapsedSetting));
         });
         if (_disposed) return;
-        var (cat, ch) = (saved.Category, saved.Channel);
-        var known = cat is CategoryItem.AllKey or CategoryItem.FavoritesKey || (cat is not null && saved.Known.Contains(cat));
-        var holds = ch is null || cat == CategoryItem.AllKey || (cat == CategoryItem.FavoritesKey && ch.IsFavorite) || cat == "c:" + ch.Category;
-        _startCategory = known && holds ? cat! : CategoryItem.AllKey; // a category or channel that is gone means "Wszystkie"
-        _restoreChannel = ch?.Key;
+        _startCategory = SessionRestore.StartCategory(saved.Category, saved.Known, saved.Channel); // a category or channel that is gone means "Wszystkie"
+        _restoreChannel = saved.Channel?.Key;
         if (int.TryParse(saved.Volume, out var v)) _player.Volume = v;
         _player.Muted = saved.Muted == "1";
         if (saved.Collapsed == "1") { _categoriesCollapsed = true; Raise(nameof(CategoriesCollapsed)); }
@@ -310,6 +316,7 @@ public sealed class LiveViewModel : Observable, IDisposable
     public void Play(ChannelRow row)
     {
         if (SelectedChannel?.Key == row.Key && IsActive && IsLiveMode) return; // a click on what already plays must not restart it
+        _archiveResumable = false;
         Archive.Clear(); // choosing a channel always means its live stream
         SelectedChannel = row;
         StartPlayback(row);
@@ -332,74 +339,9 @@ public sealed class LiveViewModel : Observable, IDisposable
     public void Retry()
     {
         if (SelectedChannel is null) return;
-        if (Archive.Active && _state != PlayerState.Idle) OpenArchive(Archive.Elapsed);
+        if (Archive.Active && (_state != PlayerState.Idle || _archiveResumable)) OpenArchive(Archive.Elapsed);
         else GoLive();
     }
-
-    // ---- archive ----
-    public void GoLive()
-    {
-        Archive.Clear();
-        if (SelectedChannel is { } row) StartPlayback(row);
-        Raise();
-        UpdateOverlay();
-    }
-
-    /// <summary>Plays a programme from its start. Does nothing unless the archive reaches it.</summary>
-    public void PlayProgramme(GuideItem item)
-    {
-        if (SelectedChannel is null || item.Programme is not { } p || !item.CanReplay) return;
-        var timeline = new ArchiveTimeline(p.Start, p.Stop);
-        if (!TryOpen(timeline, TimeSpan.Zero))
-        {
-            Guide.ShowNotice(NoArchiveAddress);
-            return;
-        }
-        Archive.Begin(timeline, p.Title, _time.GetUtcNow());
-        Raise();
-        UpdateOverlay();
-    }
-
-    private const string NoArchiveAddress = "Nie udało się utworzyć adresu archiwum dla tego programu.";
-
-    /// <summary>Opens the programme at the offset. False when the provider's scheme gives no address.</summary>
-    private bool TryOpen(ArchiveTimeline timeline, TimeSpan offset)
-    {
-        if (SelectedChannel?.Channel is not { } c) return false;
-        var url = CatchupUrlBuilder.Build(c.Catchup, c.Url, timeline.Start + offset, timeline.Stop, _time.GetUtcNow());
-        if (url is null) return false;
-        _spinnerArmed = false;
-        _player.Play(new PlayRequest(url, c.UserAgent, c.Referrer, false));
-        return true;
-    }
-
-    private void OpenArchive(TimeSpan offset)
-    {
-        if (Archive.Timeline is not { } t) return;
-        if (!TryOpen(t, offset)) { Guide.ShowNotice(NoArchiveAddress); return; }
-        Archive.Reopened(offset, _time.GetUtcNow());
-        UpdateOverlay();
-    }
-
-    public void SeekTo(double seconds)
-    {
-        if (Archive.Timeline is not { } t) return;
-        var now = _time.GetUtcNow();
-        var plan = t.SeekTo(TimeSpan.FromSeconds(seconds), now, _player.IsSeekable && IsActive);
-        if (plan.Reopen) OpenArchive(plan.Offset);
-        else
-        {
-            _player.Seek(plan.PlayerPosition);
-            Archive.SetPosition(plan.PlayerPosition, now);
-        }
-    }
-
-    public void SeekBy(TimeSpan delta) => SeekTo((Archive.Elapsed + delta).TotalSeconds);
-
-    private void OnPlayerPosition(TimeSpan p) => _dq.TryEnqueue(() =>
-    {
-        if (!_disposed) Archive.SetPosition(p, _time.GetUtcNow());
-    });
 
     public void SelectNextChannel() => Step(1);
     public void SelectPreviousChannel() => Step(-1);
@@ -409,25 +351,6 @@ public sealed class LiveViewModel : Observable, IDisposable
         var at = SelectedChannel is null ? -1 : Channels.ToList().FindIndex(r => r.Key == SelectedChannel.Key);
         var next = ChannelStep.Index(Channels.Count, at, delta);
         if (next >= 0) Play(Channels[next]);
-    }
-
-    private bool _resume;
-
-    /// <summary>The page really leaves (navigation): the video surface goes away, so playback stops; it resumes when the page comes back.</summary>
-    public void LeaveScreen()
-    {
-        _tickTimer.Stop();
-        _resume = IsActive && _state != PlayerState.Paused;
-        _player.Stop();
-    }
-
-    /// <summary>The page is shown again; the "no autoplay" rule is only for app start.</summary>
-    public void ReturnToScreen()
-    {
-        if (!_resume) return;
-        _resume = false;
-        if (Archive.Active) OpenArchive(Archive.Elapsed);
-        else if (SelectedChannel is { } row) StartPlayback(row);
     }
 
     public void ToggleFavorite(string key)
@@ -458,7 +381,7 @@ public sealed class LiveViewModel : Observable, IDisposable
         Raise(); // the play/pause button
     }
 
-    private void UpdateOverlay() => Overlay.Update(_state, _spinnerArmed, _player.LastError, SelectedChannel?.Name, Archive.Active);
+    private void UpdateOverlay() => Overlay.Update(_state, _spinnerArmed, _player.LastError, SelectedChannel?.Name, Archive.Active, _archiveResumable);
 
     // ---- EPG on visible rows ----
     public void ReportVisible(IEnumerable<ChannelRow> rows)

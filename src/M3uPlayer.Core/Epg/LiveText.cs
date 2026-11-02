@@ -9,11 +9,13 @@ public record OverlayInfo(bool Visible, string Text, bool Spinner, bool Button, 
 {
     /// <param name="spinnerArmed">Opening has lasted long enough that the spinner may show.</param>
     /// <param name="archive">Playing a past programme: Idle then means it ended.</param>
-    public static OverlayInfo For(PlayerState state, bool spinnerArmed, string? lastError, string? channelName, bool archive = false) => state switch
+    /// <param name="resumable">The archive was stopped on purpose (the screen was left), so it can continue from where it was.</param>
+    public static OverlayInfo For(PlayerState state, bool spinnerArmed, string? lastError, string? channelName, bool archive = false, bool resumable = false) => state switch
     {
         PlayerState.Opening => new(spinnerArmed, "", true, false, "", 0.45), // the previous channel's last frame is still behind
         PlayerState.Reconnecting => new(true, "Łączenie ponownie…", true, false, "", 1),
         PlayerState.Failed => new(true, lastError ?? "Nie udało się odtworzyć kanału.", false, true, "Spróbuj ponownie", 1),
+        PlayerState.Idle when archive && resumable => new(true, "Wstrzymano", false, true, "Oglądaj dalej", 1),
         PlayerState.Idle when archive => new(true, "Program się skończył", false, true, "Wróć na żywo", 1),
         PlayerState.Idle when channelName is not null => new(true, channelName, false, true, "Oglądaj", 1),
         PlayerState.Idle => new(true, "Wybierz kanał z listy", false, false, "", 1),

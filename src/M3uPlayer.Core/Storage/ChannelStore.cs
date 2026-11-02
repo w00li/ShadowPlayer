@@ -86,6 +86,8 @@ public class ChannelStore(Database db)
 
     public IReadOnlyList<Channel> All() => Query("");
 
+    public Channel? Find(string key) => Query("WHERE c.key=@0", key).FirstOrDefault();
+
     public IReadOnlyList<Channel> Favorites() => Query("WHERE f.channel_key IS NOT NULL");
 
     public IReadOnlyList<Channel> Search(string query)

@@ -22,9 +22,6 @@ public sealed partial class LivePage : Page
     private bool _syncing;
     private CancellationTokenSource? _pictureCts;
     private string? _pictureUrl;
-    private readonly DispatcherQueueTimer _hideTimer, _seekTimer, _trackTimer;
-    private bool _fullscreen, _menuOpen, _syncSlider;
-    private static readonly TimeSpan SeekStep = TimeSpan.FromSeconds(10);
 
     public LiveViewModel Vm { get; }
 
@@ -38,17 +35,13 @@ public sealed partial class LivePage : Page
         Vm.Guide.Loaded += OnGuideLoaded;
         Vm.Guide.PropertyChanged += (_, _) => _ = LoadPictureAsync();
         Vm.PropertyChanged += (_, e) => { if (e.PropertyName is nameof(Vm.CategoriesCollapsed)) UpdateCategoryPane(); };
-        Vm.Archive.PropertyChanged += (_, _) => SyncTimeline();
-        _hideTimer = Timer(TimeSpan.FromSeconds(3), false, HideControls);
-        _seekTimer = Timer(TimeSpan.FromMilliseconds(300), false, CommitSeek); // a drag or a run of key presses seeks once, when it rests
-        _trackTimer = Timer(TimeSpan.FromSeconds(1), true, RefreshTrackButtons);
-        KeyDown += Page_KeyDown;
+        InitControls();
         // DataChanged fires on a worker thread.
         _onDataChanged = () => DispatcherQueue.TryEnqueue(() => Safe.Run(Vm.OnDataChangedAsync));
         Loaded += (_, _) =>
         {
             App.Services.Refresh.DataChanged += _onDataChanged;
-            if (App.MainWindow is { } w) w.FullscreenChanged += OnFullscreenChanged;
+            if (App.MainWindow is { } w) { w.FullscreenChanged += OnFullscreenChanged; w.Closed += OnWindowClosed; }
             Vm.Start();
             UpdateCategoryPane();
             Vm.ReturnToScreen();
@@ -58,7 +51,8 @@ public sealed partial class LivePage : Page
         Unloaded += (_, _) =>
         {
             App.Services.Refresh.DataChanged -= _onDataChanged;
-            if (App.MainWindow is { } w) w.FullscreenChanged -= OnFullscreenChanged;
+            if (App.MainWindow is { } w) { w.FullscreenChanged -= OnFullscreenChanged; w.Closed -= OnWindowClosed; }
+            StopControls();
         };
     }
 
@@ -188,215 +182,6 @@ public sealed partial class LivePage : Page
         if (_fullscreen) return;
         // 16:9, but never more than 60% of the column so the guide keeps room.
         VideoBox.Height = Math.Max(120, Math.Min(RightColumn.ActualWidth * 9 / 16, RightColumn.ActualHeight * 0.6));
-    }
-
-    // ---- fullscreen ----
-    private void Fullscreen_Click(object sender, RoutedEventArgs e) => ToggleFullscreen();
-
-    private void ToggleFullscreen()
-    {
-        if (App.MainWindow is { } w) w.SetFullscreen(!w.IsFullscreen);
-    }
-
-    // The window is the single source of truth: the page follows it, whoever changed the presenter.
-    private void OnFullscreenChanged(bool on)
-    {
-        _fullscreen = on;
-        var show = on ? Visibility.Collapsed : Visibility.Visible;
-        if (on)
-        {
-            CategoryColumn.Width = ChannelColumn.Width = new GridLength(0);
-            Layout.ColumnSpacing = 0;
-            Layout.Padding = new Thickness(0);
-            RightColumn.Margin = new Thickness(0);
-            RightColumn.RowSpacing = 0;
-            VideoRow.Height = new GridLength(1, GridUnitType.Star);
-            GuideRow.Height = new GridLength(0);
-            VideoHost.VerticalAlignment = VerticalAlignment.Stretch;
-            VideoBox.Height = double.NaN;
-            VideoBox.CornerRadius = new CornerRadius(0);
-            CategoryCard.Visibility = ChannelCard.Visibility = GuideCard.Visibility = show;
-        }
-        else
-        {
-            Layout.Padding = new Thickness(16, 4, 16, 16);
-            RightColumn.RowSpacing = 8;
-            VideoRow.Height = GridLength.Auto;
-            GuideRow.Height = new GridLength(1, GridUnitType.Star);
-            VideoHost.VerticalAlignment = VerticalAlignment.Top;
-            VideoBox.CornerRadius = (CornerRadius)Application.Current.Resources["OverlayCornerRadius"];
-            ChannelCard.Visibility = GuideCard.Visibility = show;
-            UpdateCategoryPane();
-            UpdateVideoHeight();
-        }
-        FullscreenIcon.Glyph = on ? "\uE73F" : "\uE740";
-        ToolTipService.SetToolTip(FullscreenButton, on ? "Wyjdź z pełnego ekranu (F, Esc)" : "Pełny ekran (F)");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(FullscreenButton, on ? "Wyjdź z pełnego ekranu" : "Pełny ekran");
-        VideoHost.Focus(FocusState.Programmatic); // whatever had focus may be hidden now
-        ShowControls();
-    }
-
-    // ---- controls bar ----
-    private void ShowControls()
-    {
-        ControlsBar.Visibility = Visibility.Visible;
-        App.MainWindow?.HideCursor(false);
-        RefreshTrackButtons();
-        _trackTimer.Start();
-        _hideTimer.Stop();
-        _hideTimer.Start();
-    }
-
-    private void HideControls()
-    {
-        if (_menuOpen || FocusIsIn(ControlsBar)) { _hideTimer.Start(); return; } // check again later
-        ControlsBar.Visibility = Visibility.Collapsed;
-        _trackTimer.Stop();
-        if (_fullscreen) App.MainWindow?.HideCursor(true);
-    }
-
-    // Only keyboard focus keeps the bar up: after a click the pointer's own idle timeout should win.
-    private bool FocusIsIn(DependencyObject root) =>
-        FocusManager.GetFocusedElement(XamlRoot) is UIElement { FocusState: FocusState.Keyboard } f && IsWithin(f, root);
-
-    private static bool IsWithin(DependencyObject? d, DependencyObject root)
-    {
-        for (; d is not null; d = VisualTreeHelper.GetParent(d)) if (ReferenceEquals(d, root)) return true;
-        return false;
-    }
-
-    private void Video_PointerMoved(object sender, PointerRoutedEventArgs e) => ShowControls();
-    private void VideoHost_GotFocus(object sender, RoutedEventArgs e) => ShowControls();
-
-    // A click only brings the bar up; it does not pause or toggle anything.
-    private void Video_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-        VideoHost.Focus(FocusState.Programmatic);
-        ShowControls();
-    }
-
-    private void Video_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        if (e.OriginalSource is DependencyObject d && IsWithin(d, ControlsBar)) return;
-        ToggleFullscreen();
-    }
-
-    private void PlayPause_Click(object sender, RoutedEventArgs e) => Vm.TogglePause();
-    private void Mute_Click(object sender, RoutedEventArgs e) => Vm.ToggleMute();
-    private void GoLive_Click(object sender, RoutedEventArgs e) => Vm.GoLive();
-    private void Menu_Opened(object sender, object e) => _menuOpen = true;
-
-    private void Menu_Closed(object sender, object e)
-    {
-        _menuOpen = false;
-        ShowControls();
-    }
-
-    // The player learns its tracks a moment after playing starts and gives no event for it, so the buttons look at the lists while the bar is up.
-    private void RefreshTrackButtons()
-    {
-        AudioButton.IsEnabled = App.Services.Player.AudioTracks.Count > 1;
-        SubtitleButton.IsEnabled = App.Services.Player.SubtitleTracks.Count > 1; // one entry is only "Wyłączone"
-    }
-
-    private void AudioMenu_Opening(object sender, object e) =>
-        FillTracks(AudioMenu, App.Services.Player.AudioTracks, App.Services.Player.SelectAudio);
-
-    private void SubtitleMenu_Opening(object sender, object e) =>
-        FillTracks(SubtitleMenu, App.Services.Player.SubtitleTracks, App.Services.Player.SelectSubtitle);
-
-    // Ids come from this fresh read: a list read earlier may belong to the previous stream.
-    private static void FillTracks(MenuFlyout menu, IReadOnlyList<TrackInfo> tracks, Action<int> select)
-    {
-        menu.Items.Clear();
-        foreach (var t in tracks)
-        {
-            var id = t.Id;
-            var item = new MenuFlyoutItem { Text = t.Name.Length > 0 ? t.Name : $"Ścieżka {id}" };
-            item.Click += (_, _) => select(id);
-            menu.Items.Add(item);
-        }
-    }
-
-    // ---- archive timeline ----
-    private void SyncTimeline()
-    {
-        if (_seekTimer.IsRunning) return; // the viewer is moving it right now
-        var a = Vm.Archive;
-        _syncSlider = true;
-        try
-        {
-            Timeline.Maximum = a.Maximum;
-            Timeline.Value = a.Value;
-        }
-        finally { _syncSlider = false; }
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(Timeline, a.AutomationName);
-    }
-
-    private void Timeline_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-    {
-        if (_syncSlider) return;
-        _seekTimer.Stop();
-        _seekTimer.Start();
-    }
-
-    private void CommitSeek()
-    {
-        Vm.SeekTo(Timeline.Value);
-        SyncTimeline(); // the seek may have been clamped
-    }
-
-    // ---- keyboard ----
-    private FocusKind FocusKindNow()
-    {
-        var kind = FocusKind.Other;
-        for (var d = FocusManager.GetFocusedElement(XamlRoot) as DependencyObject; d is not null; d = VisualTreeHelper.GetParent(d))
-        {
-            switch (d)
-            {
-                case TextBox or PasswordBox or RichEditBox or AutoSuggestBox: return FocusKind.Text;
-                case Slider: return FocusKind.Slider;
-                case ListViewBase or ComboBox: return FocusKind.List; // wins over a button inside a row: the list keeps its arrows
-                case ButtonBase when kind == FocusKind.Other: kind = FocusKind.Button; break;
-            }
-            if (ReferenceEquals(d, VideoHost) && kind == FocusKind.Other) kind = FocusKind.Video;
-        }
-        return kind;
-    }
-
-    private static bool Down(VirtualKey k) => InputKeyboardSource.GetKeyStateForCurrentThread(k).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
-
-    private void Page_KeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Handled || Down(VirtualKey.Control) || Down(VirtualKey.Menu)) return;
-        ShortcutKey? key = e.Key switch
-        {
-            VirtualKey.Space => ShortcutKey.Space,
-            VirtualKey.F => ShortcutKey.F,
-            VirtualKey.M => ShortcutKey.M,
-            VirtualKey.Up => ShortcutKey.Up,
-            VirtualKey.Down => ShortcutKey.Down,
-            VirtualKey.Left => ShortcutKey.Left,
-            VirtualKey.Right => ShortcutKey.Right,
-            VirtualKey.Escape => ShortcutKey.Escape,
-            _ => null,
-        };
-        if (key is not { } k) return;
-        var action = Shortcuts.For(k, FocusKindNow(), _fullscreen, Vm.Archive.Active);
-        if (action == ShortcutAction.None) return;
-        e.Handled = true;
-        switch (action)
-        {
-            case ShortcutAction.TogglePause: Vm.TogglePause(); break;
-            case ShortcutAction.ToggleFullscreen: ToggleFullscreen(); break;
-            case ShortcutAction.ExitFullscreen: App.MainWindow?.SetFullscreen(false); break;
-            case ShortcutAction.ToggleMute: Vm.ToggleMute(); break;
-            case ShortcutAction.NextChannel: Vm.SelectNextChannel(); break;
-            case ShortcutAction.PreviousChannel: Vm.SelectPreviousChannel(); break;
-            case ShortcutAction.SeekBack: Vm.SeekBy(-SeekStep); break;
-            case ShortcutAction.SeekForward: Vm.SeekBy(SeekStep); break;
-        }
-        ShowControls();
     }
 
     // ---- guide ----
