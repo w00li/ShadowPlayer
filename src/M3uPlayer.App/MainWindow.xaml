@@ -6,7 +6,7 @@
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
-    <NavigationView x:Name="Nav" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+    <NavigationView x:Name="Nav" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
                     OpenPaneLength="220" SelectionChanged="Nav_SelectionChanged">
         <NavigationView.MenuItems>
             <NavigationViewItem x:Name="LiveItem" Content="Na żywo" Tag="live" Icon="Video" />

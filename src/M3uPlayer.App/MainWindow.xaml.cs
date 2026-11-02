@@ -15,8 +15,10 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        var scale = GetDpiForWindow(WindowNative.GetWindowHandle(this)) / 96.0; // AppWindow sizes are physical pixels
-        AppWindow.Resize(new Windows.Graphics.SizeInt32((int)(1200 * scale), (int)(800 * scale)));
+        // AppWindow sizes are physical pixels: scale the 1400x860 DIP default, but keep it inside the work area.
+        var scale = GetDpiForWindow(WindowNative.GetWindowHandle(this)) / 96.0;
+        var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min((int)(1400 * scale), work.Width), Math.Min((int)(860 * scale), work.Height)));
         _subclass = OnMessage;
         SetWindowSubclass(WindowNative.GetWindowHandle(this), _subclass, 1, 0);
         Navigate(typeof(LivePage));

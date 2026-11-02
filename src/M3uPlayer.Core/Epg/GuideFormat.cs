@@ -15,7 +15,7 @@ public static class GuideFormat
         "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
     ];
 
-    public static string Time(DateTimeOffset t, TimeZoneInfo tz) => TimeZoneInfo.ConvertTime(t, tz).ToString("HH:mm");
+    public static string Time(DateTimeOffset t, TimeZoneInfo tz) => TimeZoneInfo.ConvertTime(t, tz).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
 
     public static string DayLabel(DateTimeOffset t, DateTimeOffset now, TimeZoneInfo tz)
     {

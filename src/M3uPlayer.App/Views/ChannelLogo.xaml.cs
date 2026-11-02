@@ -26,15 +26,17 @@ public sealed partial class ChannelLogo : UserControl
     private async void OnRow()
     {
         _cts?.Cancel();
+        _cts?.Dispose();
         Picture.Source = null;
         InitialsText.Text = Row?.Initials ?? "";
         InitialsText.Visibility = Visibility.Visible;
         if (Row is not { LogoUrl: { Length: > 0 } url } row) return;
         var cts = _cts = new CancellationTokenSource();
+        var ct = cts.Token;
         try
         {
-            var path = await App.Services.Logos.GetAsync(url, cts.Token);
-            if (path is null || cts.IsCancellationRequested) return;
+            var path = await App.Services.Logos.GetAsync(url, ct);
+            if (path is null || ct.IsCancellationRequested) return;
             Picture.Source = new BitmapImage(new Uri(path)) { DecodePixelWidth = 80 };
         }
         catch (OperationCanceledException) { }
