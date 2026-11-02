@@ -1,7 +1,6 @@
 namespace M3uPlayer.Core.Catchup;
 
-/// <param name="NewStart">Where a re-opened stream has to start (programme start + offset); meaningful when Reopen is true.</param>
-public record SeekPlan(TimeSpan Offset, bool Reopen, TimeSpan PlayerPosition, DateTimeOffset NewStart);
+public record SeekPlan(TimeSpan Offset, bool Reopen, TimeSpan PlayerPosition);
 
 /// <summary>
 /// Position within an archive programme. OpenedAt is how far into the programme the current stream starts: zero for a stream
@@ -28,7 +27,7 @@ public sealed record ArchiveTimeline(DateTimeOffset Start, DateTimeOffset Stop, 
         var offset = Bound(target, Limit(now));
         // A stream opened later than the target cannot rewind to it, so it has to be opened again.
         var reopen = !seekable || offset < OpenedAt;
-        return new SeekPlan(offset, reopen, reopen ? TimeSpan.Zero : offset - OpenedAt, Start + offset);
+        return new SeekPlan(offset, reopen, reopen ? TimeSpan.Zero : offset - OpenedAt);
     }
 
     private static TimeSpan Bound(TimeSpan value, TimeSpan max) => value < TimeSpan.Zero ? TimeSpan.Zero : value > max ? max : value;

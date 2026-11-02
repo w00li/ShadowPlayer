@@ -114,12 +114,6 @@ public class ProgrammeStore(Database db)
         tx.Commit();
     }
 
-    public NowNext GetNowNext(string channelKey, DateTimeOffset now)
-    {
-        using var c = db.Open();
-        return NowNextOn(c, channelKey, now);
-    }
-
     /// <summary>One connection for all keys (a screenful of rows); duplicate keys collapse, unknown keys get an empty NowNext.</summary>
     public IReadOnlyDictionary<string, NowNext> GetNowNext(IReadOnlyList<string> keys, DateTimeOffset now)
     {

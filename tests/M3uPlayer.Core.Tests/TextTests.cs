@@ -25,6 +25,7 @@ public class TextTests
     [InlineData("http://user:pass@h/a.m3u8", "http://***@h/a.m3u8")]
     [InlineData("GET http://h/live/joe/secret/5.ts failed", "GET http://h/live/***/***/5.ts failed")]
     [InlineData("http://h/timeshift/joe/secret/60/5.ts", "http://h/timeshift/***/***/60/5.ts")]
+    [InlineData("GET http://h/LIVE/joe/secret/5.ts failed", "GET http://h/LIVE/***/***/5.ts failed")]
     public void Redact_hides_credentials(string input, string expected)
         => Assert.Equal(expected, Redactor.Redact(input));
 
@@ -41,6 +42,10 @@ public class TextTests
         }
         finally { File.Delete(path); }
     }
+
+    [Fact]
+    public void FileLog_write_to_an_unwritable_path_does_not_throw() =>
+        new FileLog(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "missing", "x.log")).Write("lost");
 
     [Fact]
     public void FileLog_truncates_file_over_5MB()

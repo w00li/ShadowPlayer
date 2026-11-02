@@ -2,7 +2,7 @@
 
 ## Powłoka i Ustawienia
 
-1. Pierwsze uruchomienie (pusta baza): „Na żywo” pokazuje „Dodaj listę” i podpowiedź o EPG; przycisk otwiera Ustawienia z oknem dodawania. **[zweryfikowane częściowo]** ekran pusty z podpowiedzią o EPG i przyciskiem jest; przy pierwszym kliknięciu przycisk otwierał Ustawienia i kończył się komunikatem „Coś poszło nie tak” (błąd, patrz raport); okno dodawania otwiera się dopiero przy drugim kliknięciu.
+1. Pierwsze uruchomienie (pusta baza): „Na żywo” pokazuje „Dodaj listę” i podpowiedź o EPG; przycisk otwiera Ustawienia z oknem dodawania. **[zweryfikowane przez agenta]** na opublikowanej wersji i świeżym folderze danych: przycisk otwiera Ustawienia i okno dodawania od razu, bez komunikatu o błędzie.
 2. Dodaj listę z `samples/` (plik) i EPG z `samples/epg/pl.gz`: oba źródła mają datę odświeżenia, a wiersz EPG „Dopasowano X z Y kanałów” (Y to wszystkie kanały z list). **[zweryfikowane przez agenta]** (lista z pliku, 525 kanałów; EPG z pliku: „Dopasowano 525 z 525 kanałów”).
 3. W wierszu nie widać adresu URL, nazwy pliku z identyfikatorem ani ścieżki do katalogu użytkownika. **[zweryfikowane przez agenta]** dla źródeł z adresu i z pliku o neutralnej nazwie; nazwy plików z identyfikatorem właściciela nie sprawdzano.
 4. Podmień kopię pliku listy na tekst `<html>` i kliknij „Odśwież teraz”: pojawia się błąd po polsku, kanały zostają. **[zweryfikowane przez agenta]**
@@ -18,13 +18,13 @@
 3. Przewijanie „Wszystkie” (525 pozycji) jest płynne; program i pasek uzupełniają się dla widocznych wierszy, a po zatrzymaniu przewijania nic nie miga ani nie zmienia logo. **[do sprawdzenia przez właściciela]**
 4. Kliknij 10 kanałów pod rząd: każdy startuje bez zawieszenia, grający ma znaczek odtwarzania, a ramówka otwiera się na bieżącym programie z nagłówkami „Dziś” i „Jutro”. **[zweryfikowane częściowo]** jeden kanał: startuje, znaczek odtwarzania, ramówka na bieżącym programie; 10 kanałów pod rząd **[do sprawdzenia przez właściciela]**.
 5. Strzałki w liście kanałów tylko przesuwają fokus (widoczna ramka); Enter lub Spacja uruchamia kanał. **[do sprawdzenia przez właściciela]**
-6. Wybranie programu w ramówce pokazuje opis, kategorię i obrazek; minione programy są przygaszone i jeszcze nieklikalne w sensie archiwum. **[zweryfikowane częściowo]** wybrany program pokazuje opis, kategorię i obrazek; reszta **[do sprawdzenia przez właściciela]**.
+6. Wybranie programu w ramówce pokazuje opis, kategorię i obrazek; minione programy bez dostępnego archiwum są przygaszone; te z archiwum mają ikonę i można je odtworzyć (dwuklik lub „Oglądaj od początku”). **[zweryfikowane częściowo]** wybrany program pokazuje opis, kategorię i obrazek; reszta **[do sprawdzenia przez właściciela]**.
 7. Gwiazdka pojawia się po najechaniu, na fokusie i zawsze, gdy kanał jest ulubiony; podpowiedź „Dodaj do ulubionych” / „Usuń z ulubionych”. Po „Odśwież teraz” w Ustawieniach gwiazdka zostaje. Menu kontekstowe wiersza (prawy przycisk lub Shift+F10) robi to samo. **[zweryfikowane częściowo]** dodanie do ulubionych przyciskiem, licznik „Ulubione”, gwiazdka zostaje po „Odśwież teraz”; najechanie, podpowiedź i menu kontekstowe **[do sprawdzenia przez właściciela]**.
 8. „Ulubione” bez pozycji pokazuje podpowiedź, jak dodać kanał. **[do sprawdzenia przez właściciela]**
 9. Wyszukiwarka (po 250 ms): „wiadomosci” znajduje „Wiadomości”; wynik z programu pokazuje „Znaleziono: …”; brak wyników daje „Brak wyników dla „…”” z przyciskiem „Wyczyść”. **[zweryfikowane częściowo]** „Znaleziono: …” przy wyniku z programu oraz „Brak wyników” z „Wyczyść”; kanału „Wiadomości” w tej liście nie ma, więc tego przykładu nie sprawdzono.
-10. Przycisk z trzema kreskami zwija kategorie; poniżej ok. 900 px szerokości strony zwijają się same, a kategorię wybiera się z listy rozwijanej. **[do sprawdzenia przez właściciela]**
+10. Przycisk z trzema kreskami zwija kategorie; poniżej ok. 1050 px szerokości strony zwijają się same, a kategorię wybiera się z listy rozwijanej (poniżej 900 px kolumna kanałów jest węższa). **[do sprawdzenia przez właściciela]**
 11. Kanał z martwym adresem: po około pół minuty na obrazie „Nie udało się połączyć z kanałem…” i „Spróbuj ponownie”. **[do sprawdzenia przez właściciela]**
-12. Przejście do Ustawień i z powrotem zatrzymuje obraz; na ekranie jest nazwa kanału i „Oglądaj”. **[do sprawdzenia przez właściciela]**
+12. Przejście do Ustawień i z powrotem wznawia kanał, który grał (decyzja 17); usunięcie jego listy w Ustawieniach daje po powrocie pusty ekran bez dźwięku. **[do sprawdzenia przez właściciela]**
 13. Motyw jasny: logo na płytce, przygaszone programy i pasek postępu są czytelne. **[do sprawdzenia przez właściciela]**
 
 ## Archiwum, sterowanie, pełny ekran (zadanie 12)

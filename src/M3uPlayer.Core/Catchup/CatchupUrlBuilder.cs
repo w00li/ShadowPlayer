@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using M3uPlayer.Core.Playlist;
 
 namespace M3uPlayer.Core.Catchup;
 
@@ -18,11 +19,15 @@ public static partial class CatchupUrlBuilder
     [GeneratedRegex(@"\{(utc|utcend|lutc|duration|Y|m|d|H|M|S)\}")]
     private static partial Regex Placeholder();
 
-    public static bool IsAvailable(CatchupInfo info, DateTimeOffset programmeStart, DateTimeOffset programmeStop, DateTimeOffset now) =>
+    public static bool IsAvailable(CatchupInfo info, DateTimeOffset programmeStart, DateTimeOffset now) =>
         info.Type is { } t && Supported.Contains(t) && info.Days > 0
         && programmeStart <= now && (now - programmeStart).TotalDays <= info.Days;
 
-    public static string? Build(CatchupInfo info, string liveUrl, DateTimeOffset start, DateTimeOffset stop, DateTimeOffset now)
+    /// <summary>Null when the scheme gives no address, or when the result is not an address the player may open (the source template comes from the list).</summary>
+    public static string? Build(CatchupInfo info, string liveUrl, DateTimeOffset start, DateTimeOffset stop, DateTimeOffset now) =>
+        BuildRaw(info, liveUrl, start, stop, now) is { } url && M3uParser.HasAllowedScheme(url) ? url : null;
+
+    private static string? BuildRaw(CatchupInfo info, string liveUrl, DateTimeOffset start, DateTimeOffset stop, DateTimeOffset now)
     {
         if (info.Type is not { } type || !Supported.Contains(type)) return null;
         var utc = start.ToUnixTimeSeconds();

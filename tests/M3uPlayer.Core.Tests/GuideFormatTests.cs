@@ -44,6 +44,38 @@ public class GuideFormatTests
         Assert.Empty(GuideFormat.Rows([], Now, Tz));
     }
 
+    private static TimeZoneInfo Warsaw()
+    {
+        foreach (var id in new[] { "Central European Standard Time", "Europe/Warsaw" })
+            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+            catch (TimeZoneNotFoundException) { }
+        throw new InvalidOperationException("No Warsaw time zone on this machine.");
+    }
+
+    [Fact]
+    public void Time_and_Rows_follow_the_warsaw_rules_across_the_autumn_change()
+    {
+        var tz = Warsaw();
+        // 2026-10-25: clocks go back from 03:00 to 02:00 in Warsaw (UTC+2 to UTC+1).
+        var before = new DateTimeOffset(2026, 10, 24, 22, 30, 0, TimeSpan.Zero); // 00:30 local, Sunday the 25th
+        var after = new DateTimeOffset(2026, 10, 25, 23, 30, 0, TimeSpan.Zero); // 00:30 local on the 26th: UTC+1 now
+        Assert.Equal("00:30", GuideFormat.Time(before, tz));
+        Assert.Equal("00:30", GuideFormat.Time(after, tz));
+        var now = new DateTimeOffset(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
+        var rows = GuideFormat.Rows([P("a", before), P("b", before.AddHours(1)), P("c", after)], now, tz);
+        Assert.Equal(["Dziś", null, null, "Jutro", null], rows.Select(r => r.Header).ToArray());
+    }
+
+    [Fact]
+    public void DayChanged_is_true_only_when_the_local_date_differs()
+    {
+        var late = new DateTimeOffset(2026, 11, 4, 21, 59, 0, TimeSpan.Zero); // 22:59 local
+        var tz = Warsaw();
+        Assert.False(GuideFormat.DayChanged(late, late.AddMinutes(30), tz)); // 23:29 local
+        Assert.True(GuideFormat.DayChanged(late, late.AddMinutes(61), tz));  // 00:00 local, next day
+        Assert.True(GuideFormat.DayChanged(late.AddDays(1), late, tz));
+    }
+
     [Theory]
     [InlineData(0, 0.0)]
     [InlineData(30, 0.5)]

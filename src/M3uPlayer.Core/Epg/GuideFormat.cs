@@ -15,6 +15,10 @@ public static class GuideFormat
         "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
     ];
 
+    /// <summary>Day headers ("Dziś") are fixed when the guide is built; once the local date moves on they have to be rebuilt.</summary>
+    public static bool DayChanged(DateTimeOffset loaded, DateTimeOffset now, TimeZoneInfo tz) =>
+        TimeZoneInfo.ConvertTime(loaded, tz).Date != TimeZoneInfo.ConvertTime(now, tz).Date;
+
     public static string Time(DateTimeOffset t, TimeZoneInfo tz) => TimeZoneInfo.ConvertTime(t, tz).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
 
     public static string DayLabel(DateTimeOffset t, DateTimeOffset now, TimeZoneInfo tz)

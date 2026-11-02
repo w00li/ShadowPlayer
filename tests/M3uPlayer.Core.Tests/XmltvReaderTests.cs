@@ -24,6 +24,14 @@ public class XmltvReaderTests
         Assert.Single(R($"<tv><programme {attrs} channel=\"c\">{body}</programme></tv>").Programmes);
 
     [Fact]
+    public void Read_survives_a_stray_control_character()
+    {
+        var r = R("<tv><programme start=\"20261101120000 +0000\" channel=\"c\"><title>Title</title></programme>" +
+            "<programme start=\"20261101130000 +0000\" channel=\"c\"><title>Next</title></programme></tv>");
+        Assert.Equal(2, r.Programmes.Count);
+    }
+
+    [Fact]
     public void Read_parses_channel_with_multiple_display_names()
     {
         using var s = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "sample.xml"));

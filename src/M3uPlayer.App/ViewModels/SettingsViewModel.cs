@@ -184,6 +184,8 @@ public sealed class SettingsViewModel
             App.Services.Programmes.RebuildMatches();
         });
         await ReloadAsync();
+        // The freed pages go back to the disk in the background; this can take seconds on a big database.
+        Safe.Run(() => App.Services.Refresh.CompactAsync(CancellationToken.None));
     }
 
     public async Task MoveAsync(SourceRow row, int delta)

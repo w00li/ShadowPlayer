@@ -73,8 +73,23 @@ public class CatchupUrlBuilderTests
         Assert.Null(B(null, "http://h/ch.m3u8"));
     }
 
+    [Theory]
+    [InlineData("default", "file:///c:/x/{utc}")]
+    [InlineData("default", "screen://")]
+    [InlineData("default", "vlc://quit")]
+    [InlineData("default", "not a url {utc}")]
+    public void Build_rejects_a_source_whose_scheme_is_not_allowed(string type, string source) =>
+        Assert.Null(B(type, "http://h/ch.m3u8", source));
+
+    [Fact]
+    public void Build_accepts_http_and_https_sources()
+    {
+        Assert.Equal("https://h/a?utc=1793556000", B("default", "http://h/ch.m3u8", "https://h/a?utc={utc}"));
+        Assert.NotNull(B("default", "http://h/ch.m3u8", "HTTP://h/a?utc={utc}"));
+    }
+
     private static bool Avail(string? type, int days, DateTimeOffset s, DateTimeOffset now) =>
-        CatchupUrlBuilder.IsAvailable(new CatchupInfo(type, null, days), s, s.AddHours(1), now);
+        CatchupUrlBuilder.IsAvailable(new CatchupInfo(type, null, days), s, now);
 
     [Fact] public void IsAvailable_within_days_true() => Assert.True(Avail("fs", 3, Start, Start.AddDays(2)));
     [Fact] public void IsAvailable_older_than_days_false() => Assert.False(Avail("fs", 3, Start, Start.AddDays(4)));
