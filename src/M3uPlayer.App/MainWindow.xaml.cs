@@ -16,6 +16,9 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // The .exe's own icon does not reach the title bar and taskbar of an unpackaged window.
+        var icon = Path.Combine(AppContext.BaseDirectory, "Assets", "ShadowPlayer.ico");
+        if (File.Exists(icon)) AppWindow.SetIcon(icon);
         // AppWindow sizes are physical pixels: scale the 1400x860 DIP default, but keep it inside the work area.
         var scale = GetDpiForWindow(WindowNative.GetWindowHandle(this)) / 96.0;
         var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
