@@ -17,6 +17,10 @@ public class CatchupUrlBuilderTests
         Assert.Equal($"http://h/ch/{N}-1793556000-3600.m3u8?token=T", B("fs", "http://h/ch/mono.m3u8?token=T"));
 
     [Fact]
+    public void Build_fs_uses_the_mono_playlist() =>
+        Assert.Equal("http://h/ch/mono-1793556000-3600.m3u8?token=T", B("fs", "http://h/ch/mono.m3u8?token=T"));
+
+    [Fact]
     public void Build_flussonic_same_as_fs() =>
         Assert.Equal(B("fs", "http://h/ch/mono.m3u8?token=T"), B("Flussonic", "http://h/ch/mono.m3u8?token=T"));
 
