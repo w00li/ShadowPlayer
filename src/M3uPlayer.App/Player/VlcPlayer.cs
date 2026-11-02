@@ -321,6 +321,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             if (_req?.IsLive ?? false) { DropLocked(); return; }
             if (_state is PlayerState.Playing or PlayerState.Opening)
             {
+                if (_posMs <= 0) { FailLocked("Nie udało się odtworzyć tego programu."); return; } // not a second played: a broken archive, not the programme's end
                 _accepting = false;
                 SetLocked(PlayerState.Idle);
             }
