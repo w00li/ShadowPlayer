@@ -1,6 +1,7 @@
 using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Media;
+using M3uPlayer.Core.Storage;
 using Xunit;
 
 namespace M3uPlayer.Core.Tests;
@@ -106,11 +107,41 @@ public class ArchiveTimelineTests
         Assert.Equal(expected, ArchiveTimeline.Clock(S(seconds)));
 
     [Fact]
-    public void Overlay_after_an_archive_programme_ends_offers_the_way_back()
+    public void Overlay_never_says_the_programme_ended_because_playback_moves_on_by_itself()
     {
         var o = OverlayInfo.For(PlayerState.Idle, false, null, "TVP", archive: true);
-        Assert.Equal((true, "Program się skończył", true, "Wróć na żywo"), (o.Visible, o.Text, o.Button, o.ButtonText));
+        Assert.Equal((true, "TVP", true, "Oglądaj"), (o.Visible, o.Text, o.Button, o.ButtonText));
     }
+
+    private static readonly CatchupInfo Archive10Days = new("fs", null, 10);
+    private static Programme P(string title, int startHour, int stopHour) => new(title, null, null, null, null, Start.AddHours(startHour), Start.AddHours(stopHour));
+
+    [Fact]
+    public void Next_programme_is_the_one_after_the_current()
+    {
+        var guide = new[] { P("a", 0, 1), P("b", 1, 2), P("c", 2, 3) };
+        Assert.Equal("b", ArchiveTimeline.NextProgramme(guide, Start, Archive10Days, Start.AddHours(5))?.Title);
+    }
+
+    [Fact]
+    public void Next_programme_may_be_still_running() =>
+        Assert.Equal("b", ArchiveTimeline.NextProgramme([P("a", 0, 1), P("b", 1, 2)], Start, Archive10Days, Start.AddMinutes(90))?.Title);
+
+    [Fact]
+    public void Next_programme_skips_a_gap_in_the_guide() =>
+        Assert.Equal("c", ArchiveTimeline.NextProgramme([P("a", 0, 1), P("c", 3, 4)], Start, Archive10Days, Start.AddHours(5))?.Title);
+
+    [Fact]
+    public void No_next_programme_when_it_has_not_started() =>
+        Assert.Null(ArchiveTimeline.NextProgramme([P("a", 0, 1), P("b", 1, 2)], Start, Archive10Days, Start.AddMinutes(59)));
+
+    [Fact]
+    public void No_next_programme_after_the_last_one() =>
+        Assert.Null(ArchiveTimeline.NextProgramme([P("a", 0, 1)], Start, Archive10Days, Start.AddHours(5)));
+
+    [Fact]
+    public void No_next_programme_without_an_archive() =>
+        Assert.Null(ArchiveTimeline.NextProgramme([P("a", 0, 1), P("b", 1, 2)], Start, new CatchupInfo(null, null, 0), Start.AddHours(5)));
 }
 
 public class ShortcutsTests

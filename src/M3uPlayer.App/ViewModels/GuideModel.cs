@@ -87,6 +87,13 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
         ReplayNote = _notice.Length > 0 ? _notice : ReplayVisible && !CanReplay ? "Archiwum niedostępne dla tego programu" : "";
     }
 
+    /// <summary>Playback moved on by itself: selects the programme and brings it into view.</summary>
+    public void Follow(GuideItem item)
+    {
+        Select(item);
+        Loaded?.Invoke(item);
+    }
+
     public void Select(GuideItem? item)
     {
         if (item is { IsHeader: true }) return;

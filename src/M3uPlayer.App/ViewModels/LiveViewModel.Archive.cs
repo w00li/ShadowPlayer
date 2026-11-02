@@ -1,6 +1,7 @@
 using M3uPlayer.App.Player;
 using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Media;
+using M3uPlayer.Core.Storage;
 
 namespace M3uPlayer.App.ViewModels;
 
@@ -33,7 +34,24 @@ public sealed partial class LiveViewModel
         UpdateOverlay();
     }
 
-    private const string NoArchiveReach = "Archiwum niedostępne dla tego programu";
+    /// <summary>The programme ran to its end: on to the next one, or live when the archive has nothing further yet.</summary>
+    private void PlayNextProgramme()
+    {
+        var now = _time.GetUtcNow();
+        Guide.SetTime(now);
+        var next = SelectedChannel is { } row && Archive.Timeline is { } t
+            ? ArchiveTimeline.NextProgramme(Guide.Items.Select(i => i.Programme).OfType<Programme>(), t.Start, row.Channel.Catchup, now)
+            : null;
+        if (next is null || Guide.Items.FirstOrDefault(i => ReferenceEquals(i.Programme, next)) is not { } item)
+        {
+            GoLive();
+            return;
+        }
+        Guide.Follow(item);
+        PlayProgramme(item);
+    }
+
+    private const string NoArchiveReach ="Archiwum niedostępne dla tego programu";
     private const string NoArchiveAddress = "Nie udało się utworzyć adresu archiwum dla tego programu.";
 
     /// <summary>Opens the programme at the offset. False when the provider's scheme gives no address.</summary>
