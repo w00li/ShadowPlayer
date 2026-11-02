@@ -16,6 +16,8 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
     private readonly ChannelStore _channels = new(db);
     private readonly ProgrammeStore _programmes = new(db);
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private static readonly TimeSpan PruneEvery = TimeSpan.FromHours(1);
+    private DateTimeOffset? _lastPrune;
 
     public event Action? DataChanged;
 
@@ -25,6 +27,15 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         var last = atStartup ? source.LastSuccess : source.LastAttempt;
         // A timestamp in the future (clock change) must not stop refreshing.
         return last is null || last > now || now - last >= TimeSpan.FromMinutes(source.IntervalMinutes);
+    }
+
+    /// <summary>After a source was removed: gives its disk space back. Behind the gate, so no refresh writes meanwhile.</summary>
+    public async Task CompactAsync(CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct);
+        try { await Task.Run(db.Compact, ct); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { log.Write("Compacting failed: " + Redactor.Redact(ex.Message)); }
+        finally { _gate.Release(); }
     }
 
     public Task RefreshAsync(long sourceId, CancellationToken ct) => RefreshLockedAsync(sourceId, null, ct);
@@ -38,9 +49,15 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         foreach (var kind in new[] { SourceKind.Playlist, SourceKind.Epg })
             foreach (var id in _sources.List(kind).Select(s => s.Id))
                 await RefreshLockedAsync(id, atStartup, ct);
+        var now = clock.GetUtcNow();
+        if (_lastPrune is { } last && now - last < PruneEvery && last <= now) return; // a table scan under the write lock: not every minute
         await _gate.WaitAsync(ct);
-        try { _programmes.Prune(clock.GetUtcNow(), Retention()); } // 304-answering sources never reach ImportEpg's own pruning
-        catch (Exception ex) when (ex is not OperationCanceledException) { SafeLog("Pruning failed: " + Redactor.Redact(ex.Message)); }
+        try
+        {
+            _programmes.Prune(now, Retention()); // 304-answering sources never reach ImportEpg's own pruning
+            _lastPrune = now;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException) { log.Write("Pruning failed: " + Redactor.Redact(ex.Message)); }
         finally { _gate.Release(); }
     }
 
@@ -62,7 +79,7 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
     {
         try { await work(); }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch (Exception ex) { SafeLog("Refresh loop failed: " + Redactor.Redact(ex.Message)); }
+        catch (Exception ex) { log.Write("Refresh loop failed: " + Redactor.Redact(ex.Message)); }
     }
 
     /// <param name="dueAtStartup">Null refreshes unconditionally; otherwise only when the source is due.</param>
@@ -77,7 +94,7 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
             changed = await RefreshOneAsync(source, ct);
             if (changed)
                 try { _programmes.RebuildMatches(); }
-                catch (Exception ex) when (ex is not OperationCanceledException) { SafeLog("Rebuilding matches failed: " + Redactor.Redact(ex.Message)); }
+                catch (Exception ex) when (ex is not OperationCanceledException) { log.Write("Rebuilding matches failed: " + Redactor.Redact(ex.Message)); }
         }
         finally { _gate.Release(); }
         if (changed) Raise();
@@ -87,10 +104,11 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
     {
         foreach (Action handler in DataChanged?.GetInvocationList() ?? [])
             try { handler(); }
-            catch (Exception ex) { SafeLog("DataChanged handler failed: " + Redactor.Redact(ex.Message)); }
+            catch (Exception ex) { log.Write("DataChanged handler failed: " + Redactor.Redact(ex.Message)); }
     }
 
-    private int Retention() => _channels.MaxCatchupDays() is var d and > 0 ? d : 1;
+    // With no channels (a list was just removed and is about to be added again) the real need is unknown: keep the most, delete nothing.
+    private int Retention() => _channels.CountAll() == 0 ? ChannelStore.MaxArchiveDays : _channels.MaxCatchupDays() is var d and > 0 ? d : 1;
 
     /// <returns>True when new data was applied (even if a later bookkeeping step failed).</returns>
     private async Task<bool> RefreshOneAsync(Source source, CancellationToken ct)
@@ -131,8 +149,8 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         {
             var message = Redactor.Redact(ex.Message);
             try { _sources.RecordAttempt(source.Id, now, message); }
-            catch (Exception recordError) { SafeLog($"Recording the error of source {source.Id} failed: {Redactor.Redact(recordError.Message)}"); }
-            SafeLog($"Refresh of source {source.Id} failed: {message}");
+            catch (Exception recordError) { log.Write($"Recording the error of source {source.Id} failed: {Redactor.Redact(recordError.Message)}"); }
+            log.Write($"Refresh of source {source.Id} failed: {message}");
             return applied;
         }
         finally
@@ -165,12 +183,5 @@ public class RefreshService(Database db, SourceFetcher fetcher, TimeProvider clo
         }
         else if (epgs.All(e => e.Location != url))
             _sources.Add(SourceKind.Epg, url, Redactor.Redact(playlist.Name) + " (url-tvg)", playlist.Id);
-    }
-
-    // A failing log must never mask the original failure or abort a refresh.
-    private void SafeLog(string message)
-    {
-        try { log.Write(message); }
-        catch (Exception) { }
     }
 }

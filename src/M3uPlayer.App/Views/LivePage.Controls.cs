@@ -120,6 +120,13 @@ public sealed partial class LivePage
     private bool FocusIsIn(DependencyObject root) =>
         FocusManager.GetFocusedElement(XamlRoot) is UIElement { FocusState: FocusState.Keyboard } f && IsWithin(f, root);
 
+    // A click leaves focus in the list, where Space and the arrows would do nothing useful. Keyboard users stay: arrows still browse.
+    private void FocusVideoAfterPointer(DependencyObject list)
+    {
+        if (FocusManager.GetFocusedElement(XamlRoot) is UIElement { FocusState: FocusState.Pointer } f && IsWithin(f, list))
+            VideoHost.Focus(FocusState.Programmatic);
+    }
+
     private static bool IsWithin(DependencyObject? d, DependencyObject root)
     {
         for (; d is not null; d = VisualTreeHelper.GetParent(d)) if (ReferenceEquals(d, root)) return true;

@@ -695,9 +695,74 @@ public sealed class RefreshTests : IDisposable
         Assert.NotNull(s.LastError);
     }
 
+    private long Programmes()
+    {
+        using var c = _db.Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM programme";
+        return (long)cmd.ExecuteScalar()!;
+    }
+
+    private long EpgWith304AndOldProgramme()
+    {
+        var epg = AddEpg();
+        _programmes.ImportEpg(epg, new MemoryStream(Encoding.UTF8.GetBytes(Xml(("e1", T0.AddDays(-5), "Old"), ("e1", T0, "Now")))), T0, 7);
+        _sources.RecordSuccess(epg, T0.AddDays(-1), "\"v\"", null, 0);
+        Serve(EpgUrl, "", HttpStatusCode.NotModified);
+        return epg;
+    }
+
+    [Fact]
+    public async Task Refresh_pass_with_no_channels_keeps_the_longest_archive()
+    {
+        EpgWith304AndOldProgramme();
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(2, Programmes()); // an empty channel table is the gap between removing and re-adding a list
+    }
+
+    [Fact]
+    public async Task Refresh_pass_prunes_at_most_once_an_hour()
+    {
+        var pl = AddPlaylist();
+        Serve(PlUrl, Playlist());
+        await _svc.RefreshAsync(pl, TestContext.Current.CancellationToken);
+        EpgWith304AndOldProgramme();
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, Programmes());
+        Sql($"INSERT INTO programme(source_id,epg_channel_id,start_utc,stop_utc,title,title_norm) SELECT source_id,'e1',{T0.AddDays(-4).ToUnixTimeSeconds()},{T0.AddDays(-4).ToUnixTimeSeconds() + 60},'Old2','old2' FROM programme LIMIT 1");
+        _clock.Now = T0.AddMinutes(10);
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(2, Programmes());
+        _clock.Now = T0.AddMinutes(61);
+        await _svc.RefreshDueAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, Programmes());
+    }
+
+    [Fact]
+    public async Task Compact_returns_disk_space_after_a_source_is_removed()
+    {
+        var epg = AddEpg();
+        Serve(EpgUrl, Xml(Enumerable.Range(0, 20000).Select(i => ("e1", T0.AddMinutes(i), "Title " + i + new string('x', 100))).ToArray()));
+        await _svc.RefreshAsync(epg, TestContext.Current.CancellationToken);
+        var file = new FileInfo(Path.Combine(_dir, "t.db"));
+        Sql("PRAGMA wal_checkpoint(TRUNCATE)");
+        file.Refresh();
+        var full = file.Length;
+        _sources.Remove(epg);
+        Sql("PRAGMA wal_checkpoint(TRUNCATE)");
+        file.Refresh();
+        Assert.Equal(full, file.Length); // free pages stay in the file until it is compacted
+        await _svc.CompactAsync(TestContext.Current.CancellationToken);
+        file.Refresh();
+        Assert.True(file.Length < full / 4, $"{file.Length} of {full}");
+    }
+
     [Fact]
     public async Task Refresh_pass_prunes_even_when_every_source_answers_304()
     {
+        var pl = AddPlaylist();
+        Serve(PlUrl, Playlist());
+        await _svc.RefreshAsync(pl, TestContext.Current.CancellationToken);
         var epg = AddEpg();
         _programmes.ImportEpg(epg, new MemoryStream(Encoding.UTF8.GetBytes(Xml(("e1", T0.AddDays(-5), "Old"), ("e1", T0, "Now")))), T0, 7);
         _sources.RecordSuccess(epg, T0.AddDays(-1), "\"v\"", null, 0);

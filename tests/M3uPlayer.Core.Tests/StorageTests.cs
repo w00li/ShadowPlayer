@@ -593,3 +593,9 @@ public sealed class StorageTests : IDisposable
         public override int ReadByte() { Fire(); return base.ReadByte(); }
     }
 }
+
+/// <summary>Single-key lookup for the tests; the app only ever asks for a batch.</summary>
+internal static class ProgrammeStoreTestExtensions
+{
+    public static NowNext GetNowNext(this ProgrammeStore store, string key, DateTimeOffset now) => store.GetNowNext([key], now)[key];
+}

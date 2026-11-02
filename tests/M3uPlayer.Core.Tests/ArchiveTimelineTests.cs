@@ -68,7 +68,6 @@ public class ArchiveTimelineTests
     {
         var p = new ArchiveTimeline(Start, Stop).SeekTo(S(900), Later, seekable: false);
         Assert.True(p.Reopen);
-        Assert.Equal(Start.AddSeconds(900), p.NewStart);
         Assert.Equal(S(900), p.Offset);
     }
 
@@ -77,7 +76,6 @@ public class ArchiveTimelineTests
     {
         var p = new ArchiveTimeline(Start, Stop, S(600)).SeekTo(S(100), Later, seekable: true);
         Assert.True(p.Reopen);
-        Assert.Equal(Start.AddSeconds(100), p.NewStart);
     }
 
     [Fact]

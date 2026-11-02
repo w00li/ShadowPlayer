@@ -130,7 +130,7 @@ public sealed class GuideItem : Observable
     {
         if (Programme is not { } p) return;
         var (current, past, progress) = (p.Start <= now && now < p.Stop, p.Stop <= now, GuideFormat.Progress(p.Start, p.Stop, now));
-        var replay = CatchupUrlBuilder.IsAvailable(_catchup, p.Start, p.Stop, now);
+        var replay = CatchupUrlBuilder.IsAvailable(_catchup, p.Start, now);
         if (current == IsCurrent && past == IsPast && replay == CanReplay && Math.Abs(progress - Progress) < 0.005) return;
         (IsCurrent, IsPast, Progress, CanReplay) = (current, past, progress, replay);
         Raise();

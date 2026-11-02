@@ -13,7 +13,7 @@ public record CategoryCount(string Name, int Count);
 
 public class ChannelStore(Database db)
 {
-    private const int MaxArchiveDays = 30;
+    public const int MaxArchiveDays = 30;
 
     private const string Select =
         "SELECT c.key,c.source_id,c.name,c.url,c.logo,c.category,c.shift_hours,c.catchup_type,c.catchup_source,c.catchup_days," +

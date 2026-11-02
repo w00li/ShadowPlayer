@@ -8,6 +8,7 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
 {
     private const int MaxDaysBack = 30; // the store prunes by retention, so this only bounds the query
     private int _version;
+    private DateTimeOffset? _loadedAt;
 
     public BulkCollection<GuideItem> Items { get; } = new();
     public GuideItem? SelectedProgramme { get; private set; }
@@ -27,22 +28,39 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
     public bool HasReplayNote => ReplayNote.Length > 0;
     private string _notice = "";
 
-    /// <summary>Raised on the UI thread with the current programme (or null) once the items are replaced.</summary>
+    /// <summary>Raised on the UI thread with the selected programme (the current one unless a reload kept another; or null) once the items are replaced.</summary>
     public event Action<GuideItem?>? Loaded;
 
-    public async Task LoadAsync(Channel channel)
+    /// <summary>The day headers were built on an earlier local date.</summary>
+    public bool DayChanged(DateTimeOffset now) => _loadedAt is { } at && GuideFormat.DayChanged(at, now, tz);
+
+    /// <summary>No channel: back to the empty guide.</summary>
+    public void Clear()
     {
+        _version++;
+        _loadedAt = null;
+        Items.ReplaceAll([]);
+        Message = "Wybierz kanał, aby zobaczyć ramówkę.";
+        Select(null);
+        Loaded?.Invoke(null);
+    }
+
+    /// <param name="keepSelection">Reloading the same channel (the day changed): the programme the viewer selected stays selected.</param>
+    public async Task LoadAsync(Channel channel, bool keepSelection = false)
+    {
+        var kept = keepSelection ? SelectedProgramme?.Programme?.Start : null;
         var version = ++_version;
         var now = time.GetUtcNow();
         var rows = await Task.Run(() => programmes.GetGuide(channel.Key, now.AddDays(-MaxDaysBack), now.AddDays(30)));
         if (version != _version) return;
         var items = GuideFormat.Rows(rows, now, tz).Select(r => new GuideItem(r, tz, channel.Catchup)).ToList();
         foreach (var i in items) i.SetTime(now);
-        var current = items.FirstOrDefault(i => i.IsCurrent);
+        var selected = (kept is { } start ? items.FirstOrDefault(i => i.Programme?.Start == start) : null) ?? items.FirstOrDefault(i => i.IsCurrent);
         Items.ReplaceAll(items);
+        _loadedAt = now;
         Message = items.Count == 0 ? "Brak ramówki dla tego kanału." : "";
-        Select(current);
-        Loaded?.Invoke(current);
+        Select(selected);
+        Loaded?.Invoke(selected);
     }
 
     public void SetTime(DateTimeOffset now)

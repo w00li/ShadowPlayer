@@ -86,6 +86,37 @@ public sealed class LogoCacheTests : IDisposable
         Assert.Equal(1, h.Calls);
     }
 
+    private sealed class StallStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            await Task.Delay(Timeout.Infinite, ct);
+            return 0;
+        }
+    }
+
+    [Fact]
+    public async Task GetAsync_stalled_body_gives_up_and_frees_the_slot()
+    {
+        var h = new Handler(() => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new StallStream()) { Headers = { ContentType = new("image/png") } } });
+        var cache = new LogoCache(new HttpClient(h), _dir, downloadTimeout: TimeSpan.FromMilliseconds(200));
+        // Five stalled servers: with four slots and no timeout the fifth call would never be served.
+        var calls = Enumerable.Range(0, 5).Select(i => cache.GetAsync($"http://example.invalid/{i}.png", CancellationToken.None));
+        var results = await Task.WhenAll(calls).WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        Assert.All(results, Assert.Null);
+        Assert.Empty(Directory.Exists(_dir) ? Directory.GetFiles(_dir) : []);
+    }
+
     [Fact]
     public async Task GetAsync_downloads_once_then_uses_disk()
     {

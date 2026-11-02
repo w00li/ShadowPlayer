@@ -159,17 +159,50 @@ public sealed partial class LiveViewModel : Observable, IDisposable
     public event Action? SelectedChannelChanged;
 
     // ---- lifecycle ----
-    public void Start()
+    /// <summary>
+    /// The page is shown. Done once the channel list and the selection are current, so the caller may resume playback after it:
+    /// a channel that was removed meanwhile must not start again.
+    /// </summary>
+    public async Task StartAsync()
     {
         _tickTimer.Start();
-        Safe.Run(async () =>
+        var first = !_restored;
+        _restored = true;
+        if (first)
         {
-            var first = !_restored;
-            _restored = true;
-            if (first) await RestoreAsync();
+            await RestoreAsync();
             await ReloadAsync();
-            if (first) SelectRestoredChannel();
-        });
+            SelectRestoredChannel();
+            return;
+        }
+        // DataChanged is not heard while the page is away: rows, selection and guide all have to be re-read.
+        await ReloadAsync();
+        await RevalidateSelectionAsync();
+        if (SelectedChannel is { } row) Safe.Run(() => Guide.LoadAsync(row.Channel));
+    }
+
+    private async Task RevalidateSelectionAsync()
+    {
+        if (SelectedChannel is not { } selected) return;
+        var fresh = await Task.Run(() => _channels.Find(selected.Key));
+        if (_disposed) return;
+        if (fresh is not null)
+        {
+            // Not in the shown category: still needs the current address (a token may have rotated).
+            var row = Channels.FirstOrDefault(r => r.Key == fresh.Key) ?? new ChannelRow(fresh, false);
+            row.Update(fresh, true);
+            SelectedChannel = row;
+            return;
+        }
+        _resume = _archiveResumable = false;
+        _player.Stop();
+        Archive.Clear();
+        SelectedChannel = null;
+        Guide.Clear();
+        foreach (var r in Channels) r.SetPlaying(false);
+        Raise();
+        UpdateOverlay();
+        SelectedChannelChanged?.Invoke();
     }
 
     public void Dispose()
@@ -433,7 +466,9 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     private async Task OnTickAsync()
     {
-        Guide.SetTime(_time.GetUtcNow());
+        var now = _time.GetUtcNow();
+        Guide.SetTime(now);
+        if (Guide.DayChanged(now) && SelectedChannel is { } row) await Guide.LoadAsync(row.Channel, keepSelection: true); // "Dziś" must not stay on yesterday
         await RefreshVisibleAsync();
     }
 

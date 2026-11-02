@@ -22,7 +22,7 @@ Uruchom `artifacts/publish/M3uPlayer.App.exe`. Przy pierwszym uruchomieniu dodaj
 
 ## Gdzie są dane
 
-`%LocalAppData%\M3uPlayer`: baza `m3u.db`, pamięć podręczna logo (`logos`), pliki tymczasowe (`tmp`) i dziennik `app.log`. Usunięcie folderu przywraca aplikację do stanu początkowego. Dziennik nie zawiera adresów ani tokenów.
+`%LocalAppData%\M3uPlayer`: baza `m3u.db`, pamięć podręczna logo (`logos`), pliki tymczasowe (`tmp`) i dziennik `app.log`. Usunięcie folderu przywraca aplikację do stanu początkowego. Dziennik nie zawiera tokenów, ale komunikaty o błędach połączenia mogą zawierać nazwę serwera.
 
 ## Testy
 

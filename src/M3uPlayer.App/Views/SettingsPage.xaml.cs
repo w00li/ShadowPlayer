@@ -36,11 +36,14 @@ public sealed partial class SettingsPage : Page
         catch (Exception ex) { await App.ReportAsync(ex); }
     }
 
+    // The page's own XamlRoot is null until it is in the tree, and the first "Dodaj listę" opens this page and its dialog in one go.
+    private static XamlRoot DialogRoot => App.MainWindow!.Content.XamlRoot;
+
     private static SourceRow Row(object sender) => (SourceRow)((FrameworkElement)sender).Tag;
 
     private async Task AddAsync(SourceKind kind)
     {
-        var dialog = new AddSourceDialog(kind, file => _vm.SuggestName(kind, file)) { XamlRoot = XamlRoot };
+        var dialog = new AddSourceDialog(kind, file => _vm.SuggestName(kind, file)) { XamlRoot = DialogRoot };
         if (await App.ShowDialogAsync(dialog) == ContentDialogResult.Primary)
             await _vm.AddAsync(kind, dialog.Location, dialog.SourceName);
     }
@@ -64,7 +67,7 @@ public sealed partial class SettingsPage : Page
             PrimaryButtonText = row.RemoveLabel,
             CloseButtonText = "Anuluj",
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot,
+            XamlRoot = DialogRoot,
         };
         if (await App.ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
         await _vm.RemoveAsync(row.Id);

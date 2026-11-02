@@ -21,6 +21,8 @@ public static partial class M3uParser
     [GeneratedRegex(@"^([A-Za-z][A-Za-z0-9+.-]*)://")]
     private static partial Regex Scheme();
 
+    public static bool HasAllowedScheme(string url) => Scheme().Match(url) is { Success: true } m && AllowedSchemes.Contains(m.Groups[1].Value);
+
     public static M3uDocument Parse(TextReader reader)
     {
         string? line;
@@ -65,8 +67,7 @@ public static partial class M3uParser
             else if (line[0] != '#')
             {
                 if (attrs is null) { userAgent = referrer = null; continue; }
-                var ok = name.Length > 0 && Scheme().Match(line) is { Success: true } m
-                    && AllowedSchemes.Contains(m.Groups[1].Value);
+                var ok = name.Length > 0 && HasAllowedScheme(line);
                 if (ok) entries.Add(Build(attrs, name, line, userAgent, referrer, keyCounts));
                 else skipped++;
                 attrs = null;

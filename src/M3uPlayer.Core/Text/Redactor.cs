@@ -11,7 +11,7 @@ public static partial class Redactor
     private static partial Regex UserInfo();
 
     // Xtream-style paths carry username and password as the two segments after the type.
-    [GeneratedRegex(@"(?<=/(?:live|timeshift|movie|series)/)[^/\s]+/[^/\s]+/")]
+    [GeneratedRegex(@"(?<=/(?:live|timeshift|movie|series)/)[^/\s]+/[^/\s]+/", RegexOptions.IgnoreCase)]
     private static partial Regex PathCredentials();
 
     public static string Redact(string text)

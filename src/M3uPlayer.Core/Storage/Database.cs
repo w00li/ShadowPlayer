@@ -58,6 +58,7 @@ public class Database
             c.Open();
             Exec(c, "PRAGMA foreign_keys=ON");
             Exec(c, "PRAGMA busy_timeout=10000");
+            Exec(c, "PRAGMA journal_size_limit=33554432"); // a big import must not leave a huge WAL behind
             return c;
         }
         catch
@@ -65,6 +66,14 @@ public class Database
             c.Dispose();
             throw;
         }
+    }
+
+    /// <summary>Returns the space of deleted rows to the file. Rewrites the whole database: seconds on a big one, so never on the UI thread.</summary>
+    public void Compact()
+    {
+        using var c = Open();
+        Exec(c, "VACUUM");
+        Exec(c, "PRAGMA wal_checkpoint(TRUNCATE)"); // in WAL mode the file only shrinks once the log is folded back
     }
 
     public string? GetSetting(string key)

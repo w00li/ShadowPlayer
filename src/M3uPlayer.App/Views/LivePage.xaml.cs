@@ -42,11 +42,16 @@ public sealed partial class LivePage : Page
         {
             App.Services.Refresh.DataChanged += _onDataChanged;
             if (App.MainWindow is { } w) { w.FullscreenChanged += OnFullscreenChanged; w.Closed += OnWindowClosed; }
-            Vm.Start();
             UpdateCategoryPane();
-            Vm.ReturnToScreen();
-            VideoHost.Focus(FocusState.Programmatic); // the shortcuts need focus somewhere on the page
             ShowControls();
+            // Playback resumes only once the list is current (a removed channel stays stopped), and the layout is
+            // collapsed until the first load, so focus (the shortcuts need it somewhere on the page) has to wait too.
+            Safe.Run(async () =>
+            {
+                await Vm.StartAsync();
+                Vm.ReturnToScreen();
+                VideoHost.Focus(FocusState.Programmatic);
+            });
         };
         Unloaded += (_, _) =>
         {
@@ -71,12 +76,12 @@ public sealed partial class LivePage : Page
     // ---- categories ----
     private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CategoryList.SelectedItem is CategoryItem c) Vm.SelectCategory(c);
+        if (CategoryList.SelectedItem is CategoryItem c) { Vm.SelectCategory(c); FocusVideoAfterPointer(CategoryList); }
     }
 
     private void CategoryCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CategoryCombo.SelectedItem is CategoryItem c) Vm.SelectCategory(c);
+        if (CategoryCombo.SelectedItem is CategoryItem c) { Vm.SelectCategory(c); FocusVideoAfterPointer(CategoryCombo); }
     }
 
     private void CategoryToggle_Click(object sender, RoutedEventArgs e)
@@ -113,7 +118,9 @@ public sealed partial class LivePage : Page
     // Selection changes caused by clicks only select; playing is driven by ItemClick so a click on the selected row works too.
     private void ChannelList_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is ChannelRow row) Vm.Play(row);
+        if (e.ClickedItem is not ChannelRow row) return;
+        Vm.Play(row);
+        FocusVideoAfterPointer(ChannelList);
     }
 
     private void ChannelList_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -218,7 +225,9 @@ public sealed partial class LivePage : Page
 
     private void GuideList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_syncing && GuideList.SelectedItem is GuideItem g) Vm.Guide.Select(g);
+        if (_syncing || GuideList.SelectedItem is not GuideItem g) return;
+        Vm.Guide.Select(g); // focus moves, the selection and the detail card stay
+        FocusVideoAfterPointer(GuideList);
     }
 
     private void GuideList_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)

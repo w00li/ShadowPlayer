@@ -5,13 +5,15 @@ namespace M3uPlayer.Core.Media;
 
 /// <summary>
 /// Disk cache of channel logos. Playlist content is untrusted: http/https only, images only, at most 2 MB, at most 4 downloads at once.
+/// A download that stalls is given up after 30 s so it cannot hold a slot for good.
 /// Callers for one URL share one download; a URL that failed is not tried again for an hour.
 /// </summary>
-public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = null)
+public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = null, TimeSpan? downloadTimeout = null)
 {
     private const int MaxBytes = 2 * 1024 * 1024;
     private static readonly TimeSpan RetryAfter = TimeSpan.FromHours(1);
     private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly TimeSpan _timeout = downloadTimeout ?? TimeSpan.FromSeconds(30);
     private readonly SemaphoreSlim _slots = new(4);
     private readonly object _lock = new();
     private readonly Dictionary<string, Task<string?>> _inFlight = [];
@@ -49,7 +51,7 @@ public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = 
         {
             await _slots.WaitAsync();
             try { result = File.Exists(path) ? path : await DownloadAsync(uri, path); }
-            catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException or TaskCanceledException) { }
+            catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException or OperationCanceledException) { }
             finally { _slots.Release(); }
         }
         finally
@@ -65,7 +67,9 @@ public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = 
 
     private async Task<string?> DownloadAsync(Uri uri, string path)
     {
-        using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+        using var timeout = new CancellationTokenSource(_timeout);
+        var ct = timeout.Token;
+        using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct);
         if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) != true
             || response.Content.Headers.ContentLength > MaxBytes) return null;
 
@@ -75,14 +79,14 @@ public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = 
         {
             await using (var file = File.Create(tmp))
             {
-                await using var body = await response.Content.ReadAsStreamAsync();
+                await using var body = await response.Content.ReadAsStreamAsync(ct);
                 var buffer = new byte[16 * 1024];
                 var total = 0;
                 int n;
-                while ((n = await body.ReadAsync(buffer)) > 0)
+                while ((n = await body.ReadAsync(buffer, ct)) > 0)
                 {
                     if ((total += n) > MaxBytes) return null; // the header may lie or be absent
-                    await file.WriteAsync(buffer.AsMemory(0, n));
+                    await file.WriteAsync(buffer.AsMemory(0, n), ct);
                 }
             }
             File.Move(tmp, path, true);

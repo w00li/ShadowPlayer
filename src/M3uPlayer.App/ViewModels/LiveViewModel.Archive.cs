@@ -43,7 +43,7 @@ public sealed partial class LiveViewModel
         var url = CatchupUrlBuilder.Build(c.Catchup, c.Url, timeline.Start + offset, timeline.Stop, _time.GetUtcNow());
         if (url is null) return false;
         _spinnerArmed = false;
-        _archiveResumable = false;
+        _archiveResumable = _ignorePositions = false;
         _player.Play(new PlayRequest(url, c.UserAgent, c.Referrer, false));
         return true;
     }
@@ -73,15 +73,16 @@ public sealed partial class LiveViewModel
 
     private void OnPlayerPosition(TimeSpan p) => _dq.TryEnqueue(() =>
     {
-        if (!_disposed && !_archiveResumable) Archive.SetPosition(p, _time.GetUtcNow()); // stopping reports 0, which must not replace the saved place
+        if (!_disposed && !_ignorePositions && !_archiveResumable) Archive.SetPosition(p, _time.GetUtcNow()); // stopping reports 0, which must not replace the saved place
     });
 
-    private bool _resume, _archiveResumable;
+    private bool _resume, _archiveResumable, _ignorePositions;
 
     /// <summary>The page really leaves (navigation): the video surface goes away, so playback stops; it resumes when the page comes back.</summary>
     public void LeaveScreen()
     {
         _tickTimer.Stop();
+        _ignorePositions = true; // set first: the stop below reports position 0 on the queue, behind this call
         _resume = IsActive && _state != PlayerState.Paused;
         _archiveResumable = Archive.Active && _state == PlayerState.Paused; // a paused archive stays where it was; the overlay offers to continue
         FlushVolume();
