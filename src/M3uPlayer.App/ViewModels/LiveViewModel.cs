@@ -109,8 +109,6 @@ public sealed class LiveViewModel : Observable, IDisposable
         Safe.Run(ReloadAsync);
     }
 
-    public void Resume() => _tickTimer.Start();
-
     public void Dispose()
     {
         _disposed = true;
