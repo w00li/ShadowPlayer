@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
+using M3uPlayer.App.Player;
 using M3uPlayer.Core.Diagnostics;
+using M3uPlayer.Core.Media;
 using M3uPlayer.Core.Refresh;
 using M3uPlayer.Core.Storage;
 using Microsoft.UI.Xaml;
@@ -18,6 +20,8 @@ public partial class App : Application
         public static ProgrammeStore Programmes { get; internal set; } = null!;
         public static RefreshService Refresh { get; internal set; } = null!;
         public static FileLog Log { get; internal set; } = null!;
+        public static VlcPlayer Player { get; internal set; } = null!;
+        public static LogoCache Logos { get; internal set; } = null!;
     }
 
     private static readonly CancellationTokenSource Stop = new();
@@ -60,6 +64,8 @@ public partial class App : Application
             Task.Delay, tmp);
         Services.Refresh = new RefreshService(Services.Db, fetcher, TimeProvider.System, Services.Log);
         DeleteLeftovers(tmp);
+        Services.Player = new VlcPlayer(Services.Log);
+        Services.Logos = new LogoCache(new HttpClient { Timeout = TimeSpan.FromSeconds(10) }, Path.Combine(dir, "logos"));
 
         _window = new MainWindow();
         // RunAsync parses and imports synchronously between awaits, so keep it off the UI thread.
@@ -72,6 +78,7 @@ public partial class App : Application
         _window.Closed += (_, _) =>
         {
             Stop.Cancel();
+            Services.Player.Dispose(); // on the UI thread, as the player requires
             try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
         };
         _window.Activate();

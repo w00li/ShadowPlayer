@@ -354,6 +354,23 @@ public sealed class StorageTests : IDisposable
     }
 
     [Fact]
+    public void GetNowNext_batch_matches_single_calls_and_covers_every_key()
+    {
+        var pl = _sources.Add(SourceKind.Playlist, "p", "P");
+        _channels.Replace(pl, [Entry("A", tvgId: "e1"), Entry("B", tvgId: "none"), Entry("C", tvgId: "e1", shift: 1)]);
+        var epg = _sources.Add(SourceKind.Epg, "e", "E");
+        _programmes.ImportEpg(epg, Xml("e1", (Now, Now.AddHours(1), "a"), (Now.AddHours(1), Now.AddHours(2), "b")), Now, 7);
+        _programmes.RebuildMatches();
+        var at = Now.AddMinutes(10);
+        var batch = _programmes.GetNowNext(["A", "B", "C", "missing", "A"], at);
+        Assert.Equal(4, batch.Count);
+        foreach (var k in new[] { "A", "B", "C", "missing" }) Assert.Equal(_programmes.GetNowNext(k, at), batch[k]);
+        Assert.Equal("a", batch["A"].Now?.Title);
+        Assert.Null(batch["B"].Now);
+        Assert.Empty(_programmes.GetNowNext([], at));
+    }
+
+    [Fact]
     public void GetNowNext_no_epg_gives_nulls()
     {
         Linked();

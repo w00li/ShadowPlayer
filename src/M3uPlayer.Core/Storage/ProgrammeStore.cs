@@ -117,6 +117,22 @@ public class ProgrammeStore(Database db)
     public NowNext GetNowNext(string channelKey, DateTimeOffset now)
     {
         using var c = db.Open();
+        return NowNextOn(c, channelKey, now);
+    }
+
+    /// <summary>One connection for all keys (a screenful of rows); duplicate keys collapse, unknown keys get an empty NowNext.</summary>
+    public IReadOnlyDictionary<string, NowNext> GetNowNext(IReadOnlyList<string> keys, DateTimeOffset now)
+    {
+        var result = new Dictionary<string, NowNext>();
+        if (keys.Count == 0) return result;
+        using var c = db.Open();
+        foreach (var k in keys)
+            if (!result.ContainsKey(k)) result[k] = NowNextOn(c, k, now);
+        return result;
+    }
+
+    private static NowNext NowNextOn(SqliteConnection c, string channelKey, DateTimeOffset now)
+    {
         var shift = Shift(c, channelKey);
         var t = now.ToUnixTimeSeconds() - shift;
         var current = Database.Rows(c, $"SELECT {ProgrammeColumns} {ByChannel} AND p.start_utc<=@1 AND p.stop_utc>@1 ORDER BY p.start_utc DESC LIMIT 1",

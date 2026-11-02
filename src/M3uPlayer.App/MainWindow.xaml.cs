@@ -15,7 +15,8 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1200, 800));
+        var scale = GetDpiForWindow(WindowNative.GetWindowHandle(this)) / 96.0; // AppWindow sizes are physical pixels
+        AppWindow.Resize(new Windows.Graphics.SizeInt32((int)(1200 * scale), (int)(800 * scale)));
         _subclass = OnMessage;
         SetWindowSubclass(WindowNative.GetWindowHandle(this), _subclass, 1, 0);
         Navigate(typeof(LivePage));
