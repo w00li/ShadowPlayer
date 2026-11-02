@@ -19,6 +19,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- Otherwise a solution build ships LibVLC for every architecture: 500 MB instead of 330. -->
+    <VlcWindowsX64Enabled>true</VlcWindowsX64Enabled>
+    <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+    <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,5 +39,21 @@
   <ItemGroup>
     <ProjectReference Include="..\M3uPlayer.Core\M3uPlayer.Core.csproj" />
   </ItemGroup>
+
+  <!-- Every Release build leaves artifacts\installer\ShadowPlayer-Setup.exe, which replaces an installed older version. -->
+  <PropertyGroup>
+    <InstallerFiles>$(MSBuildProjectDirectory)\..\..\artifacts\installer\files\</InstallerFiles>
+    <Iscc Condition="Exists('$(LOCALAPPDATA)\Programs\Inno Setup 6\ISCC.exe')">$(LOCALAPPDATA)\Programs\Inno Setup 6\ISCC.exe</Iscc>
+    <Iscc Condition="Exists('$(MSBuildProgramFiles32)\Inno Setup 6\ISCC.exe')">$(MSBuildProgramFiles32)\Inno Setup 6\ISCC.exe</Iscc>
+  </PropertyGroup>
+
+  <Target Name="BuildInstaller" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true' and '$(InsideInstallerPublish)' != 'true'">
+    <Warning Condition="'$(Iscc)' == ''" Text="Nie zbudowano instalatora: brak Inno Setup 6 (winget install JRSoftware.InnoSetup)." />
+    <RemoveDir Condition="'$(Iscc)' != ''" Directories="$(InstallerFiles)" />
+    <!-- Not NoBuild=true: that publish silently leaves out LibVLC and resources.pri, and the installed app cannot start. -->
+    <MSBuild Condition="'$(Iscc)' != ''" Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="InsideInstallerPublish=true;PublishDir=$(InstallerFiles)" />
+    <Error Condition="'$(Iscc)' != '' and (!Exists('$(InstallerFiles)libvlc\win-x64\libvlc.dll') or !Exists('$(InstallerFiles)resources.pri'))" Text="Publikacja jest niepełna, więc instalator nie powstanie: brak LibVLC albo resources.pri." />
+    <Exec Condition="'$(Iscc)' != ''" Command="&quot;$(Iscc)&quot; /Q /DAppVersion=$([System.DateTime]::Now.ToString('yyyy.M.d.Hmm')) &quot;/DSourceDir=$(InstallerFiles.TrimEnd('\'))&quot; &quot;$(MSBuildProjectDirectory)\..\..\installer\ShadowPlayer.iss&quot;" />
+  </Target>
 
 </Project>

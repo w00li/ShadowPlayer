@@ -18,7 +18,13 @@ dotnet publish src/M3uPlayer.App -c Release -r win-x64 -p:Platform=x64 --self-co
 
 ## Uruchomienie
 
-Uruchom `artifacts/publish/ShadowPlayer.exe`. Przy pierwszym uruchomieniu dodaj listę w Ustawieniach (adres albo plik), potem opcjonalnie źródło EPG.
+Uruchom `artifacts/publish/ShadowPlayer.exe` albo zainstaluj aplikację (niżej). Przy pierwszym uruchomieniu dodaj listę w Ustawieniach (adres albo plik), potem opcjonalnie źródło EPG.
+
+## Instalator
+
+Każdy build `Release` tworzy `artifacts/installer/ShadowPlayer-Setup.exe` (build `Debug` go pomija). Wymaga Inno Setup 6 (`winget install JRSoftware.InnoSetup`); bez niego build kończy się ostrzeżeniem.
+
+Instalator wymaga uprawnień administratora. Domyślnie instaluje aplikację w `C:\Program Files\ShadowPlayer`, a miejsce można zmienić przy pierwszej instalacji. Nowszy instalator uruchomiony na starszej wersji zamyka działającą aplikację i zastępuje poprzednią instalację w tym samym folderze; inne pliki w tym folderze zostają. Listy i ustawienia są w profilu użytkownika i zostają, także po odinstalowaniu. Numer wersji powstaje z daty i godziny buildu.
 
 ## Gdzie są dane
 
