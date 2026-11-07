@@ -159,6 +159,9 @@ public sealed partial class LiveViewModel : Observable, IDisposable
     public event Action? ChannelsReplaced;
     public event Action? SelectedChannelChanged;
 
+    /// <summary>The restored channel started playing on its own, as the preferences ask.</summary>
+    public event Action? AutoStarted;
+
     // ---- lifecycle ----
     /// <summary>
     /// The page is shown. Done once the channel list and the selection are current, so the caller may resume playback after it:
@@ -342,6 +345,9 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         UpdateOverlay();
         SelectedChannelChanged?.Invoke();
         Safe.Run(() => Guide.LoadAsync(row.Channel));
+        if (!App.Services.Prefs.Autostart) return;
+        Play(row);
+        AutoStarted?.Invoke();
     }
 
     // ---- playing ----

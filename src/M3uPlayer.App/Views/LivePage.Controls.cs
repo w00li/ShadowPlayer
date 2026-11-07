@@ -18,7 +18,7 @@ public sealed partial class LivePage
     private DispatcherQueueTimer _hideTimer = null!, _seekTimer = null!, _trackTimer = null!;
     private bool _fullscreen, _menuOpen, _syncSlider, _refocusing, _dragging, _dirty;
     private (DateTimeOffset, DateTimeOffset) _timelineKey;
-    private static readonly TimeSpan SeekStep = TimeSpan.FromSeconds(10);
+    private static TimeSpan SeekStep => TimeSpan.FromSeconds(App.Services.Prefs.SeekSeconds);
 
     private void InitControls()
     {
@@ -99,6 +99,7 @@ public sealed partial class LivePage
         RefreshTrackButtons();
         _trackTimer.Start();
         _hideTimer.Stop();
+        _hideTimer.Interval = TimeSpan.FromSeconds(App.Services.Prefs.HideControlsSeconds);
         _hideTimer.Start();
     }
 

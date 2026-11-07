@@ -25,6 +25,7 @@ public partial class App : Application
         public static FileLog Log { get; internal set; } = null!;
         public static VlcPlayer Player { get; internal set; } = null!;
         public static LogoCache Logos { get; internal set; } = null!;
+        public static Preferences Prefs { get; internal set; } = null!;
     }
 
     private static readonly CancellationTokenSource Stop = new();
@@ -62,6 +63,7 @@ public partial class App : Application
         Directory.CreateDirectory(dir);
         Services.Log = new FileLog(Path.Combine(dir, "app.log"));
         Services.Db = new Database(Path.Combine(dir, "m3u.db"));
+        Services.Prefs = new Preferences(Services.Db);
         Languages.Apply(Languages.Resolve(Services.Db.GetSetting(LanguageSetting), CultureInfo.CurrentUICulture));
         Services.Sources = new SourceStore(Services.Db);
         Services.Channels = new ChannelStore(Services.Db);

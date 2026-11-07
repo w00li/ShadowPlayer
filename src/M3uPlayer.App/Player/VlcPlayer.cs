@@ -287,7 +287,9 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         mp.Stop();
         _media?.Dispose();
         var media = _media = new Media(lib, r.Url, FromType.FromLocation);
-        media.AddOption(":network-caching=1500");
+        var prefs = App.Services.Prefs;
+        media.AddOption(FormattableString.Invariant($":network-caching={prefs.BufferMs}"));
+        if (!prefs.HwDecoding) media.AddOption(":avcodec-hw=none");
         if (PlayRequest.HeaderValue(r.UserAgent) is { } ua) media.AddOption($":http-user-agent={ua}");
         if (PlayRequest.HeaderValue(r.Referrer) is { } rf) media.AddOption($":http-referrer={rf}");
         lock (_gate)

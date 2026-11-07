@@ -32,6 +32,7 @@ public sealed partial class LivePage : Page
         App.Services.Player.Attach(Video);
         Vm.ChannelsReplaced += () => { _realized.Clear(); SyncChannelSelection(); }; // new containers must be realized again
         Vm.SelectedChannelChanged += SyncChannelSelection;
+        Vm.AutoStarted += () => { if (App.Services.Prefs.StartFullscreen) App.MainWindow?.SetFullscreen(true); };
         Vm.Guide.Loaded += OnGuideLoaded;
         Vm.Guide.PropertyChanged += (_, _) => _ = LoadPictureAsync();
         Vm.PropertyChanged += (_, e) => { if (e.PropertyName is nameof(Vm.CategoriesCollapsed)) UpdateCategoryPane(); };
