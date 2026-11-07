@@ -28,6 +28,7 @@ public sealed class Preferences(Database db)
     public string Theme { get => Text("ui.theme", ThemeChoices, "system"); set => Put("ui.theme", value, ThemeChoices); }
     public bool Autostart { get => Bool("playback.autostart", false); set => db.SetSetting("playback.autostart", value ? "1" : "0"); }
     public bool StartFullscreen { get => Bool("playback.fullscreen", false); set => db.SetSetting("playback.fullscreen", value ? "1" : "0"); }
+    public bool CheckUpdates { get => Bool("updates.check", true); set => db.SetSetting("updates.check", value ? "1" : "0"); }
     public bool HwDecoding { get => Bool("playback.hwDecoding", true); set => db.SetSetting("playback.hwDecoding", value ? "1" : "0"); }
     public int BufferMs { get => Int("playback.bufferMs", BufferChoices, 1500); set => Put("playback.bufferMs", value, BufferChoices); }
     public int SeekSeconds { get => Int("playback.seekSeconds", SeekChoices, 10); set => Put("playback.seekSeconds", value, SeekChoices); }

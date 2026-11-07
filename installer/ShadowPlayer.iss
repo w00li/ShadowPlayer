@@ -51,10 +51,17 @@ Name: "{autodesktop}\ShadowPlayer"; Filename: "{app}\ShadowPlayer.exe"; Tasks: d
 
 [Run]
 Filename: "{app}\ShadowPlayer.exe"; Description: "Uruchom ShadowPlayer"; Flags: nowait postinstall skipifsilent runasoriginaluser
+; An update started by the app itself runs silently with /RELAUNCH=1 and brings the app back when it is done.
+Filename: "{app}\ShadowPlayer.exe"; Flags: nowait runasoriginaluser; Check: RelaunchAfterUpdate
 
 ; The data in %LocalAppData%\M3uPlayer is deliberately not touched, by an update or by uninstalling.
 
 [Code]
+function RelaunchAfterUpdate: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:RELAUNCH|0}') = '1');
+end;
+
 // The user picks the folder, so it may hold other files: the old version's own uninstaller removes exactly what it installed,
 // so files a newer version no longer ships do not stay behind, and nothing else is touched.
 procedure CurStepChanged(CurStep: TSetupStep);

@@ -29,6 +29,7 @@ public sealed class PreferencesTests : IDisposable
         Assert.Equal(10, p.SeekSeconds);
         Assert.Equal(3, p.HideControlsSeconds);
         Assert.Equal(720, p.DefaultIntervalMinutes);
+        Assert.True(p.CheckUpdates);
     }
 
     [Fact]
@@ -37,11 +38,12 @@ public sealed class PreferencesTests : IDisposable
         var p = new Preferences(_db)
         {
             Theme = "dark", Autostart = true, StartFullscreen = true, HwDecoding = false,
-            BufferMs = 5000, SeekSeconds = 30, HideControlsSeconds = 10, DefaultIntervalMinutes = 1440,
+            BufferMs = 5000, SeekSeconds = 30, HideControlsSeconds = 10, DefaultIntervalMinutes = 1440, CheckUpdates = false,
         };
         var again = new Preferences(_db);
         Assert.Equal(("dark", true, true, false), (again.Theme, again.Autostart, again.StartFullscreen, again.HwDecoding));
         Assert.Equal((5000, 30, 10, 1440), (again.BufferMs, again.SeekSeconds, again.HideControlsSeconds, again.DefaultIntervalMinutes));
+        Assert.False(again.CheckUpdates);
     }
 
     [Theory]
