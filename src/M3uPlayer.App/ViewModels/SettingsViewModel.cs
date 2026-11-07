@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Playlist;
 using M3uPlayer.Core.Localization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -214,5 +215,23 @@ public sealed class SettingsViewModel
         }
         finally { _writes--; }
         await ReloadAsync();
+    }
+}
+
+/// <summary>One category on the Categories tab. Updated in place, so a keyboard user keeps focus on the box they just changed.</summary>
+public sealed class SettingsCategoryRow(CategoryCount c) : Observable
+{
+    public string Name { get; } = c.Name;
+    public string DisplayName { get; } = c.Name == M3uParser.DefaultCategory ? Strings.Category_Other : c.Name;
+    public string CountText { get; } = c.Count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+    public bool Pinned { get; private set; } = c.Pinned;
+    public bool Hidden { get; private set; } = c.Hidden;
+    public string PinnedName => string.Format(Strings.Settings_CategoryPinnedName, DisplayName);
+    public string HiddenName => string.Format(Strings.Settings_CategoryHiddenName, DisplayName);
+
+    public void Set(bool pinned, bool hidden)
+    {
+        (Pinned, Hidden) = (pinned, hidden);
+        Raise();
     }
 }

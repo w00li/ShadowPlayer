@@ -51,6 +51,8 @@ public sealed partial class SettingsPage : Page
         GeneralTab.Visibility = Shown(GeneralItem);
         PlaybackTab.Visibility = Shown(PlaybackItem);
         SourcesTab.Visibility = Shown(SourcesItem);
+        CategoriesTab.Visibility = Shown(CategoriesItem);
+        if (Tabs.SelectedItem == CategoriesItem) _ = Guard(LoadCategoriesAsync);
         DataTab.Visibility = Shown(DataItem);
     }
 
@@ -98,6 +100,52 @@ public sealed partial class SettingsPage : Page
         try { save(); }
         catch (Exception ex) { _ = App.ReportAsync(ex); }
     }
+
+    private readonly System.Collections.ObjectModel.ObservableCollection<SettingsCategoryRow> _categories = [];
+
+    private async Task LoadCategoriesAsync()
+    {
+        var cats = await Task.Run(App.Services.Channels.Categories);
+        _categories.Clear();
+        foreach (var c in cats) _categories.Add(new SettingsCategoryRow(c));
+        CategoryRows.ItemsSource = _categories;
+        NoCategories.Visibility = _categories.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        UpdateShowAll();
+    }
+
+    private void UpdateShowAll() => ShowAllButton.IsEnabled = _categories.Any(c => c.Hidden);
+
+    private async void CategoryPinned_Click(object sender, RoutedEventArgs e) => await SetCategory(sender, pin: true);
+    private async void CategoryHidden_Click(object sender, RoutedEventArgs e) => await SetCategory(sender, pin: false);
+
+    /// <summary>Checking one box clears the other: a category is pinned or hidden, never both.</summary>
+    private Task SetCategory(object sender, bool pin) => Guard(async () =>
+    {
+        var box = (CheckBox)sender;
+        var row = (SettingsCategoryRow)box.Tag;
+        var on = box.IsChecked == true;
+        var (pinned, hidden) = pin ? (on, on ? false : row.Hidden) : (on ? false : row.Pinned, on);
+        await Task.Run(() => App.Services.Channels.SetCategoryPref(row.Name, pinned, hidden));
+        row.Set(pinned, hidden);
+        UpdateShowAll();
+    });
+
+    private async void ShowAll_Click(object sender, RoutedEventArgs e) => await Guard(async () =>
+    {
+        var dialog = new ContentDialog
+        {
+            Title = Strings.Settings_ShowAllQuestion,
+            Content = Strings.Settings_ShowAllBody,
+            PrimaryButtonText = Strings.Settings_ShowAllConfirm,
+            CloseButtonText = Strings.AddSource_Cancel,
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = DialogRoot,
+        };
+        if (await App.ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
+        await Task.Run(App.Services.Channels.ShowAllCategories);
+        await LoadCategoriesAsync();
+        ShowAllButton.Focus(FocusState.Programmatic);
+    });
 
     private async void ClearLogos_Click(object sender, RoutedEventArgs e) => await Guard(async () =>
     {

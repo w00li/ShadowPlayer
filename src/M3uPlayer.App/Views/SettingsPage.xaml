@@ -62,6 +62,22 @@
                 </StackPanel>
             </Border>
         </DataTemplate>
+        <DataTemplate x:Key="CategoryRowTemplate" x:DataType="vm:SettingsCategoryRow">
+            <Grid ColumnSpacing="16" Padding="0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Text="{x:Bind CountText}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <CheckBox Grid.Column="2" Content="{l:Tr Key=Settings_CategoryPinned}" IsChecked="{x:Bind Pinned, Mode=OneWay}" Tag="{x:Bind}"
+                          AutomationProperties.Name="{x:Bind PinnedName}" Click="CategoryPinned_Click" />
+                <CheckBox Grid.Column="3" Content="{l:Tr Key=Settings_CategoryHidden}" IsChecked="{x:Bind Hidden, Mode=OneWay}" Tag="{x:Bind}"
+                          AutomationProperties.Name="{x:Bind HiddenName}" Click="CategoryHidden_Click" />
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <ScrollViewer>
@@ -71,6 +87,7 @@
                 <SelectorBarItem x:Name="GeneralItem" Text="{l:Tr Key=Settings_TabGeneral}" IsSelected="True" />
                 <SelectorBarItem x:Name="PlaybackItem" Text="{l:Tr Key=Settings_TabPlayback}" />
                 <SelectorBarItem x:Name="SourcesItem" Text="{l:Tr Key=Settings_TabSources}" />
+                <SelectorBarItem x:Name="CategoriesItem" Text="{l:Tr Key=Settings_TabCategories}" />
                 <SelectorBarItem x:Name="DataItem" Text="{l:Tr Key=Settings_TabData}" />
             </SelectorBar>
 
@@ -111,6 +128,13 @@
                 <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
 
                 <ComboBox x:Name="DefaultIntervalBox" MinWidth="240" Header="{l:Tr Key=Settings_DefaultInterval}" Margin="0,24,0,0" />
+            </StackPanel>
+
+            <StackPanel x:Name="CategoriesTab" Spacing="8" Visibility="Collapsed">
+                <TextBlock x:Name="NoCategories" Text="{l:Tr Key=Settings_NoCategories}" Visibility="Collapsed"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ItemsControl x:Name="CategoryRows" ItemTemplate="{StaticResource CategoryRowTemplate}" />
+                <Button x:Name="ShowAllButton" Content="{l:Tr Key=Settings_ShowAllCategories}" Click="ShowAll_Click" Margin="0,16,0,0" />
             </StackPanel>
 
             <StackPanel x:Name="DataTab" Spacing="8" Visibility="Collapsed">
