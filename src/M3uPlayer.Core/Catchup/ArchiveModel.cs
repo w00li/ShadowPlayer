@@ -10,6 +10,7 @@ public sealed class ArchiveModel : INotifyPropertyChanged
     private static readonly TimeSpan Tolerance = TimeSpan.FromSeconds(3), Grace = TimeSpan.FromSeconds(5);
     private TimeSpan _expected;
     private DateTimeOffset? _giveUpAt;
+    private bool _endReported;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -50,25 +51,28 @@ public sealed class ArchiveModel : INotifyPropertyChanged
 
     public void Clear()
     {
-        _giveUpAt = null;
+        (_giveUpAt, _endReported) = (null, false);
         if (Timeline is null) return;
         (Timeline, Elapsed, AtLiveEnd) = (null, TimeSpan.Zero, false);
         Raise();
     }
 
-    public void SetPosition(TimeSpan playerPosition, DateTimeOffset now)
+    /// <summary>True once when the stream passes the programme's end: a shift archive does not stop there but plays on up to "now".</summary>
+    public bool SetPosition(TimeSpan playerPosition, DateTimeOffset now)
     {
-        if (Timeline is not { } t) return;
+        if (Timeline is not { } t) return false;
         if (_giveUpAt is { } until)
         {
-            if (now < until && (playerPosition - _expected).Duration() > Tolerance) return;
+            if (now < until && (playerPosition - _expected).Duration() > Tolerance) return false;
             _giveUpAt = null;
         }
         var elapsed = t.Elapsed(playerPosition);
         if ((long)elapsed.TotalSeconds != (long)Elapsed.TotalSeconds || t.AtLiveEnd(elapsed, now) != AtLiveEnd) Show(elapsed, now);
+        if (_endReported || t.OpenedAt + playerPosition < t.Total) return false;
+        return _endReported = true;
     }
 
-    private void Expect(TimeSpan playerPosition, DateTimeOffset now) => (_expected, _giveUpAt) = (playerPosition, now + Grace);
+    private void Expect(TimeSpan playerPosition, DateTimeOffset now) => (_expected, _giveUpAt, _endReported) = (playerPosition, now + Grace, false);
 
     private void Show(TimeSpan elapsed, DateTimeOffset now)
     {

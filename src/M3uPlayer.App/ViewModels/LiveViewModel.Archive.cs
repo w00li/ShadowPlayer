@@ -91,7 +91,8 @@ public sealed partial class LiveViewModel
 
     private void OnPlayerPosition(TimeSpan p) => _dq.TryEnqueue(() =>
     {
-        if (!_disposed && !_ignorePositions && !_archiveResumable) Archive.SetPosition(p, _time.GetUtcNow()); // stopping reports 0, which must not replace the saved place
+        // stopping reports 0, which must not replace the saved place
+        if (!_disposed && !_ignorePositions && !_archiveResumable && Archive.SetPosition(p, _time.GetUtcNow())) PlayNextProgramme();
     });
 
     private bool _resume, _archiveResumable, _ignorePositions;

@@ -30,6 +30,28 @@ public class ArchiveModelTests
     }
 
     [Fact]
+    public void SetPosition_reports_the_programme_end_once_for_a_stream_that_runs_past_it()
+    {
+        var m = Playing();
+        Assert.False(m.SetPosition(S(1), Now));
+        Assert.False(m.SetPosition(S(3599), Now));
+        Assert.True(m.SetPosition(S(3600), Now)); // a shift archive keeps playing up to "now"
+        Assert.False(m.SetPosition(S(3601), Now));
+        m.Seeked(S(60), Now);
+        Assert.False(m.SetPosition(S(60), Now));
+        Assert.True(m.SetPosition(S(3600), Now)); // after a seek back it ends again
+    }
+
+    [Fact]
+    public void SetPosition_counts_the_reopen_offset_towards_the_end()
+    {
+        var m = Playing();
+        m.Reopened(S(3000), Now);
+        Assert.False(m.SetPosition(S(1), Now));
+        Assert.True(m.SetPosition(S(600), Now));
+    }
+
+    [Fact]
     public void Reopen_ignores_old_positions_until_one_near_the_new_start_arrives()
     {
         var m = Playing();
