@@ -555,4 +555,7 @@
   <data name="Settings_NoCategories" xml:space="preserve">
     <value>Немає категорій. Додайте список, щоб їх побачити.</value>
   </data>
+  <data name="Live_AllHidden" xml:space="preserve">
+    <value>Усі категорії сховано. Повернути їх можна в Налаштування → Категорії.</value>
+  </data>
 </root>

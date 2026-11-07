@@ -88,10 +88,10 @@ public class ChannelStore(Database db)
         Database.Exec(c, "UPDATE category_pref SET hidden=0");
     }
 
-    public int CountAll()
+    public int CountAll(bool includeHidden = false)
     {
         using var c = db.Open();
-        return Convert.ToInt32(Database.Exec(c, "SELECT COUNT(*) FROM channel c WHERE " + Visible));
+        return Convert.ToInt32(Database.Exec(c, "SELECT COUNT(*) FROM channel c" + (includeHidden ? "" : " WHERE " + Visible)));
     }
 
     public int CountFavorites()
@@ -102,7 +102,7 @@ public class ChannelStore(Database db)
 
     public IReadOnlyList<Channel> ByCategory(string name) => Query("WHERE c.category=@0", name);
 
-    public IReadOnlyList<Channel> All() => Query("WHERE " + Visible);
+    public IReadOnlyList<Channel> All(bool includeHidden = false) => Query(includeHidden ? "" : "WHERE " + Visible);
 
     // Channels of hidden categories stay out of "All"; search, favourites and the category itself still show them.
     private const string Visible = "c.category NOT IN (SELECT name FROM category_pref WHERE hidden=1)";

@@ -232,14 +232,14 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         var data = await Task.Run(() =>
         {
             var cats = _channels.Categories();
-            var (all, fav) = (_channels.CountAll(), _channels.CountFavorites());
+            var (all, fav, any) = (_channels.CountAll(), _channels.CountFavorites(), _channels.CountAll(includeHidden: true));
             var nameMatches = new HashSet<string>();
             IReadOnlyList<Channel> list;
             if (query.Length > 0)
             {
                 nameMatches = _channels.Search(query).Select(c => c.Key).ToHashSet();
                 var byProgramme = _programmes.SearchProgrammeChannels(query, now).ToHashSet();
-                list = _channels.All().Where(c => nameMatches.Contains(c.Key) || byProgramme.Contains(c.Key)).ToList();
+                list = _channels.All(includeHidden: true).Where(c => nameMatches.Contains(c.Key) || byProgramme.Contains(c.Key)).ToList(); // search reaches hidden categories
             }
             else list = category switch
             {
@@ -247,7 +247,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
                 CategoryItem.FavoritesKey => _channels.Favorites(),
                 _ => _channels.ByCategory(category[2..]),
             };
-            return (cats, all, fav, list, nameMatches);
+            return (cats, all, fav, any, list, nameMatches);
         });
         if (version != _reloadVersion || _disposed) return;
 
@@ -274,11 +274,13 @@ public sealed partial class LiveViewModel : Observable, IDisposable
             ChannelsReplaced?.Invoke();
         }
 
-        (ShowLayout, ShowEmpty) = (data.all > 0, data.all == 0);
+        // "No lists" only when there are no channels at all; every category hidden is not the same thing.
+        (ShowLayout, ShowEmpty) = (data.any > 0, data.any == 0);
         CanClearSearch = searching;
-        ListMessage = data.list.Count > 0 || data.all == 0 ? ""
+        ListMessage = data.list.Count > 0 || data.any == 0 ? ""
             : searching ? string.Format(Strings.Live_NoResults, query)
             : category == CategoryItem.FavoritesKey ? Strings.Live_NoFavorites
+            : category == CategoryItem.AllKey && data.all == 0 ? Strings.Live_AllHidden
             : Strings.Live_EmptyCategory;
         Raise();
         ScheduleVisible();
@@ -349,7 +351,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
     // ---- restoring the last session ----
     private bool _restored;
     private string _startCategory = SessionRestore.AllKey;
-    private string? _restoreChannel;
+    private Channel? _restoreChannel;
 
     // Volume and mute go to the player now, so the first play already has them. Nothing starts playing.
     private async Task RestoreAsync()
@@ -363,7 +365,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         });
         if (_disposed) return;
         _startCategory = SessionRestore.StartCategory(saved.Category, saved.Known, saved.Channel); // a category or channel that is gone means "Wszystkie"
-        _restoreChannel = saved.Channel?.Key;
+        _restoreChannel = saved.Channel;
         if (int.TryParse(saved.Volume, out var v)) _player.Volume = v;
         _player.Muted = saved.Muted == "1";
         if (saved.Collapsed == "1") { _categoriesCollapsed = true; Raise(nameof(CategoriesCollapsed)); }
@@ -372,9 +374,11 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     private void SelectRestoredChannel()
     {
-        var key = _restoreChannel;
+        var channel = _restoreChannel;
         _restoreChannel = null;
-        if (key is null || SelectedChannel is not null || Channels.FirstOrDefault(r => r.Key == key) is not { } row) return;
+        if (channel is null || SelectedChannel is not null) return;
+        // A channel of a hidden category is not in "All", but it is still the one to come back to.
+        var row = Channels.FirstOrDefault(r => r.Key == channel.Key) ?? new ChannelRow(channel, false);
         SelectedChannel = row;
         Raise();
         UpdateOverlay();

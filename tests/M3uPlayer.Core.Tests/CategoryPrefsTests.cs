@@ -136,4 +136,12 @@ public sealed class CategoryPrefsTests : IDisposable
         channels.SetCategoryPref("A", false, true);
         Assert.Equal(3, channels.CountAll());
     }
+
+    [Fact]
+    public void Search_can_reach_channels_of_hidden_categories()
+    {
+        _channels.SetCategoryPref("C", false, true);
+        Assert.Contains(_channels.All(includeHidden: true), ch => ch.Key == "c1"); // the app filters this list by search matches
+        Assert.Equal(4, _channels.CountAll(includeHidden: true));
+    }
 }

@@ -555,4 +555,7 @@
   <data name="Settings_NoCategories" xml:space="preserve">
     <value>Aucune catégorie. Ajoutez une liste pour les voir.</value>
   </data>
+  <data name="Live_AllHidden" xml:space="preserve">
+    <value>Toutes les catégories sont masquées. Rétablissez-les dans Paramètres → Catégories.</value>
+  </data>
 </root>
