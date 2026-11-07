@@ -42,16 +42,9 @@
                         </StackPanel>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
-                        <ComboBox Header="{l:Tr Key=Settings_RefreshEvery}" Tag="{x:Bind}" Width="140" SelectedIndex="{x:Bind IntervalIndex, Mode=OneWay}"
-                                  SelectionChanged="Interval_Changed">
-                            <ComboBoxItem Content="{l:Tr Key=Interval_1h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_3h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_6h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_12h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_24h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_48h}" />
-                            <ComboBoxItem Content="{l:Tr Key=Interval_7d}" />
-                        </ComboBox>
+                        <ComboBox Header="{l:Tr Key=Settings_RefreshEvery}" Tag="{x:Bind}" Width="140" ItemsSource="{x:Bind vm:IntervalChoice.Labels}"
+                                  SelectedIndex="{x:Bind IntervalIndex, Mode=OneWay}"
+                                  SelectionChanged="Interval_Changed" />
                         <ToggleSwitch Header="{l:Tr Key=Settings_AutoRefresh}" Tag="{x:Bind}" IsOn="{x:Bind AutoRefresh, Mode=OneWay}"
                                       OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" Toggled="Auto_Toggled" />
                         <Button Content="{l:Tr Key=Settings_RefreshNow}" Tag="{x:Bind}" IsEnabled="{x:Bind CanRefresh, Mode=OneWay}" Click="Refresh_Click"

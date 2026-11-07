@@ -108,12 +108,22 @@ public sealed partial class LivePage : Page
 
     private void CategoryPin_Click(object sender, RoutedEventArgs e)
     {
-        if (_menuCategory is { } c) Safe.Run(() => Vm.SetCategoryPrefAsync(c, !c.IsPinned, false));
+        if (_menuCategory is { } c) Safe.Run(async () => { await Vm.SetCategoryPrefAsync(c, !c.IsPinned, false); FocusCategory(c.Key); });
     }
 
     private void CategoryHide_Click(object sender, RoutedEventArgs e)
     {
-        if (_menuCategory is { } c) Safe.Run(() => Vm.SetCategoryPrefAsync(c, false, true));
+        if (_menuCategory is { } c) Safe.Run(async () => { await Vm.SetCategoryPrefAsync(c, false, true); FocusCategory(c.Key); });
+    }
+
+    /// <summary>The list was rebuilt; keyboard focus goes back to the category, or to the open one when it was hidden.</summary>
+    private void FocusCategory(string key)
+    {
+        if (CategoryCombo.Visibility == Visibility.Visible) { CategoryCombo.Focus(FocusState.Programmatic); return; }
+        var item = Vm.Categories.FirstOrDefault(c => c.Key == key) ?? Vm.SelectedCategory;
+        if (item is null) return;
+        CategoryList.ScrollIntoView(item);
+        DispatcherQueue.TryEnqueue(() => (CategoryList.ContainerFromItem(item) as Control)?.Focus(FocusState.Programmatic)); // after the containers exist
     }
 
     private void Notice_Closed(InfoBar sender, InfoBarClosedEventArgs args) => Vm.CloseNotice();

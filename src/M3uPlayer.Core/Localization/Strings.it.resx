@@ -517,7 +517,7 @@
     <value>Fissa in alto</value>
   </data>
   <data name="Categories_Unpin" xml:space="preserve">
-    <value>Sblocca</value>
+    <value>Non fissare più</value>
   </data>
   <data name="Categories_Hide" xml:space="preserve">
     <value>Nascondi</value>
@@ -557,5 +557,8 @@
   </data>
   <data name="Live_AllHidden" xml:space="preserve">
     <value>Tutte le categorie sono nascoste. Puoi ripristinarle in Impostazioni → Categorie.</value>
+  </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>Impossibile eliminare i dati. Chiudi le altre copie dell’app e avviala di nuovo. L’eliminazione verrà ritentata.</value>
   </data>
 </root>

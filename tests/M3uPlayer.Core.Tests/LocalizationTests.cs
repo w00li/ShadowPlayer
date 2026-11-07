@@ -27,6 +27,8 @@ public class LocalizationTests
             {
                 Assert.True(other.TryGetValue(key, out var t) && t.Length > 0, $"{code}: missing {key}");
                 Assert.True(Holes(text) == Holes(t), $"{code}: {key} has other placeholders");
+                var none = Record.Exception(() => string.Format(t, new object?[10])); // a stray { or } fails only at run time
+                Assert.True(none is null, $"{code}: {key} is not a valid format string");
             }
         }
     }

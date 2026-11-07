@@ -60,10 +60,17 @@ public partial class App : Application
 
     private void Start()
     {
+        Languages.Apply(Languages.Resolve(null, CultureInfo.CurrentUICulture)); // a failure before the saved language is read still speaks the system language
         var dir = DataDir;
         Directory.CreateDirectory(dir);
         Services.Log = new FileLog(Path.Combine(dir, "app.log"));
-        DataReset.RunIfRequested(dir); // before anything opens the files it removes (the log stays); a failure ends the start, marker kept
+        try { DataReset.RunIfRequested(dir); } // before anything opens the files it removes; the log stays
+        catch (IOException ex)
+        {
+            SafeLog(ex.ToString());
+            MessageBoxW(0, Strings.Reset_Failed, "ShadowPlayer", 0x10); // the marker stays, so the next start tries again
+            Environment.Exit(1);
+        }
         Services.Db = new Database(Path.Combine(dir, "m3u.db"));
         Services.Prefs = new Preferences(Services.Db);
         Languages.Apply(Languages.Resolve(Services.Db.GetSetting(LanguageSetting), CultureInfo.CurrentUICulture));

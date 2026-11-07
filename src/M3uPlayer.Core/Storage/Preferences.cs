@@ -1,4 +1,5 @@
 using System.Globalization;
+using M3uPlayer.Core.Localization;
 
 namespace M3uPlayer.Core.Storage;
 
@@ -15,6 +16,14 @@ public sealed class Preferences(Database db)
     public static readonly IReadOnlyList<int> SeekChoices = [5, 10, 15, 30, 60];
     public static readonly IReadOnlyList<int> HideControlsChoices = [2, 3, 5, 10];
     public static readonly IReadOnlyList<int> IntervalChoices = [60, 180, 360, 720, 1440, 2880, 10080];
+
+    /// <summary>The one place that names each refresh interval, for every list that offers them.</summary>
+    public static string IntervalLabel(int minutes) => minutes switch
+    {
+        60 => Strings.Interval_1h, 180 => Strings.Interval_3h, 360 => Strings.Interval_6h, 720 => Strings.Interval_12h,
+        1440 => Strings.Interval_24h, 2880 => Strings.Interval_48h, 10080 => Strings.Interval_7d,
+        _ => throw new ArgumentOutOfRangeException(nameof(minutes), minutes, "Not one of the offered intervals."),
+    };
 
     public string Theme { get => Text("ui.theme", ThemeChoices, "system"); set => Put("ui.theme", value, ThemeChoices); }
     public bool Autostart { get => Bool("playback.autostart", false); set => db.SetSetting("playback.autostart", value ? "1" : "0"); }

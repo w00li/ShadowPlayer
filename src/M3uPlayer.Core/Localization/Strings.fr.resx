@@ -558,4 +558,7 @@
   <data name="Live_AllHidden" xml:space="preserve">
     <value>Toutes les catégories sont masquées. Rétablissez-les dans Paramètres → Catégories.</value>
   </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>Impossible de supprimer les données. Fermez les autres copies de l’application et relancez-la. La suppression sera retentée.</value>
+  </data>
 </root>

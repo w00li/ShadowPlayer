@@ -558,4 +558,7 @@
   <data name="Live_AllHidden" xml:space="preserve">
     <value>Wszystkie kategorie są ukryte. Przywrócisz je w Ustawieniach → Kategorie.</value>
   </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>Nie udało się usunąć danych. Zamknij inne kopie aplikacji i uruchom ją ponownie. Usuwanie zostanie powtórzone.</value>
+  </data>
 </root>

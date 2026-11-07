@@ -11,6 +11,7 @@ namespace M3uPlayer.App.ViewModels;
 public sealed record IntervalChoice(int Minutes)
 {
     public static readonly IReadOnlyList<IntervalChoice> All = [.. Preferences.IntervalChoices.Select(m => new IntervalChoice(m))];
+    public static IReadOnlyList<string> Labels { get; } = [.. All.Select(c => Preferences.IntervalLabel(c.Minutes))];
 }
 
 /// <summary>One source for display. Rows are updated in place so a background reload never rebuilds a focused control.</summary>

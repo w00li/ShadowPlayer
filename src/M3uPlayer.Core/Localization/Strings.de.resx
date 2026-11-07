@@ -517,7 +517,7 @@
     <value>Oben anheften</value>
   </data>
   <data name="Categories_Unpin" xml:space="preserve">
-    <value>Lösen</value>
+    <value>Nicht mehr anheften</value>
   </data>
   <data name="Categories_Hide" xml:space="preserve">
     <value>Ausblenden</value>
@@ -557,5 +557,8 @@
   </data>
   <data name="Live_AllHidden" xml:space="preserve">
     <value>Alle Kategorien sind ausgeblendet. In Einstellungen → Kategorien wieder einblenden.</value>
+  </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>Die Daten konnten nicht gelöscht werden. Schließen Sie andere Kopien der App und starten Sie sie erneut. Das Löschen wird wiederholt.</value>
   </data>
 </root>

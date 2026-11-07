@@ -61,4 +61,8 @@ public sealed class PreferencesTests : IDisposable
     [Fact]
     public void Setting_a_value_outside_the_choices_throws() =>
         Assert.Throws<ArgumentOutOfRangeException>(() => new Preferences(_db).BufferMs = 1234);
+
+    [Fact]
+    public void Every_interval_choice_has_a_label() =>
+        Assert.All(Preferences.IntervalChoices, m => Assert.False(string.IsNullOrEmpty(Preferences.IntervalLabel(m))));
 }

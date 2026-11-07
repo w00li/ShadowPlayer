@@ -193,7 +193,7 @@
     <value>Connecting</value>
   </data>
   <data name="Live_AtRecordingEnd" xml:space="preserve">
-    <value>At the end of the recording; beyond this only live</value>
+    <value>End of recording – live only from here</value>
   </data>
   <data name="Live_ProgrammePosition" xml:space="preserve">
     <value>Position in programme</value>
@@ -557,5 +557,8 @@
   </data>
   <data name="Live_AllHidden" xml:space="preserve">
     <value>All categories are hidden. Bring them back in Settings → Categories.</value>
+  </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>The data could not be deleted. Close other copies of the app and start it again. The deletion will be retried.</value>
   </data>
 </root>

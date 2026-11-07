@@ -558,4 +558,7 @@
   <data name="Live_AllHidden" xml:space="preserve">
     <value>Усі категорії сховано. Повернути їх можна в Налаштування → Категорії.</value>
   </data>
+  <data name="Reset_Failed" xml:space="preserve">
+    <value>Не вдалося видалити дані. Закрийте інші копії застосунку й запустіть його знову. Видалення буде повторено.</value>
+  </data>
 </root>

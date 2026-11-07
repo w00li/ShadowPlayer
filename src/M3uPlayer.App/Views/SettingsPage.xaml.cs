@@ -58,12 +58,6 @@ public sealed partial class SettingsPage : Page
 
     private Visibility Shown(SelectorBarItem item) => Tabs.SelectedItem == item ? Visibility.Visible : Visibility.Collapsed;
 
-    private static readonly Dictionary<int, string> IntervalLabels = new()
-    {
-        [60] = Strings.Interval_1h, [180] = Strings.Interval_3h, [360] = Strings.Interval_6h, [720] = Strings.Interval_12h,
-        [1440] = Strings.Interval_24h, [2880] = Strings.Interval_48h, [10080] = Strings.Interval_7d,
-    };
-
     private static string Seconds(double s) => string.Format(Strings.Settings_Seconds, s.ToString("0.#", CultureInfo.CurrentCulture));
 
     /// <summary>Fills each control with its saved value first and only then listens, so showing a value never saves it.</summary>
@@ -75,30 +69,43 @@ public sealed partial class SettingsPage : Page
         Choice(BufferBox, Preferences.BufferChoices, [.. Preferences.BufferChoices.Select(ms => Seconds(ms / 1000.0))], p.BufferMs, v => p.BufferMs = v);
         Choice(SeekBox, Preferences.SeekChoices, [.. Preferences.SeekChoices.Select(s => Seconds(s))], p.SeekSeconds, v => p.SeekSeconds = v);
         Choice(HideBox, Preferences.HideControlsChoices, [.. Preferences.HideControlsChoices.Select(s => Seconds(s))], p.HideControlsSeconds, v => p.HideControlsSeconds = v);
-        Choice(DefaultIntervalBox, Preferences.IntervalChoices, [.. Preferences.IntervalChoices.Select(m => IntervalLabels[m])], p.DefaultIntervalMinutes,
+        Choice(DefaultIntervalBox, Preferences.IntervalChoices, IntervalChoice.Labels, p.DefaultIntervalMinutes,
             v => p.DefaultIntervalMinutes = v);
         Toggle(AutostartSwitch, p.Autostart, v => p.Autostart = v);
         Toggle(FullscreenSwitch, p.StartFullscreen, v => p.StartFullscreen = v);
         Toggle(HwSwitch, p.HwDecoding, v => p.HwDecoding = v);
     }
 
+    // A save that fails puts the control back on the saved value, so it never shows what is not in effect.
     private static void Choice<T>(ComboBox box, IReadOnlyList<T> values, IReadOnlyList<string> labels, T current, Action<T> save)
     {
         box.ItemsSource = labels;
-        box.SelectedIndex = values.ToList().IndexOf(current);
-        box.SelectionChanged += (_, _) => { if (box.SelectedIndex >= 0) Save(() => save(values[box.SelectedIndex])); };
+        var saved = values.ToList().IndexOf(current);
+        box.SelectedIndex = saved;
+        box.SelectionChanged += (_, _) =>
+        {
+            if (box.SelectedIndex < 0 || box.SelectedIndex == saved) return;
+            if (Save(() => save(values[box.SelectedIndex]))) saved = box.SelectedIndex;
+            else box.SelectedIndex = saved; // fires again, and stops at the check above
+        };
     }
 
     private static void Toggle(ToggleSwitch toggle, bool current, Action<bool> save)
     {
+        var saved = current;
         toggle.IsOn = current;
-        toggle.Toggled += (_, _) => Save(() => save(toggle.IsOn));
+        toggle.Toggled += (_, _) =>
+        {
+            if (toggle.IsOn == saved) return;
+            if (Save(() => save(toggle.IsOn))) saved = toggle.IsOn;
+            else toggle.IsOn = saved;
+        };
     }
 
-    private static void Save(Action save)
+    private static bool Save(Action save)
     {
-        try { save(); }
-        catch (Exception ex) { _ = App.ReportAsync(ex); }
+        try { save(); return true; }
+        catch (Exception ex) { _ = App.ReportAsync(ex); return false; }
     }
 
     private readonly System.Collections.ObjectModel.ObservableCollection<SettingsCategoryRow> _categories = [];
@@ -125,7 +132,8 @@ public sealed partial class SettingsPage : Page
         var row = (SettingsCategoryRow)box.Tag;
         var on = box.IsChecked == true;
         var (pinned, hidden) = pin ? (on, on ? false : row.Hidden) : (on ? false : row.Pinned, on);
-        await Task.Run(() => App.Services.Channels.SetCategoryPref(row.Name, pinned, hidden));
+        try { await Task.Run(() => App.Services.Channels.SetCategoryPref(row.Name, pinned, hidden)); }
+        catch { row.Set(row.Pinned, row.Hidden); throw; } // the boxes show the saved state again; Guard reports the error
         row.Set(pinned, hidden);
         UpdateShowAll();
     });
@@ -144,8 +152,20 @@ public sealed partial class SettingsPage : Page
         if (await App.ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
         await Task.Run(App.Services.Channels.ShowAllCategories);
         await LoadCategoriesAsync();
-        ShowAllButton.Focus(FocusState.Programmatic);
+        // The button is now disabled and cannot keep focus; the first box of the list takes it.
+        if (CategoryRows.ContainerFromIndex(0) is DependencyObject first && FindChild<CheckBox>(first) is { } box) box.Focus(FocusState.Programmatic);
+        else CategoriesItem.Focus(FocusState.Programmatic);
     });
+
+    private static T? FindChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
+            if ((child as T ?? FindChild<T>(child)) is { } found) return found;
+        }
+        return null;
+    }
 
     private async void ClearLogos_Click(object sender, RoutedEventArgs e) => await Guard(async () =>
     {
