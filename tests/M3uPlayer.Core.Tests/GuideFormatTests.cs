@@ -22,6 +22,15 @@ public class GuideFormatTests
     public void DayLabel_uses_polish_names(int day, string expected) =>
         Assert.Equal(expected, GuideFormat.DayLabel(new DateTimeOffset(2026, 11, day, 10, 0, 0, TimeSpan.FromHours(2)), Now, Tz));
 
+    [Theory]
+    [InlineData(4, "Today")]
+    [InlineData(7, "Saturday, 7 November")]
+    public void DayLabel_follows_the_current_culture(int day, string expected)
+    {
+        using var _ = TestCulture.Use("en");
+        Assert.Equal(expected, GuideFormat.DayLabel(new DateTimeOffset(2026, 11, day, 10, 0, 0, TimeSpan.FromHours(2)), Now, Tz));
+    }
+
     [Fact]
     public void DayLabel_uses_local_day_not_utc_day()
     {

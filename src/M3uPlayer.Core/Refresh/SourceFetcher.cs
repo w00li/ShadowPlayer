@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Globalization;
 using M3uPlayer.Core.Storage;
 
@@ -18,7 +19,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
     {
         if (IsHttp(source.Location)) return await FetchHttpAsync(source, ct);
         if (Path.IsPathRooted(source.Location) && !source.Location.Contains("://")) return await FetchFileAsync(source, ct);
-        throw new InvalidOperationException("Nieobsługiwany adres źródła. Usuń to źródło i dodaj je ponownie.");
+        throw new InvalidOperationException(Strings.Fetch_UnsupportedSource);
     }
 
     private async Task<FetchResult> FetchHttpAsync(Source source, CancellationToken ct)
@@ -49,7 +50,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         try { return await DownloadCoreAsync(source, idle); }
         catch (OperationCanceledException) when (!callerCt.IsCancellationRequested)
         {
-            throw new TimeoutException("Serwer nie odpowiada. Spróbujemy ponownie o następnej porze odświeżania.");
+            throw new TimeoutException(Strings.Fetch_NoResponse);
         }
     }
 
@@ -63,9 +64,9 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         if (response.StatusCode == System.Net.HttpStatusCode.NotModified) return new FetchResult(true, null, source.ETag, source.LastModified);
         // Messages deliberately omit the URL: it carries credentials.
         if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException($"Serwer odpowiedział błędem HTTP {(int)response.StatusCode}. Spróbujemy ponownie o następnej porze odświeżania.", null, response.StatusCode);
+            throw new HttpRequestException(string.Format(Strings.Fetch_HttpError, (int)response.StatusCode), null, response.StatusCode);
         if (response.RequestMessage?.RequestUri is { Scheme: not ("http" or "https") })
-            throw new HttpRequestException("Serwer przekierował na nieobsługiwany adres. Sprawdź adres źródła.");
+            throw new HttpRequestException(Strings.Fetch_BadRedirect);
 
         await using var body = await response.Content.ReadAsStreamAsync(ct);
         var path = await CopyToTempAsync(body, ct, idle);
@@ -76,7 +77,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
     private async Task<FetchResult> FetchFileAsync(Source source, CancellationToken ct)
     {
         var info = new FileInfo(source.Location);
-        if (!info.Exists) throw new FileNotFoundException("Nie znaleziono pliku. Sprawdź, czy nie został przeniesiony lub usunięty.");
+        if (!info.Exists) throw new FileNotFoundException(Strings.Fetch_FileNotFound);
         var modified = info.LastWriteTimeUtc.ToString("O", CultureInfo.InvariantCulture);
         if (source.LastSuccess is not null && modified == source.LastModified) return new FetchResult(true, null, null, modified);
         FileStream input;
@@ -84,7 +85,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
         // OS messages carry the full path (home folder, provider file name), so they are replaced.
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            throw new IOException("Nie można odczytać pliku. Sprawdź, czy inny program go nie używa i czy masz do niego dostęp.");
+            throw new IOException(Strings.Fetch_FileUnreadable);
         }
         await using (input) return new FetchResult(false, await CopyToTempAsync(input, ct, null), null, modified);
     }
@@ -98,7 +99,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
             try { Directory.CreateDirectory(tempDir); created = File.Create(path); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                throw new IOException("Nie można zapisać pliku tymczasowego. Sprawdź wolne miejsce na dysku i uprawnienia.");
+                throw new IOException(Strings.Fetch_TempWriteFailed);
             }
             await using (var output = created)
             {
@@ -109,7 +110,7 @@ public class SourceFetcher(HttpClient http, IReadOnlyList<TimeSpan> retryDelays,
                 {
                     idle?.CancelAfter(_idle);
                     total += n;
-                    if (total > maxBytes) throw new InvalidDataException("Źródło jest większe niż dozwolone 500 MB, więc go nie wczytano.");
+                    if (total > maxBytes) throw new InvalidDataException(Strings.Fetch_TooLarge);
                     await output.WriteAsync(buffer.AsMemory(0, n), ct);
                 }
             }

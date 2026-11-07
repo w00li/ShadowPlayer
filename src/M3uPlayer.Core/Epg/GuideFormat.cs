@@ -1,3 +1,5 @@
+using System.Globalization;
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Storage;
 
 namespace M3uPlayer.Core.Epg;
@@ -7,19 +9,11 @@ public record GuideRow(string? Header, Programme? Programme);
 
 public static class GuideFormat
 {
-    // Fixed tables: the labels must not depend on the machine's culture.
-    private static readonly string[] Days = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"];
-
-    private static readonly string[] Months =
-    [
-        "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
-    ];
-
-    /// <summary>Day headers ("Dziś") are fixed when the guide is built; once the local date moves on they have to be rebuilt.</summary>
+    /// <summary>Day headers ("Today") are fixed when the guide is built; once the local date moves on they have to be rebuilt.</summary>
     public static bool DayChanged(DateTimeOffset loaded, DateTimeOffset now, TimeZoneInfo tz) =>
         TimeZoneInfo.ConvertTime(loaded, tz).Date != TimeZoneInfo.ConvertTime(now, tz).Date;
 
-    public static string Time(DateTimeOffset t, TimeZoneInfo tz) => TimeZoneInfo.ConvertTime(t, tz).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+    public static string Time(DateTimeOffset t, TimeZoneInfo tz) => TimeZoneInfo.ConvertTime(t, tz).ToString("HH:mm", CultureInfo.InvariantCulture);
 
     public static string DayLabel(DateTimeOffset t, DateTimeOffset now, TimeZoneInfo tz)
     {
@@ -27,11 +21,17 @@ public static class GuideFormat
         var diff = (day.Date - TimeZoneInfo.ConvertTime(now, tz).Date).Days;
         return diff switch
         {
-            0 => "Dziś",
-            1 => "Jutro",
-            -1 => "Wczoraj",
-            _ => $"{Days[(int)day.DayOfWeek]}, {day.Day} {Months[day.Month - 1]}",
+            0 => Strings.Guide_Today,
+            1 => Strings.Guide_Tomorrow,
+            -1 => Strings.Guide_Yesterday,
+            _ => Date(day),
         };
+    }
+
+    private static string Date(DateTimeOffset day)
+    {
+        var f = CultureInfo.CurrentCulture.DateTimeFormat;
+        return string.Format(Strings.Guide_DayDate, f.GetDayName(day.DayOfWeek), day.Day, f.MonthGenitiveNames[day.Month - 1]);
     }
 
     /// <summary>Programmes in the given order with a header before the first one of each local day.</summary>

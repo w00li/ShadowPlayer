@@ -15,4 +15,100 @@
   <data name="Guide_Today" xml:space="preserve">
     <value>Today</value>
   </data>
+  <data name="Guide_Tomorrow" xml:space="preserve">
+    <value>Tomorrow</value>
+  </data>
+  <data name="Guide_Yesterday" xml:space="preserve">
+    <value>Yesterday</value>
+  </data>
+  <data name="Guide_DayDate" xml:space="preserve">
+    <value>{0}, {1} {2}</value>
+  </data>
+  <data name="Archive_Caption" xml:space="preserve">
+    <value>Archive: {0}</value>
+  </data>
+  <data name="Archive_Position" xml:space="preserve">
+    <value>Position in programme: {0} of {1}</value>
+  </data>
+  <data name="Live_Reconnecting" xml:space="preserve">
+    <value>Reconnecting…</value>
+  </data>
+  <data name="Live_PlayFailed" xml:space="preserve">
+    <value>The channel could not be played.</value>
+  </data>
+  <data name="Live_TryAgain" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Live_Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="Live_ContinueWatching" xml:space="preserve">
+    <value>Continue watching</value>
+  </data>
+  <data name="Live_Watch" xml:space="preserve">
+    <value>Watch</value>
+  </data>
+  <data name="Live_PickChannel" xml:space="preserve">
+    <value>Choose a channel from the list</value>
+  </data>
+  <data name="Live_SearchMatch" xml:space="preserve">
+    <value>Found: {0}{1} {2}</value>
+  </data>
+  <data name="Category_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Playlist_NotM3u" xml:space="preserve">
+    <value>This does not look like an M3U list (no #EXTM3U header). The previous data was kept.</value>
+  </data>
+  <data name="Refresh_NotModifiedNoData" xml:space="preserve">
+    <value>The server reported no changes, but the data has not been loaded yet. We will try again at the next refresh.</value>
+  </data>
+  <data name="Refresh_NoChannels" xml:space="preserve">
+    <value>The list contains no channels, so the previous data was kept.</value>
+  </data>
+  <data name="Refresh_ListShrank" xml:space="preserve">
+    <value>The list now has {0} entries, down from {1}, so it was not applied. Remove the list and add it again if it is meant to be smaller.</value>
+  </data>
+  <data name="Fetch_UnsupportedSource" xml:space="preserve">
+    <value>Unsupported source address. Remove this source and add it again.</value>
+  </data>
+  <data name="Fetch_NoResponse" xml:space="preserve">
+    <value>The server is not responding. We will try again at the next refresh.</value>
+  </data>
+  <data name="Fetch_HttpError" xml:space="preserve">
+    <value>The server replied with HTTP error {0}. We will try again at the next refresh.</value>
+  </data>
+  <data name="Fetch_BadRedirect" xml:space="preserve">
+    <value>The server redirected to an unsupported address. Check the source address.</value>
+  </data>
+  <data name="Fetch_FileNotFound" xml:space="preserve">
+    <value>File not found. Check that it has not been moved or deleted.</value>
+  </data>
+  <data name="Fetch_FileUnreadable" xml:space="preserve">
+    <value>The file cannot be read. Check that no other program is using it and that you have access to it.</value>
+  </data>
+  <data name="Fetch_TempWriteFailed" xml:space="preserve">
+    <value>A temporary file cannot be written. Check free disk space and permissions.</value>
+  </data>
+  <data name="Fetch_TooLarge" xml:space="preserve">
+    <value>The source is larger than the allowed 500 MB, so it was not loaded.</value>
+  </data>
+  <data name="Source_EnterAddress" xml:space="preserve">
+    <value>Enter an address starting with http:// or https://, or choose a file from disk.</value>
+  </data>
+  <data name="Source_UnsupportedAddress" xml:space="preserve">
+    <value>This address is not supported. Enter a full address starting with http:// or https://.</value>
+  </data>
+  <data name="Source_WebAddress" xml:space="preserve">
+    <value>Web address</value>
+  </data>
+  <data name="Source_LocalFile" xml:space="preserve">
+    <value>Local file</value>
+  </data>
+  <data name="Source_File" xml:space="preserve">
+    <value>File: {0}</value>
+  </data>
+  <data name="Epg_NoProgrammes" xml:space="preserve">
+    <value>The EPG file contains no usable programmes. The previous data was kept.</value>
+  </data>
 </root>

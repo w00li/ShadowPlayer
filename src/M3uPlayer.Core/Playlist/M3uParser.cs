@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -12,6 +13,9 @@ public record M3uDocument(string? EpgUrl, IReadOnlyList<M3uEntry> Entries, int S
 
 public static partial class M3uParser
 {
+    /// <summary>Stored for entries without group-title; kept in Polish in the database and translated only for display.</summary>
+    public const string DefaultCategory = "Inne";
+
     private static readonly HashSet<string> AllowedSchemes = new(StringComparer.OrdinalIgnoreCase)
         { "http", "https", "rtsp", "rtp", "udp" };
 
@@ -28,7 +32,7 @@ public static partial class M3uParser
         string? line;
         do line = reader.ReadLine()?.Trim('﻿', ' ', '\t'); while (line is { Length: 0 });
         if (line is null || !line.StartsWith("#EXTM3U", StringComparison.OrdinalIgnoreCase))
-            throw new FormatException("To nie wygląda na listę M3U (brak nagłówka #EXTM3U). Zostały poprzednie dane.");
+            throw new FormatException(Strings.Playlist_NotM3u);
 
         var header = Attrs(line);
         var epg = NonEmpty(header, "url-tvg") ?? NonEmpty(header, "x-tvg-url");
@@ -92,7 +96,7 @@ public static partial class M3uParser
         return new M3uEntry(
             key, name, url, tvgId, NonEmpty(a, "tvg-name"), NonEmpty(a, "tvg-logo"),
             double.TryParse(NonEmpty(a, "tvg-shift"), NumberStyles.Float, CultureInfo.InvariantCulture, out var shift) && Math.Abs(shift) <= 24 ? shift : 0, // NaN fails the comparison too
-            NonEmpty(a, "group-title") ?? "Inne",
+            NonEmpty(a, "group-title") ?? DefaultCategory,
             NonEmpty(a, "catchup"), NonEmpty(a, "catchup-source"),
             int.TryParse(days, NumberStyles.Integer, CultureInfo.InvariantCulture, out var d) ? d : 0,
             userAgent, referrer);

@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Text.Json;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Text;
@@ -65,7 +66,7 @@ public class ProgrammeStore(Database db)
             "WHERE t.ch=import_programme.ch AND t.start>import_programme.start), start+3600) WHERE stop IS NULL");
         Database.Exec(c, "DELETE FROM import_programme WHERE stop<@0", cutoff);
         if (Convert.ToInt64(Database.Exec(c, "SELECT COUNT(*) FROM import_programme")) == 0)
-            throw new InvalidDataException("Plik EPG nie zawiera użytecznych programów. Zostały poprzednie dane.");
+            throw new InvalidDataException(Strings.Epg_NoProgrammes);
 
         Database.Exec(c, "DELETE FROM programme WHERE source_id=@0 AND start_utc >= " +
             "(SELECT MIN(t.start) FROM import_programme t WHERE t.ch=programme.epg_channel_id)", sourceId);

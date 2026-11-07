@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Globalization;
 using M3uPlayer.Core.Media;
 using M3uPlayer.Core.Storage;
@@ -13,11 +14,11 @@ public record OverlayInfo(bool Visible, string Text, bool Spinner, bool Button, 
     public static OverlayInfo For(PlayerState state, bool spinnerArmed, string? lastError, string? channelName, bool archive = false, bool resumable = false) => state switch
     {
         PlayerState.Opening => new(spinnerArmed, "", true, false, "", 0.45), // the previous channel's last frame is still behind
-        PlayerState.Reconnecting => new(true, "Łączenie ponownie…", true, false, "", 1),
-        PlayerState.Failed => new(true, lastError ?? "Nie udało się odtworzyć kanału.", false, true, "Spróbuj ponownie", 1),
-        PlayerState.Idle when archive && resumable => new(true, "Wstrzymano", false, true, "Oglądaj dalej", 1),
-        PlayerState.Idle when channelName is not null => new(true, channelName, false, true, "Oglądaj", 1),
-        PlayerState.Idle => new(true, "Wybierz kanał z listy", false, false, "", 1),
+        PlayerState.Reconnecting => new(true, Strings.Live_Reconnecting, true, false, "", 1),
+        PlayerState.Failed => new(true, lastError ?? Strings.Live_PlayFailed, false, true, Strings.Live_TryAgain, 1),
+        PlayerState.Idle when archive && resumable => new(true, Strings.Live_Paused, false, true, Strings.Live_ContinueWatching, 1),
+        PlayerState.Idle when channelName is not null => new(true, channelName, false, true, Strings.Live_Watch, 1),
+        PlayerState.Idle => new(true, Strings.Live_PickChannel, false, false, "", 1),
         _ => new(false, "", false, false, "", 1),
     };
 }
@@ -30,7 +31,7 @@ public static class LiveText
         var start = TimeZoneInfo.ConvertTime(p.Start, tz);
         var today = start.Date == TimeZoneInfo.ConvertTime(now, tz).Date;
         var day = today ? "" : start.ToString("d.MM", CultureInfo.InvariantCulture) + " ";
-        return $"Znaleziono: {day}{GuideFormat.Time(p.Start, tz)} {p.Title}";
+        return string.Format(Strings.Live_SearchMatch, day, GuideFormat.Time(p.Start, tz), p.Title);
     }
 }
 

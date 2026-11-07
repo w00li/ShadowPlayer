@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.ComponentModel;
 
 namespace M3uPlayer.Core.Catchup;
@@ -23,12 +24,12 @@ public sealed class ArchiveModel : INotifyPropertyChanged
     public string ElapsedText => ArchiveTimeline.Clock(Elapsed);
     public string TotalText => Timeline is { } t ? ArchiveTimeline.Clock(t.Total) : "";
     public bool AtLiveEnd { get; private set; }
-    public string AutomationName => $"Pozycja w programie: {ElapsedText} z {TotalText}";
+    public string AutomationName => string.Format(Strings.Archive_Position, ElapsedText, TotalText);
 
     public void Begin(ArchiveTimeline t, string title, DateTimeOffset now)
     {
         Timeline = t;
-        Caption = "Archiwum: " + title;
+        Caption = string.Format(Strings.Archive_Caption, title);
         Maximum = Math.Max(1, t.Total.TotalSeconds);
         Expect(TimeSpan.Zero, now);
         Show(t.OpenedAt, now);

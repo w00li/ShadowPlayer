@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Text.RegularExpressions;
 using M3uPlayer.Core.Refresh;
 using M3uPlayer.Core.Text;
@@ -22,10 +23,10 @@ public static partial class SourceInput
     public static string? ValidateUrl(string? url)
     {
         url = url?.Trim();
-        if (string.IsNullOrEmpty(url)) return "Wpisz adres, który zaczyna się od http:// lub https://, albo wybierz plik z dysku.";
+        if (string.IsNullOrEmpty(url)) return Strings.Source_EnterAddress;
         return SourceFetcher.IsHttp(url) && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Host.Length > 0
             ? null
-            : "Ten adres nie jest obsługiwany. Wpisz pełny adres zaczynający się od http:// lub https://.";
+            : Strings.Source_UnsupportedAddress;
     }
 
     /// <summary>A typed name is shown everywhere, so it is redacted, and an address pasted into it is replaced by the default.</summary>
@@ -46,8 +47,8 @@ public static partial class SourceInput
     /// <summary>What a row may show of a location: never the address of a server, nor a folder, nor a provider-issued file name.</summary>
     public static string DisplayLocation(string location)
     {
-        if (SourceFetcher.IsHttp(location)) return "Adres internetowy";
+        if (SourceFetcher.IsHttp(location)) return Strings.Source_WebAddress;
         var name = Path.GetFileName(location);
-        return name.Length == 0 || IsHashLike(name) ? "Plik lokalny" : "Plik: " + Redactor.Redact(name);
+        return name.Length == 0 || IsHashLike(name) ? Strings.Source_LocalFile : string.Format(Strings.Source_File, Redactor.Redact(name));
     }
 }
