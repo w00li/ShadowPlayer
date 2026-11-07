@@ -71,3 +71,13 @@ Sprawdzone przez agenta na opublikowanym `M3uPlayer.App.exe`, na świeżym folde
 6. Domyślny interwał: nowa lista dostaje wybrany interwał.
 7. Wyczyść pamięć logo: logo pobierają się ponownie. Wyczyść wszystkie dane: po potwierdzeniu aplikacja wraca pusta, `app.log` zostaje.
 8. Po niemiecku w oknie 900 px etykiety mieszczą się lub zawijają. **[do sprawdzenia przez właściciela]**
+
+
+## Kategorie
+
+1. Prawy przycisk na kategorii: „Przypnij na górze” przenosi ją pod „Ulubione”; „Odepnij” wraca na miejsce z listy. Na „Wszystkie” i „Ulubione” menu się nie pokazuje.
+2. Shift+F10 / klawisz Menu na kategorii w panelu i w rozwijanej liście wąskiego okna otwiera to samo menu.
+3. „Ukryj” na otwartej kategorii z grającym kanałem: panel przechodzi na „Wszystkie”, kanał gra dalej, pojawia się informacja o Ustawieniach.
+4. Kanały ukrytej kategorii nie są w „Wszystkie”, ale są w wyszukiwarce i w „Ulubione”.
+5. Ustawienia → Kategorie: pola „Przypięta”/„Ukryta” wykluczają się; „Pokaż wszystkie kategorie” (z potwierdzeniem) przywraca ukryte; powrót na Na żywo pokazuje zmiany.
+6. Ukrycie wszystkich kategorii: panel ma tylko „Wszystkie” (0) i „Ulubione”. **[do sprawdzenia przez właściciela]**
