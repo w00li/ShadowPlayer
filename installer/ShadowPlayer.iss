@@ -1,4 +1,4 @@
-﻿; Built by the Release build of M3uPlayer.App, which passes AppVersion and SourceDir.
+; Built by the Release build of M3uPlayer.App, which passes AppVersion and SourceDir.
 ; The fixed AppId is what makes a newer installer replace the installed version: never change it.
 
 #ifndef AppVersion
@@ -25,7 +25,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.19041
 OutputDir=..\artifacts\installer
-OutputBaseFilename=ShadowPlayer-Setup
+OutputBaseFilename=ShadowPlayer-Setup-{#AppVersion}
 Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern

@@ -1,51 +1,62 @@
 # ShadowPlayer
 
-Odtwarzacz telewizji z list M3U dla Windows 10/11 (WinUI 3, .NET 10, LibVLC): lista kanałów z kategoriami, ramówka z EPG (XMLTV), ulubione, wyszukiwarka i oglądanie archiwum (timeshift). Listy i EPG dodaje się z adresu internetowego albo z pliku.
+An M3U TV player for Windows 10/11 (WinUI 3, .NET 10, LibVLC): a channel list with categories, a TV guide from EPG (XMLTV), favourites, search and archive playback (timeshift). Lists and EPG are added from a web address or from a file.
 
-## Budowanie
+## Building
 
-Wymagany .NET SDK 10. Z katalogu głównego:
+Requires the .NET 10 SDK. From the repository root:
 
 ```
 dotnet build M3uPlayer.slnx -c Release -p:Platform=x64
 ```
 
-Wersja samodzielna (bez instalowania .NET, z bibliotekami LibVLC):
+Self-contained build (no .NET install needed, LibVLC included):
 
 ```
 dotnet publish src/M3uPlayer.App -c Release -r win-x64 -p:Platform=x64 --self-contained -o artifacts/publish
 ```
 
-## Uruchomienie
+## Running
 
-Uruchom `artifacts/publish/ShadowPlayer.exe` albo zainstaluj aplikację (niżej). Przy pierwszym uruchomieniu dodaj listę w Ustawieniach (adres albo plik), potem opcjonalnie źródło EPG.
+Run `artifacts/publish/ShadowPlayer.exe` or install the app (below). On first start, add a list in Settings (an address or a file), then optionally an EPG source.
 
-## Instalator
+## Installer
 
-Każdy build `Release` tworzy `artifacts/installer/ShadowPlayer-Setup.exe` (build `Debug` go pomija). Wymaga Inno Setup 6 (`winget install JRSoftware.InnoSetup`); bez niego build kończy się ostrzeżeniem.
+Every `Release` build creates `artifacts/installer/ShadowPlayer-Setup-<version>.exe` (a `Debug` build skips it). It needs Inno Setup 6 (`winget install JRSoftware.InnoSetup`); without it the build ends with a warning.
 
-Instalator wymaga uprawnień administratora. Domyślnie instaluje aplikację w `C:\Program Files\ShadowPlayer`, a miejsce można zmienić przy pierwszej instalacji. Nowszy instalator uruchomiony na starszej wersji zamyka działającą aplikację i zastępuje poprzednią instalację w tym samym folderze; inne pliki w tym folderze zostają. Listy i ustawienia są w profilu użytkownika i zostają, także po odinstalowaniu. Numer wersji powstaje z daty i godziny buildu.
+The installer needs administrator rights. By default it installs to `C:\Program Files\ShadowPlayer`; the folder can be changed on the first install. A newer installer run over an older version closes the running app and replaces the previous installation in the same folder; other files in that folder stay. Lists and settings live in the user profile and stay, also after uninstalling.
 
-## Języki
+## Versions and releases
 
-Teksty są w `src/M3uPlayer.Core/Localization/Strings.resx` (polski, domyślny) i w `Strings.<kod>.resx` dla angielskiego, niemieckiego, hiszpańskiego, francuskiego, włoskiego i ukraińskiego. Tłumaczenia poza polskim i angielskim nie były sprawdzane przez osoby mówiące tymi językami. Język wybiera się w Ustawieniach; bez wyboru aplikacja bierze język Windows, a gdy go nie zna, angielski. Nowy język: skopiuj `Strings.en.resx` jako `Strings.<kod>.resx`, przetłumacz wartości i dopisz `("<kod>", "<nazwa w tym języku>")` w `Languages.All` (`Localization/Languages.cs`). Test `LocalizationTests` sprawdza, czy każdy język ma wszystkie teksty z tymi samymi `{0}`.
+The version is set in one place: `<Version>` in `src/M3uPlayer.App/M3uPlayer.App.csproj`. It becomes the app's file version and the installer's version and file name. To publish a release:
 
-## Gdzie są dane
+1. Raise `<Version>` (for example `1.1.0`) and commit.
+2. Build: `dotnet publish src/M3uPlayer.App -c Release -r win-x64 -p:Platform=x64 --self-contained -o artifacts/publish`.
+3. Tag and push: `git tag v1.1.0` and `git push --follow-tags`.
+4. Create the GitHub release with the installer: `gh release create v1.1.0 artifacts/installer/ShadowPlayer-Setup-1.1.0.exe --title "ShadowPlayer 1.1.0" --notes "..."`.
 
-`%LocalAppData%\M3uPlayer` (nazwa sprzed zmiany na ShadowPlayer, zostawiona, żeby nie przenosić danych): baza `m3u.db`, pamięć podręczna logo (`logos`), pliki tymczasowe (`tmp`) i dziennik `app.log`. Usunięcie folderu przywraca aplikację do stanu początkowego. Dziennik nie zawiera tokenów, ale komunikaty o błędach połączenia mogą zawierać nazwę serwera.
+Tags follow `v<major>.<minor>.<patch>`.
 
-## Testy
+## Languages
+
+Texts live in `src/M3uPlayer.Core/Localization/Strings.resx` (Polish, the default) and in `Strings.<code>.resx` for English, German, Spanish, French, Italian and Ukrainian. Translations other than Polish and English have not been checked by native speakers. The language is chosen in Settings; without a choice the app uses the Windows language, or English when it does not know it. To add a language: copy `Strings.en.resx` as `Strings.<code>.resx`, translate the values and add `("<code>", "<name in that language>")` to `Languages.All` (`Localization/Languages.cs`). The `LocalizationTests` test checks that every language has every text with the same `{0}` placeholders.
+
+## Where the data is
+
+`%LocalAppData%\M3uPlayer` (the name from before the rename to ShadowPlayer, kept so the data does not have to move): the `m3u.db` database, the logo cache (`logos`), temporary files (`tmp`) and the `app.log` log. Deleting the folder returns the app to its initial state; Settings → Data → Clear all data does the same and keeps the log. The log contains no tokens, but connection error messages may contain the server name.
+
+## Tests
 
 ```
 dotnet test tests/M3uPlayer.Core.Tests
 ```
 
-Testy używają wyłącznie zmyślonych danych. Ręczna lista kontrolna: `docs/manual-checklist.md`.
+The tests use made-up data only. Manual checklist: `docs/manual-checklist.md`.
 
-## Ikona
+## Icon
 
-Plik `src/M3uPlayer.App/Assets/ShadowPlayer.ico` powstaje ze skryptu `tools/make-icon.ps1`.
+`src/M3uPlayer.App/Assets/ShadowPlayer.ico` is generated by `tools/make-icon.ps1`.
 
-## Decyzje otwarte
+## Open decisions
 
-Zob. `docs/superpowers/decisions`.
+See `docs/superpowers/decisions`.

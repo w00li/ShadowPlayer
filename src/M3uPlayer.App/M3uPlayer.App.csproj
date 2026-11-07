@@ -7,6 +7,8 @@
     <RootNamespace>M3uPlayer.App</RootNamespace>
     <AssemblyName>ShadowPlayer</AssemblyName>
     <Product>ShadowPlayer</Product>
+    <!-- The one place for the version: app file version, installer version and installer file name. Tag releases v<Version>. -->
+    <Version>1.0.0</Version>
     <ApplicationIcon>Assets\ShadowPlayer.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64</Platforms>
@@ -53,7 +55,7 @@
     <!-- Not NoBuild=true: that publish silently leaves out LibVLC and resources.pri, and the installed app cannot start. -->
     <MSBuild Condition="'$(Iscc)' != ''" Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="InsideInstallerPublish=true;PublishDir=$(InstallerFiles)" />
     <Error Condition="'$(Iscc)' != '' and (!Exists('$(InstallerFiles)libvlc\win-x64\libvlc.dll') or !Exists('$(InstallerFiles)resources.pri'))" Text="Publikacja jest niepełna, więc instalator nie powstanie: brak LibVLC albo resources.pri." />
-    <Exec Condition="'$(Iscc)' != ''" Command="&quot;$(Iscc)&quot; /Q /DAppVersion=$([System.DateTime]::Now.ToString('yyyy.M.d.Hmm')) &quot;/DSourceDir=$(InstallerFiles.TrimEnd('\'))&quot; &quot;$(MSBuildProjectDirectory)\..\..\installer\ShadowPlayer.iss&quot;" />
+    <Exec Condition="'$(Iscc)' != ''" Command="&quot;$(Iscc)&quot; /Q /DAppVersion=$(Version) &quot;/DSourceDir=$(InstallerFiles.TrimEnd('\'))&quot; &quot;$(MSBuildProjectDirectory)\..\..\installer\ShadowPlayer.iss&quot;" />
   </Target>
 
 </Project>
