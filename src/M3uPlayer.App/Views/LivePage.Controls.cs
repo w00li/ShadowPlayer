@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using M3uPlayer.App.Player;
 using M3uPlayer.Core.Media;
 using Microsoft.UI.Dispatching;
@@ -84,8 +85,8 @@ public sealed partial class LivePage
             UpdateVideoHeight();
         }
         FullscreenIcon.Glyph = on ? "\uE73F" : "\uE740";
-        ToolTipService.SetToolTip(FullscreenButton, on ? "Wyjdź z pełnego ekranu (F, Esc)" : "Pełny ekran (F)");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(FullscreenButton, on ? "Wyjdź z pełnego ekranu" : "Pełny ekran");
+        ToolTipService.SetToolTip(FullscreenButton, on ? Strings.Live_ExitFullScreenKey : Strings.Live_FullScreenKey);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(FullscreenButton, on ? Strings.Live_ExitFullScreen : Strings.Live_FullScreen);
         VideoHost.Focus(FocusState.Programmatic); // whatever had focus may be hidden now
         ShowControls();
     }
@@ -180,7 +181,7 @@ public sealed partial class LivePage
         foreach (var t in tracks)
         {
             var id = t.Id;
-            var item = new MenuFlyoutItem { Text = t.Name.Length > 0 ? t.Name : $"Ścieżka {id}" };
+            var item = new MenuFlyoutItem { Text = t.Name.Length > 0 ? t.Name : string.Format(Strings.Live_Track, id) };
             item.Click += (_, _) => select(id);
             menu.Items.Add(item);
         }

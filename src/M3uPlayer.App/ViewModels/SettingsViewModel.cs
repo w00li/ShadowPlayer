@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using M3uPlayer.Core.Sources;
@@ -6,13 +7,9 @@ using M3uPlayer.Core.Text;
 
 namespace M3uPlayer.App.ViewModels;
 
-public sealed record IntervalChoice(int Minutes, string Label)
+public sealed record IntervalChoice(int Minutes)
 {
-    public static readonly IReadOnlyList<IntervalChoice> All =
-    [
-        new(60, "1 godzina"), new(180, "3 godziny"), new(360, "6 godzin"), new(720, "12 godzin"),
-        new(1440, "24 godziny"), new(2880, "48 godzin"), new(10080, "7 dni"),
-    ];
+    public static readonly IReadOnlyList<IntervalChoice> All = [new(60), new(180), new(360), new(720), new(1440), new(2880), new(10080)];
 }
 
 /// <summary>One source for display. Rows are updated in place so a background reload never rebuilds a focused control.</summary>
@@ -45,7 +42,7 @@ public sealed class SourceRow : INotifyPropertyChanged
     public bool HasSkipped { get; private set; }
     public bool HasError { get; private set; }
     public bool HasAutoAdded { get; private set; }
-    public string RemoveLabel => "Usuń " + Name;
+    public string RemoveLabel => string.Format(Strings.Settings_Remove, Name);
 
     /// <summary>A failure of a local action (e.g. saving the schedule); shown instead of the source's own error until the next success.</summary>
     public string? Notice { get; private set; }
@@ -62,16 +59,16 @@ public sealed class SourceRow : INotifyPropertyChanged
         CanMoveUp = !isFirst;
         CanMoveDown = !isLast;
         CanRemove = s.ParentPlaylistId is null;
-        AutoAddedText = parentName is null ? "" : $"Dodane automatycznie z listy „{Redactor.Redact(parentName)}”. Usuń listę, aby usunąć to źródło.";
+        AutoAddedText = parentName is null ? "" : string.Format(Strings.Settings_AutoAdded, Redactor.Redact(parentName));
         Location = SourceInput.DisplayLocation(s.Location);
         IntervalIndex = Math.Max(0, IntervalChoice.All.ToList().FindIndex(c => c.Minutes == s.IntervalMinutes));
         AutoRefresh = s.AutoRefresh;
-        LastSuccessText = s.LastSuccess is { } t ? "Ostatnie odświeżenie: " + t.ToLocalTime().ToString("g") : "Jeszcze nie odświeżono";
+        LastSuccessText = s.LastSuccess is { } t ? string.Format(Strings.Settings_LastRefresh, t.ToLocalTime().ToString("g")) : Strings.Settings_NeverRefreshed;
         // For EPG rows MatchedCount counts matched playlist channels, but ChannelCount counts EPG channels, so the total comes from the playlists.
         ResultText = s.LastSuccess is null ? "" : IsEpg
-            ? $"Dopasowano {s.MatchedCount} z {totalChannels} kanałów"
-            : $"{s.ChannelCount} kanałów, z programem TV: {s.MatchedCount}";
-        SkippedText = s.SkippedCount > 0 ? $"Pominięto {s.SkippedCount} uszkodzonych pozycji" : "";
+            ? string.Format(Strings.Settings_Matched, s.MatchedCount, totalChannels)
+            : string.Format(Strings.Settings_ChannelCount, s.ChannelCount, s.MatchedCount);
+        SkippedText = s.SkippedCount > 0 ? string.Format(Strings.Settings_Skipped, s.SkippedCount) : "";
         HasResult = ResultText.Length > 0;
         HasSkipped = SkippedText.Length > 0;
         HasAutoAdded = AutoAddedText.Length > 0;
@@ -88,7 +85,7 @@ public sealed class SourceRow : INotifyPropertyChanged
 
     private void ApplyError()
     {
-        ErrorText = Notice ?? (Source.LastError is { Length: > 0 } e ? "Błąd: " + Redactor.Redact(e) : "");
+        ErrorText = Notice ?? (Source.LastError is { Length: > 0 } e ? string.Format(Strings.Settings_Error, Redactor.Redact(e)) : "");
         HasError = ErrorText.Length > 0;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
@@ -212,7 +209,7 @@ public sealed class SettingsViewModel
         catch (Exception ex)
         {
             App.Services.Log.Write("Saving the schedule failed: " + ex.Message);
-            row.SetSchedule(oldIndex, oldAuto, "Nie udało się zapisać ustawienia odświeżania. Spróbuj ponownie.");
+            row.SetSchedule(oldIndex, oldAuto, Strings.Settings_SaveScheduleFailed);
             return;
         }
         finally { _writes--; }

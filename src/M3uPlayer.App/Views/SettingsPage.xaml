@@ -30,31 +30,31 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                             <ProgressRing Width="20" Height="20" IsActive="{x:Bind ShowProgress, Mode=OneWay}" Visibility="{x:Bind ShowProgress, Mode=OneWay}"
-                                          AutomationProperties.Name="Odświeżanie trwa" />
+                                          AutomationProperties.Name="{l:Tr Key=Settings_Refreshing}" />
                             <Button Tag="{x:Bind}" IsEnabled="{x:Bind CanMoveUp, Mode=OneWay}" Visibility="{x:Bind IsEpg}" Click="MoveUp_Click"
-                                    ToolTipService.ToolTip="Przesuń wyżej" AutomationProperties.Name="Przesuń wyżej">
+                                    ToolTipService.ToolTip="{l:Tr Key=Settings_MoveUp}" AutomationProperties.Name="{l:Tr Key=Settings_MoveUp}">
                                 <FontIcon Glyph="&#xE70E;" FontSize="14" />
                             </Button>
                             <Button Tag="{x:Bind}" IsEnabled="{x:Bind CanMoveDown, Mode=OneWay}" Visibility="{x:Bind IsEpg}" Click="MoveDown_Click"
-                                    ToolTipService.ToolTip="Przesuń niżej" AutomationProperties.Name="Przesuń niżej">
+                                    ToolTipService.ToolTip="{l:Tr Key=Settings_MoveDown}" AutomationProperties.Name="{l:Tr Key=Settings_MoveDown}">
                                 <FontIcon Glyph="&#xE70D;" FontSize="14" />
                             </Button>
                         </StackPanel>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
-                        <ComboBox Header="Odświeżaj co" Tag="{x:Bind}" Width="140" SelectedIndex="{x:Bind IntervalIndex, Mode=OneWay}"
+                        <ComboBox Header="{l:Tr Key=Settings_RefreshEvery}" Tag="{x:Bind}" Width="140" SelectedIndex="{x:Bind IntervalIndex, Mode=OneWay}"
                                   SelectionChanged="Interval_Changed">
-                            <ComboBoxItem Content="1 godzina" />
-                            <ComboBoxItem Content="3 godziny" />
-                            <ComboBoxItem Content="6 godzin" />
-                            <ComboBoxItem Content="12 godzin" />
-                            <ComboBoxItem Content="24 godziny" />
-                            <ComboBoxItem Content="48 godzin" />
-                            <ComboBoxItem Content="7 dni" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_1h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_3h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_6h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_12h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_24h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_48h}" />
+                            <ComboBoxItem Content="{l:Tr Key=Interval_7d}" />
                         </ComboBox>
-                        <ToggleSwitch Header="Odświeżanie automatyczne" Tag="{x:Bind}" IsOn="{x:Bind AutoRefresh, Mode=OneWay}"
-                                      OnContent="Włączone" OffContent="Wyłączone" Toggled="Auto_Toggled" />
-                        <Button Content="Odśwież teraz" Tag="{x:Bind}" IsEnabled="{x:Bind CanRefresh, Mode=OneWay}" Click="Refresh_Click"
+                        <ToggleSwitch Header="{l:Tr Key=Settings_AutoRefresh}" Tag="{x:Bind}" IsOn="{x:Bind AutoRefresh, Mode=OneWay}"
+                                      OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" Toggled="Auto_Toggled" />
+                        <Button Content="{l:Tr Key=Settings_RefreshNow}" Tag="{x:Bind}" IsEnabled="{x:Bind CanRefresh, Mode=OneWay}" Click="Refresh_Click"
                                 VerticalAlignment="Bottom" />
                         <Button Content="{x:Bind RemoveLabel, Mode=OneWay}" Tag="{x:Bind}" Visibility="{x:Bind CanRemove, Mode=OneWay}" Click="Remove_Click"
                                 VerticalAlignment="Bottom" />
@@ -66,21 +66,21 @@
 
     <ScrollViewer>
         <StackPanel Padding="32,24" Spacing="8" MaxWidth="960" HorizontalAlignment="Left">
-            <TextBlock Text="Ustawienia" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,0,0,16" />
+            <TextBlock Text="{l:Tr Key=Settings_Title}" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,0,0,16" />
 
             <Grid>
-                <TextBlock Text="Listy" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
-                <Button x:Name="AddPlaylistButton" Content="Dodaj listę" HorizontalAlignment="Right" Click="AddPlaylist_Click" />
+                <TextBlock Text="{l:Tr Key=Settings_Lists}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                <Button x:Name="AddPlaylistButton" Content="{l:Tr Key=Settings_AddList}" HorizontalAlignment="Right" Click="AddPlaylist_Click" />
             </Grid>
-            <TextBlock x:Name="NoPlaylists" Text="Brak list. Dodaj pierwszą, żeby zobaczyć kanały."
+            <TextBlock x:Name="NoPlaylists" Text="{l:Tr Key=Settings_NoLists}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             <ItemsControl x:Name="PlaylistList" ItemTemplate="{StaticResource SourceRowTemplate}" />
 
             <Grid Margin="0,24,0,0">
-                <TextBlock Text="Źródła EPG" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
-                <Button x:Name="AddEpgButton" Content="Dodaj źródło EPG" HorizontalAlignment="Right" Click="AddEpg_Click" />
+                <TextBlock Text="{l:Tr Key=Settings_EpgSources}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                <Button x:Name="AddEpgButton" Content="{l:Tr Key=Settings_AddEpg}" HorizontalAlignment="Right" Click="AddEpg_Click" />
             </Grid>
-            <TextBlock x:Name="NoEpgs" Text="Brak źródeł EPG. Dodaj je, żeby zobaczyć ramówkę. Kolejność ma znaczenie: wyższe źródło wygrywa."
+            <TextBlock x:Name="NoEpgs" Text="{l:Tr Key=Settings_NoEpgs}"
                        TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
 

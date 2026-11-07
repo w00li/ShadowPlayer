@@ -135,7 +135,7 @@ public partial class App : Application
     private static void Fatal(Exception ex)
     {
         SafeLog(ex.ToString());
-        MessageBoxW(0, "Nie udało się uruchomić aplikacji. Szczegóły zapisano w dzienniku w folderze M3uPlayer w danych lokalnych. Zamknij inne kopie aplikacji i spróbuj ponownie.",
+        MessageBoxW(0, Strings.Startup_Failed,
             "ShadowPlayer", 0x10);
         Environment.Exit(1);
     }
@@ -168,9 +168,9 @@ public partial class App : Application
                 {
                     await ShowDialogAsync(new ContentDialog
                     {
-                        Title = "Coś poszło nie tak",
-                        Content = "Aplikacja napotkała nieoczekiwany problem. Szczegóły zapisano w dzienniku. Spróbuj powtórzyć czynność; jeśli problem wraca, uruchom aplikację ponownie.",
-                        CloseButtonText = "Zamknij komunikat",
+                        Title = Strings.Error_Title,
+                        Content = Strings.Error_Body,
+                        CloseButtonText = Strings.Error_Close,
                         XamlRoot = window.Content.XamlRoot,
                     });
                 }

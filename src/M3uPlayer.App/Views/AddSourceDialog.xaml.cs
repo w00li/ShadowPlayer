@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Sources;
 using M3uPlayer.Core.Storage;
 using Microsoft.UI.Xaml;
@@ -20,7 +21,7 @@ public sealed partial class AddSourceDialog : ContentDialog
     {
         InitializeComponent();
         _suggestName = suggestName;
-        var title = kind == SourceKind.Epg ? "Dodaj źródło EPG" : "Dodaj listę";
+        var title = kind == SourceKind.Epg ? Strings.AddSource_AddEpgTitle : Strings.AddSource_AddListTitle;
         Title = title;
         PrimaryButtonText = title;
         SetName(suggestName(null));
@@ -71,7 +72,7 @@ public sealed partial class AddSourceDialog : ContentDialog
             if (await picker.PickSingleFileAsync() is not { } file) return;
             if (string.IsNullOrEmpty(file.Path))
             {
-                ShowFileError("Ten plik nie jest dostępny na dysku (np. jest tylko w chmurze). Pobierz go na dysk albo wybierz inny.");
+                ShowFileError(Strings.AddSource_FileNotLocal);
                 return;
             }
             UrlBox.Text = "";
@@ -83,7 +84,7 @@ public sealed partial class AddSourceDialog : ContentDialog
         catch (Exception ex)
         {
             App.Services.Log.Write("File picker failed: " + ex);
-            ShowFileError("Nie udało się otworzyć okna wyboru pliku. Spróbuj ponownie albo wpisz adres.");
+            ShowFileError(Strings.AddSource_PickerFailed);
         }
     }
 
@@ -93,7 +94,7 @@ public sealed partial class AddSourceDialog : ContentDialog
         var name = NameBox.Text.Trim();
         if (name.Length == 0)
         {
-            NameError.Text = "Wpisz nazwę, po której rozpoznasz to źródło.";
+            NameError.Text = Strings.AddSource_NameRequired;
             NameError.Visibility = Visibility.Visible;
             ok = false;
         }

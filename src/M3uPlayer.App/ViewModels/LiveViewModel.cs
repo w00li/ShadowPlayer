@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Collections.ObjectModel;
 using M3uPlayer.App.Player;
 using M3uPlayer.Core.Catchup;
@@ -110,10 +111,10 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     private bool ShowsPlay => _state is PlayerState.Paused or PlayerState.Idle or PlayerState.Failed;
     public string PlayGlyph => ShowsPlay ? "\uE768" : "\uE769";
-    public string PlayName => ShowsPlay ? "Odtwarzaj" : "Pauza";
+    public string PlayName => ShowsPlay ? Strings.Live_Play : Strings.Live_Pause;
     public string PlayTip => PlayName + " (Spacja)";
     public string MuteGlyph => Muted ? "\uE74F" : "\uE767";
-    public string MuteName => Muted ? "Włącz dźwięk" : "Wycisz";
+    public string MuteName => Muted ? Strings.Live_Unmute : Strings.Live_Mute;
     public string MuteTip => MuteName + " (M)";
 
     public void TogglePause()
@@ -273,16 +274,16 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         (ShowLayout, ShowEmpty) = (data.all > 0, data.all == 0);
         CanClearSearch = searching;
         ListMessage = data.list.Count > 0 || data.all == 0 ? ""
-            : searching ? $"Brak wyników dla „{query}”"
-            : category == CategoryItem.FavoritesKey ? "Nie masz jeszcze ulubionych. Najedź na kanał i kliknij gwiazdkę, a pojawi się tutaj."
-            : "W tej kategorii nie ma kanałów.";
+            : searching ? string.Format(Strings.Live_NoResults, query)
+            : category == CategoryItem.FavoritesKey ? Strings.Live_NoFavorites
+            : Strings.Live_EmptyCategory;
         Raise();
         ScheduleVisible();
     }
 
     private void ApplyCategories(IReadOnlyList<CategoryCount> cats, int all, int fav)
     {
-        var wanted = new List<(string Key, string Name, int Count)> { (CategoryItem.AllKey, "Wszystkie", all), (CategoryItem.FavoritesKey, "Ulubione", fav) };
+        var wanted = new List<(string Key, string Name, int Count)> { (CategoryItem.AllKey, Strings.Live_All, all), (CategoryItem.FavoritesKey, Strings.Live_Favorites, fav) };
         wanted.AddRange(cats.Select(c => ("c:" + c.Name, c.Name, c.Count)));
         if (Categories.Select(c => c.Key).SequenceEqual(wanted.Select(w => w.Key)))
             for (var i = 0; i < wanted.Count; i++) Categories[i].SetCount(wanted[i].Count);

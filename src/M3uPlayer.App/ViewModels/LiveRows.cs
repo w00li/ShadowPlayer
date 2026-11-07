@@ -1,3 +1,5 @@
+using M3uPlayer.Core.Playlist;
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Storage;
@@ -10,7 +12,7 @@ public sealed class CategoryItem(string key, string name, int count) : Observabl
     public const string AllKey = SessionRestore.AllKey, FavoritesKey = SessionRestore.FavoritesKey;
 
     public string Key { get; } = key;
-    public string Name { get; } = name;
+    public string Name { get; } = name == M3uParser.DefaultCategory ? Strings.Category_Other : name;
     public int Count { get; private set; } = count;
     public string CountText => Count.ToString();
     public string AutomationName => $"{Name}, {Count}";
@@ -58,7 +60,7 @@ public sealed class ChannelRow : Observable
 
     public double StarOpacity => IsFavorite || Hover || StarFocus ? 1 : 0;
     public string StarGlyph => IsFavorite ? "" : "";
-    public string StarTip => IsFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych";
+    public string StarTip => IsFavorite ? Strings.Live_RemoveFavorite : Strings.Live_AddFavorite;
     public string StarName => $"{StarTip}: {Name}";
 
     public string AutomationName =>
@@ -88,7 +90,7 @@ public sealed class ChannelRow : Observable
         NoEpg = nn.Now is null && nn.Next is null && matchText is null;
         NowTitle = nn.Now?.Title ?? "";
         Progress = nn.Now is { } p ? GuideFormat.Progress(p.Start, p.Stop, now) : 0;
-        NextText = matchText ?? (nn.Next is { } n ? $"Dalej {GuideFormat.Time(n.Start, tz)} {n.Title}" : "");
+        NextText = matchText ?? (nn.Next is { } n ? string.Format(Strings.Live_Next, GuideFormat.Time(n.Start, tz), n.Title) : "");
         Raise();
     }
 }
@@ -124,7 +126,7 @@ public sealed class GuideItem : Observable
     public bool ReplayMarker => CanReplay && IsPast;
     public double TextOpacity => IsPast && !CanReplay ? 0.55 : 1;
     public override string ToString() => AutomationName;
-    public string AutomationName => IsHeader ? Header : $"{TimeText} {Title}{(IsCurrent ? ". Teraz" : IsPast ? ". Minął" : "")}{(ReplayMarker ? ". Dostępny w archiwum" : "")}";
+    public string AutomationName => IsHeader ? Header : $"{TimeText} {Title}{(IsCurrent ? Strings.Live_Now : IsPast ? Strings.Live_Past : "")}{(ReplayMarker ? Strings.Live_Replayable : "")}";
 
     public void SetTime(DateTimeOffset now)
     {

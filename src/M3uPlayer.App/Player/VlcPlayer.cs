@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using System.Threading.Channels;
 using LibVLCSharp.Shared;
 using LibVLCSharp.Shared.Structures;
@@ -266,7 +267,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
 
     // LibVLC lists a "Disable" pseudo-entry (Id -1): a useful "off" for subtitles, meaningless for audio.
     private static IReadOnlyList<TrackInfo> Tracks(TrackDescription[]? d, bool keepOff) =>
-        d is null ? [] : [.. d.Where(t => keepOff || t.Id >= 0).Select(t => new TrackInfo(t.Id, t.Id < 0 ? "Wyłączone" : t.Name ?? ""))];
+        d is null ? [] : [.. d.Where(t => keepOff || t.Id >= 0).Select(t => new TrackInfo(t.Id, t.Id < 0 ? Strings.Player_TrackOff : t.Name ?? ""))];
 
     private MediaPlayer? Mp() { lock (_gate) return _mp; }
     private bool Current(int gen) { lock (_gate) return gen == _gen && !_disposed; }
@@ -334,7 +335,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             if (_req?.IsLive ?? false) { DropLocked(); return; }
             if (_state is PlayerState.Playing or PlayerState.Opening)
             {
-                if (_posMs <= 0) { FailLocked("Nie udało się odtworzyć tego programu."); return; } // not a second played: a broken archive, not the programme's end
+                if (_posMs <= 0) { FailLocked(Strings.Player_ProgrammeFailed); return; } // not a second played: a broken archive, not the programme's end
                 _accepting = false;
                 SetLocked(PlayerState.Idle);
             }
@@ -348,7 +349,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             if (!Accept(mp)) return;
             if (_userPaused) { _needsRestart = true; return; }
             if (_req?.IsLive ?? false) DropLocked();
-            else FailLocked("Nie udało się odtworzyć strumienia.");
+            else FailLocked(Strings.Player_StreamFailed);
         }
     }
 
@@ -371,7 +372,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
         _accepting = false; // also swallows the EndReached that usually follows an error
         if (_policy.NextDelay() is not { } delay)
         {
-            FailLocked("Nie udało się połączyć z kanałem. Spróbuj ponownie później.");
+            FailLocked(Strings.Player_ConnectFailed);
             return;
         }
         LastError = null;
@@ -400,7 +401,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             {
                 case MonitorVerdict.Stable: _policy.MarkStable(); break;
                 case MonitorVerdict.Stalled when _req?.IsLive ?? false: DropLocked(); break;
-                case MonitorVerdict.Stalled: FailLocked("Przekroczono czas oczekiwania na strumień."); break;
+                case MonitorVerdict.Stalled: FailLocked(Strings.Player_Stalled); break;
             }
         }
     }
@@ -438,7 +439,7 @@ public sealed class VlcPlayer(FileLog? log = null) : IPlayer, IDisposable
             {
                 Log($"Player job failed: {ex.GetType().Name}: {ex.Message}"); // FileLog redacts any URL
                 if (startGen is { } g)
-                    lock (_gate) { if (g == _gen && !_disposed) FailLocked("Wystąpił błąd odtwarzacza."); }
+                    lock (_gate) { if (g == _gen && !_disposed) FailLocked(Strings.Player_Error); }
             }
         });
     }

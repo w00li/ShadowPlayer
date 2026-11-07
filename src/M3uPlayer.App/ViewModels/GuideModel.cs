@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Storage;
 
@@ -12,7 +13,7 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
 
     public BulkCollection<GuideItem> Items { get; } = new();
     public GuideItem? SelectedProgramme { get; private set; }
-    public string Message { get; private set; } = "Wybierz kanał, aby zobaczyć ramówkę.";
+    public string Message { get; private set; } = Strings.Guide_PickChannel;
     public bool HasMessage => Message.Length > 0;
 
     public bool DetailVisible { get; private set; }
@@ -40,7 +41,7 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
         _version++;
         _loadedAt = null;
         Items.ReplaceAll([]);
-        Message = "Wybierz kanał, aby zobaczyć ramówkę.";
+        Message = Strings.Guide_PickChannel;
         Select(null);
         Loaded?.Invoke(null);
     }
@@ -58,7 +59,7 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
         var selected = (kept is { } start ? items.FirstOrDefault(i => i.Programme?.Start == start) : null) ?? items.FirstOrDefault(i => i.IsCurrent);
         Items.ReplaceAll(items);
         _loadedAt = now;
-        Message = items.Count == 0 ? "Brak ramówki dla tego kanału." : "";
+        Message = items.Count == 0 ? Strings.Guide_Empty : "";
         Select(selected);
         Loaded?.Invoke(selected);
     }
@@ -84,7 +85,7 @@ public sealed class GuideModel(ProgrammeStore programmes, TimeProvider time, Tim
         var g = SelectedProgramme;
         ReplayVisible = g is { Programme: not null } && (g.IsPast || g.IsCurrent);
         CanReplay = g?.CanReplay ?? false;
-        ReplayNote = _notice.Length > 0 ? _notice : ReplayVisible && !CanReplay ? "Archiwum niedostępne dla tego programu" : "";
+        ReplayNote = _notice.Length > 0 ? _notice : ReplayVisible && !CanReplay ? Strings.Guide_NoArchive : "";
     }
 
     /// <summary>Playback moved on by itself: selects the programme and brings it into view.</summary>

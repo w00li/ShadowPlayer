@@ -2,6 +2,7 @@
     x:Class="M3uPlayer.App.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:l="using:M3uPlayer.App"
     Title="ShadowPlayer">
     <Window.SystemBackdrop>
         <MicaBackdrop />
@@ -9,8 +10,8 @@
     <NavigationView x:Name="Nav" PaneDisplayMode="LeftCompact" IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
                     OpenPaneLength="220" SelectionChanged="Nav_SelectionChanged">
         <NavigationView.MenuItems>
-            <NavigationViewItem x:Name="LiveItem" Content="Na żywo" Tag="live" Icon="Video" />
-            <NavigationViewItem x:Name="SettingsItem" Content="Ustawienia" Tag="settings" Icon="Setting" />
+            <NavigationViewItem x:Name="LiveItem" Content="{l:Tr Key=Main_Live}" Tag="live" Icon="Video" />
+            <NavigationViewItem x:Name="SettingsItem" Content="{l:Tr Key=Main_Settings}" Tag="settings" Icon="Setting" />
         </NavigationView.MenuItems>
         <Frame x:Name="Host" />
     </NavigationView>

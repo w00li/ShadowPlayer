@@ -1,3 +1,4 @@
+using M3uPlayer.Core.Localization;
 using M3uPlayer.App.Player;
 using M3uPlayer.Core.Catchup;
 using M3uPlayer.Core.Media;
@@ -51,8 +52,8 @@ public sealed partial class LiveViewModel
         PlayProgramme(item);
     }
 
-    private const string NoArchiveReach ="Archiwum niedostępne dla tego programu";
-    private const string NoArchiveAddress = "Nie udało się utworzyć adresu archiwum dla tego programu.";
+    private static string NoArchiveReach => Strings.Guide_NoArchive;
+    private static string NoArchiveAddress => Strings.Guide_NoArchiveAddress;
 
     /// <summary>Opens the programme at the offset. False when the provider's scheme gives no address.</summary>
     private bool TryOpen(ArchiveTimeline timeline, TimeSpan offset)

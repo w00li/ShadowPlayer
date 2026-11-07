@@ -68,14 +68,14 @@ public sealed partial class SettingsPage : Page
     {
         var row = Row(sender);
         var consequence = row.IsEpg
-            ? "Kanały z list zostają."
-            : "Kanały z tej listy znikną z aplikacji, a źródło EPG dodane automatycznie z tej listy też zostanie usunięte. Ulubione zostają i wrócą, gdy dodasz tę samą listę ponownie.";
+            ? Strings.Settings_RemoveEpgConsequence
+            : Strings.Settings_RemoveListConsequence;
         var dialog = new ContentDialog
         {
-            Title = $"Usunąć „{row.Name}”?",
+            Title = string.Format(Strings.Settings_RemoveQuestion, row.Name),
             Content = consequence,
             PrimaryButtonText = row.RemoveLabel,
-            CloseButtonText = "Anuluj",
+            CloseButtonText = Strings.AddSource_Cancel,
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = DialogRoot,
         };

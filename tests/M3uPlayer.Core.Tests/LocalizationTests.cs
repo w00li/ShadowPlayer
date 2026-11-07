@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Resources;
 using System.Text.RegularExpressions;
 using M3uPlayer.Core.Localization;
+using M3uPlayer.Core.Playlist;
 using Xunit;
 
 namespace M3uPlayer.Core.Tests;
@@ -43,4 +44,12 @@ public class LocalizationTests
 
     [Fact]
     public void Resolve_ignores_unknown_saved_code() => Assert.Equal("pl", Languages.Resolve("xx", new CultureInfo("pl-PL")));
+
+    [Fact]
+    public void The_default_category_is_stored_in_polish_and_shown_translated()
+    {
+        using var _ = TestCulture.Use("en");
+        Assert.Equal("Other", Strings.Category_Other);
+        Assert.Equal("Inne", M3uParser.DefaultCategory); // saved sessions keep "c:Inne", whatever the language
+    }
 }

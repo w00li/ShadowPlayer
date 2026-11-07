@@ -120,4 +120,313 @@
   <data name="Restart_Failed" xml:space="preserve">
     <value>The app could not be restarted. Start it manually. The chosen language will be used.</value>
   </data>
+  <data name="Main_Live" xml:space="preserve">
+    <value>Live</value>
+  </data>
+  <data name="Main_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="AddSource_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AddSource_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddSource_WebAddress" xml:space="preserve">
+    <value>Web address</value>
+  </data>
+  <data name="AddSource_Or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="AddSource_PickFile" xml:space="preserve">
+    <value>Choose a file from disk</value>
+  </data>
+  <data name="AddSource_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Live_NoEpg" xml:space="preserve">
+    <value>No EPG</value>
+  </data>
+  <data name="Live_InArchive" xml:space="preserve">
+    <value>Available in the archive</value>
+  </data>
+  <data name="Live_NoListTitle" xml:space="preserve">
+    <value>You have no list yet</value>
+  </data>
+  <data name="Live_NoListBody" xml:space="preserve">
+    <value>Add an M3U list from a web address or a file, and the channels will appear here.</value>
+  </data>
+  <data name="Live_NoListEpgHint" xml:space="preserve">
+    <value>Once a list is added, you can also add an EPG source in Settings to see the TV guide.</value>
+  </data>
+  <data name="Live_AddList" xml:space="preserve">
+    <value>Add list</value>
+  </data>
+  <data name="Live_Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Live_ToggleCategories" xml:space="preserve">
+    <value>Show or hide categories</value>
+  </data>
+  <data name="Live_Search" xml:space="preserve">
+    <value>Search for a channel or programme</value>
+  </data>
+  <data name="Live_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Live_Channels" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="Live_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Live_Guide" xml:space="preserve">
+    <value>TV guide</value>
+  </data>
+  <data name="Live_WatchFromStart" xml:space="preserve">
+    <value>Watch from the start</value>
+  </data>
+  <data name="Live_Video" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="Live_Connecting" xml:space="preserve">
+    <value>Connecting</value>
+  </data>
+  <data name="Live_AtRecordingEnd" xml:space="preserve">
+    <value>At the end of the recording; beyond this only live</value>
+  </data>
+  <data name="Live_ProgrammePosition" xml:space="preserve">
+    <value>Position in programme</value>
+  </data>
+  <data name="Live_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Live_BackToLive" xml:space="preserve">
+    <value>Back to live</value>
+  </data>
+  <data name="Live_AudioTrack" xml:space="preserve">
+    <value>Audio track</value>
+  </data>
+  <data name="Live_Subtitles" xml:space="preserve">
+    <value>Subtitles</value>
+  </data>
+  <data name="Live_FullScreenKey" xml:space="preserve">
+    <value>Full screen (F)</value>
+  </data>
+  <data name="Live_FullScreen" xml:space="preserve">
+    <value>Full screen</value>
+  </data>
+  <data name="Settings_Refreshing" xml:space="preserve">
+    <value>Refreshing</value>
+  </data>
+  <data name="Settings_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Settings_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Settings_RefreshEvery" xml:space="preserve">
+    <value>Refresh every</value>
+  </data>
+  <data name="Interval_1h" xml:space="preserve">
+    <value>1 hour</value>
+  </data>
+  <data name="Interval_3h" xml:space="preserve">
+    <value>3 hours</value>
+  </data>
+  <data name="Interval_6h" xml:space="preserve">
+    <value>6 hours</value>
+  </data>
+  <data name="Interval_12h" xml:space="preserve">
+    <value>12 hours</value>
+  </data>
+  <data name="Interval_24h" xml:space="preserve">
+    <value>24 hours</value>
+  </data>
+  <data name="Interval_48h" xml:space="preserve">
+    <value>48 hours</value>
+  </data>
+  <data name="Interval_7d" xml:space="preserve">
+    <value>7 days</value>
+  </data>
+  <data name="Settings_AutoRefresh" xml:space="preserve">
+    <value>Automatic refresh</value>
+  </data>
+  <data name="Settings_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Settings_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Settings_RefreshNow" xml:space="preserve">
+    <value>Refresh now</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_Lists" xml:space="preserve">
+    <value>Lists</value>
+  </data>
+  <data name="Settings_AddList" xml:space="preserve">
+    <value>Add list</value>
+  </data>
+  <data name="Settings_NoLists" xml:space="preserve">
+    <value>No lists. Add the first one to see channels.</value>
+  </data>
+  <data name="Settings_EpgSources" xml:space="preserve">
+    <value>EPG sources</value>
+  </data>
+  <data name="Settings_AddEpg" xml:space="preserve">
+    <value>Add EPG source</value>
+  </data>
+  <data name="Settings_NoEpgs" xml:space="preserve">
+    <value>No EPG sources. Add them to see the TV guide. Order matters: the higher source wins.</value>
+  </data>
+  <data name="Startup_Failed" xml:space="preserve">
+    <value>The app could not start. Details were saved to the log in the M3uPlayer folder in local app data. Close other copies of the app and try again.</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Something went wrong</value>
+  </data>
+  <data name="Error_Body" xml:space="preserve">
+    <value>The app ran into an unexpected problem. Details were saved to the log. Try the action again; if the problem keeps coming back, restart the app.</value>
+  </data>
+  <data name="Error_Close" xml:space="preserve">
+    <value>Close message</value>
+  </data>
+  <data name="Player_TrackOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Player_ProgrammeFailed" xml:space="preserve">
+    <value>This programme could not be played.</value>
+  </data>
+  <data name="Player_StreamFailed" xml:space="preserve">
+    <value>The stream could not be played.</value>
+  </data>
+  <data name="Player_ConnectFailed" xml:space="preserve">
+    <value>Could not connect to the channel. Try again later.</value>
+  </data>
+  <data name="Player_Stalled" xml:space="preserve">
+    <value>Timed out waiting for the stream.</value>
+  </data>
+  <data name="Player_Error" xml:space="preserve">
+    <value>A player error occurred.</value>
+  </data>
+  <data name="Guide_PickChannel" xml:space="preserve">
+    <value>Choose a channel to see its TV guide.</value>
+  </data>
+  <data name="Guide_Empty" xml:space="preserve">
+    <value>No TV guide for this channel.</value>
+  </data>
+  <data name="Guide_NoArchive" xml:space="preserve">
+    <value>No archive for this programme</value>
+  </data>
+  <data name="Guide_NoArchiveAddress" xml:space="preserve">
+    <value>Could not build an archive address for this programme.</value>
+  </data>
+  <data name="Live_AddFavorite" xml:space="preserve">
+    <value>Add to favourites</value>
+  </data>
+  <data name="Live_RemoveFavorite" xml:space="preserve">
+    <value>Remove from favourites</value>
+  </data>
+  <data name="Live_Next" xml:space="preserve">
+    <value>Next {0} {1}</value>
+  </data>
+  <data name="Live_Now" xml:space="preserve">
+    <value>. Now</value>
+  </data>
+  <data name="Live_Past" xml:space="preserve">
+    <value>. Finished</value>
+  </data>
+  <data name="Live_Replayable" xml:space="preserve">
+    <value>. Available in the archive</value>
+  </data>
+  <data name="Live_Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="Live_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Live_Unmute" xml:space="preserve">
+    <value>Unmute</value>
+  </data>
+  <data name="Live_Mute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="Live_NoResults" xml:space="preserve">
+    <value>No results for “{0}”</value>
+  </data>
+  <data name="Live_NoFavorites" xml:space="preserve">
+    <value>You have no favourites yet. Hover over a channel and click the star, and it will appear here.</value>
+  </data>
+  <data name="Live_EmptyCategory" xml:space="preserve">
+    <value>There are no channels in this category.</value>
+  </data>
+  <data name="Live_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Live_Favorites" xml:space="preserve">
+    <value>Favourites</value>
+  </data>
+  <data name="Live_ExitFullScreenKey" xml:space="preserve">
+    <value>Exit full screen (F, Esc)</value>
+  </data>
+  <data name="Live_ExitFullScreen" xml:space="preserve">
+    <value>Exit full screen</value>
+  </data>
+  <data name="Live_Track" xml:space="preserve">
+    <value>Track {0}</value>
+  </data>
+  <data name="Settings_Remove" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Settings_AutoAdded" xml:space="preserve">
+    <value>Added automatically from the list “{0}”. Remove the list to remove this source.</value>
+  </data>
+  <data name="Settings_LastRefresh" xml:space="preserve">
+    <value>Last refresh: {0}</value>
+  </data>
+  <data name="Settings_NeverRefreshed" xml:space="preserve">
+    <value>Not refreshed yet</value>
+  </data>
+  <data name="Settings_Matched" xml:space="preserve">
+    <value>Matched {0} of {1} channels</value>
+  </data>
+  <data name="Settings_ChannelCount" xml:space="preserve">
+    <value>{0} channels, with TV guide: {1}</value>
+  </data>
+  <data name="Settings_Skipped" xml:space="preserve">
+    <value>Skipped {0} damaged entries</value>
+  </data>
+  <data name="Settings_Error" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="Settings_SaveScheduleFailed" xml:space="preserve">
+    <value>Could not save the refresh setting. Try again.</value>
+  </data>
+  <data name="Settings_RemoveEpgConsequence" xml:space="preserve">
+    <value>Channels from the lists stay.</value>
+  </data>
+  <data name="Settings_RemoveListConsequence" xml:space="preserve">
+    <value>Channels from this list will disappear from the app, and the EPG source added automatically from this list will be removed too. Favourites stay and come back when you add the same list again.</value>
+  </data>
+  <data name="Settings_RemoveQuestion" xml:space="preserve">
+    <value>Remove “{0}”?</value>
+  </data>
+  <data name="AddSource_AddEpgTitle" xml:space="preserve">
+    <value>Add EPG source</value>
+  </data>
+  <data name="AddSource_AddListTitle" xml:space="preserve">
+    <value>Add list</value>
+  </data>
+  <data name="AddSource_FileNotLocal" xml:space="preserve">
+    <value>This file is not available on disk (for example, it is only in the cloud). Download it to disk or choose another one.</value>
+  </data>
+  <data name="AddSource_PickerFailed" xml:space="preserve">
+    <value>The file picker could not be opened. Try again or enter an address.</value>
+  </data>
+  <data name="AddSource_NameRequired" xml:space="preserve">
+    <value>Enter a name you will recognise this source by.</value>
+  </data>
 </root>
