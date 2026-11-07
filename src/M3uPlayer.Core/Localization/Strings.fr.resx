@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>Impossible de supprimer les données. Fermez les autres copies de l’application et relancez-la. La suppression sera retentée.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>EN DIRECT</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>Depuis le début</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>Depuis le début (Début)</value>
+  </data>
 </root>

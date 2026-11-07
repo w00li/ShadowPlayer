@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>Не вдалося видалити дані. Закрийте інші копії застосунку й запустіть його знову. Видалення буде повторено.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>НАЖИВО</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>З початку</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>З початку (Home)</value>
+  </data>
 </root>

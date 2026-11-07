@@ -48,6 +48,8 @@ public sealed partial class LivePage
     // ---- fullscreen ----
     private void Fullscreen_Click(object sender, RoutedEventArgs e) => ToggleFullscreen();
 
+    private void Restart_Click(object sender, RoutedEventArgs e) => Vm.RestartProgramme();
+
     private void ToggleFullscreen()
     {
         if (App.MainWindow is { } w) w.SetFullscreen(!w.IsFullscreen);
@@ -273,6 +275,7 @@ public sealed partial class LivePage
             VirtualKey.Left => ShortcutKey.Left,
             VirtualKey.Right => ShortcutKey.Right,
             VirtualKey.Escape => ShortcutKey.Escape,
+            VirtualKey.Home => ShortcutKey.Home,
             _ => null,
         };
         if (key is not { } k) return;
@@ -289,6 +292,7 @@ public sealed partial class LivePage
             case ShortcutAction.PreviousChannel: Vm.SelectPreviousChannel(); break;
             case ShortcutAction.SeekBack: Vm.SeekBy(-SeekStep); break;
             case ShortcutAction.SeekForward: Vm.SeekBy(SeekStep); break;
+            case ShortcutAction.RestartProgramme: Vm.RestartProgramme(); break;
         }
         ShowControls();
     }

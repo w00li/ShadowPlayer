@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>Nie udało się usunąć danych. Zamknij inne kopie aplikacji i uruchom ją ponownie. Usuwanie zostanie powtórzone.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>NA ŻYWO</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>Od początku</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>Od początku (Home)</value>
+  </data>
 </root>

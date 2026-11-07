@@ -142,6 +142,17 @@ public class ArchiveTimelineTests
     [Fact]
     public void No_next_programme_without_an_archive() =>
         Assert.Null(ArchiveTimeline.NextProgramme([P("a", 0, 1), P("b", 1, 2)], Start, new CatchupInfo(null, null, 0), Start.AddHours(5)));
+
+    [Fact]
+    public void Going_back_from_live_lands_a_step_behind_the_archive_edge()
+    {
+        var start = new DateTimeOffset(2026, 11, 7, 20, 0, 0, TimeSpan.Zero);
+        var t = new ArchiveTimeline(start, start.AddHours(1));
+        // 30 minutes in: the archive reaches 29:00 (60 s margin), one 10 s step behind is 28:50.
+        Assert.Equal(TimeSpan.FromSeconds(28 * 60 + 50), t.BehindLive(start.AddMinutes(30), TimeSpan.FromSeconds(10)));
+        // 40 s in: not even the margin has passed, so from the start.
+        Assert.Equal(TimeSpan.Zero, t.BehindLive(start.AddSeconds(40), TimeSpan.FromSeconds(10)));
+    }
 }
 
 public class ShortcutsTests
@@ -174,11 +185,25 @@ public class ShortcutsTests
     }
 
     [Fact]
-    public void Left_and_right_seek_only_in_archive()
+    public void Left_goes_back_from_live_too_but_right_only_seeks_in_archive()
     {
-        Assert.Equal(ShortcutAction.None, Shortcuts.For(ShortcutKey.Left, FocusKind.Video, false, false));
+        Assert.Equal(ShortcutAction.SeekBack, Shortcuts.For(ShortcutKey.Left, FocusKind.Video, false, false)); // from live into the archive
+        Assert.Equal(ShortcutAction.None, Shortcuts.For(ShortcutKey.Right, FocusKind.Video, false, false));
+        Assert.Equal(ShortcutAction.None, Shortcuts.For(ShortcutKey.Left, FocusKind.List, false, false));
         Assert.Equal(ShortcutAction.SeekBack, Shortcuts.For(ShortcutKey.Left, FocusKind.Video, false, true));
         Assert.Equal(ShortcutAction.SeekForward, Shortcuts.For(ShortcutKey.Right, FocusKind.Button, true, true));
         Assert.Equal(ShortcutAction.None, Shortcuts.For(ShortcutKey.Right, FocusKind.Slider, false, true));
+    }
+
+    [Theory]
+    [InlineData(FocusKind.Video, ShortcutAction.RestartProgramme)]
+    [InlineData(FocusKind.Button, ShortcutAction.RestartProgramme)]
+    [InlineData(FocusKind.List, ShortcutAction.None)]   // Home moves to the first item there
+    [InlineData(FocusKind.Slider, ShortcutAction.None)] // and to the start of the slider
+    [InlineData(FocusKind.Text, ShortcutAction.None)]
+    public void Home_restarts_the_programme(FocusKind focus, ShortcutAction expected)
+    {
+        Assert.Equal(expected, Shortcuts.For(ShortcutKey.Home, focus, false, false));
+        Assert.Equal(expected, Shortcuts.For(ShortcutKey.Home, focus, true, true));
     }
 }

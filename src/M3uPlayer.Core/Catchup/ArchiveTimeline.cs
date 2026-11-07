@@ -22,6 +22,9 @@ public sealed record ArchiveTimeline(DateTimeOffset Start, DateTimeOffset Stop, 
     /// <summary>The furthest point that may be played: the end of a finished programme, else "now" minus the safety margin.</summary>
     public TimeSpan Limit(DateTimeOffset now) => now >= Stop ? Total : Bound(now - Start - SafetyMargin, Total);
 
+    /// <summary>Where going back from live lands: a step behind the furthest point the archive has, or the start.</summary>
+    public TimeSpan BehindLive(DateTimeOffset now, TimeSpan step) => Bound(Limit(now) - step, Total);
+
     public bool AtLiveEnd(TimeSpan elapsed, DateTimeOffset now) => now < Stop && elapsed >= Limit(now) - LiveEndWindow;
 
     public SeekPlan SeekTo(TimeSpan target, DateTimeOffset now, bool seekable)

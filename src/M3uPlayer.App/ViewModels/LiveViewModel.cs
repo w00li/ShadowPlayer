@@ -39,6 +39,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
     {
         (_dq, _player, _channels, _programmes, _db, _time) = (dq, player, channels, programmes, db, time ?? TimeProvider.System);
         Guide = new GuideModel(programmes, _time, _tz);
+        Guide.PropertyChanged += (_, _) => Raise(nameof(CanRestart)); // the current programme and its archive come with the guide
         _spinnerTimer = Timer(SpinnerDelay, false, () => { _spinnerArmed = true; UpdateOverlay(); });
         _visibleTimer = Timer(VisibleDelay, false, () => Safe.Run(RefreshVisibleAsync));
         _tickTimer = Timer(TickEvery, true, () => Safe.Run(OnTickAsync));
@@ -66,6 +67,9 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     public ArchiveModel Archive { get; } = new();
     public bool IsLiveMode => !Archive.Active;
+
+    /// <summary>The live stream is on screen (playing or paused); not while it connects or after it failed.</summary>
+    public bool ShowLiveBadge => IsLiveMode && SelectedChannel is not null && _state is PlayerState.Playing or PlayerState.Paused;
 
     public bool ShowLayout { get; private set; }
     public bool ShowEmpty { get; private set; }

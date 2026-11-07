@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>Die Daten konnten nicht gelöscht werden. Schließen Sie andere Kopien der App und starten Sie sie erneut. Das Löschen wird wiederholt.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>LIVE</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>Von Anfang an</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>Von Anfang an (Pos1)</value>
+  </data>
 </root>

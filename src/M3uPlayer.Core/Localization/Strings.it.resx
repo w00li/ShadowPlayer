@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>Impossibile eliminare i dati. Chiudi le altre copie dell’app e avviala di nuovo. L’eliminazione verrà ritentata.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>IN DIRETTA</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>Dall’inizio</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>Dall’inizio (Home)</value>
+  </data>
 </root>

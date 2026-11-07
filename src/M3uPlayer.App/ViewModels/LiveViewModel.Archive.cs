@@ -18,14 +18,14 @@ public sealed partial class LiveViewModel
         UpdateOverlay();
     }
 
-    /// <summary>Plays a programme from its start. Tells the viewer when the archive does not reach it.</summary>
-    public void PlayProgramme(GuideItem item)
+    /// <summary>Plays a programme from its start, or from <paramref name="at"/>. Tells the viewer when the archive does not reach it.</summary>
+    public void PlayProgramme(GuideItem item, TimeSpan at = default)
     {
         if (SelectedChannel is null || item.Programme is not { } p) return;
         if (!item.CanReplay) { Guide.ShowNotice(NoArchiveReach); return; }
         // The guide is already corrected by tvg-shift to real broadcast time, so the shifted start is what the provider's archive expects.
-        var timeline = new ArchiveTimeline(p.Start, p.Stop);
-        if (!TryOpen(timeline, TimeSpan.Zero))
+        var timeline = new ArchiveTimeline(p.Start, p.Stop, at);
+        if (!TryOpen(timeline, at))
         {
             Guide.ShowNotice(NoArchiveAddress);
             return;
@@ -88,7 +88,24 @@ public sealed partial class LiveViewModel
         }
     }
 
-    public void SeekBy(TimeSpan delta) => SeekTo((Archive.Elapsed + delta).TotalSeconds);
+    /// <summary>In the archive: a seek. Live, going back: the current programme from the archive, a step behind its furthest point.</summary>
+    public void SeekBy(TimeSpan delta)
+    {
+        if (Archive.Active) SeekTo((Archive.Elapsed + delta).TotalSeconds);
+        else if (delta < TimeSpan.Zero && CurrentLiveProgramme is { Programme: { } p } item)
+            PlayProgramme(item, new ArchiveTimeline(p.Start, p.Stop).BehindLive(_time.GetUtcNow(), -delta));
+    }
+
+    /// <summary>The start of the programme: the archived one being watched, or the one on air now.</summary>
+    public void RestartProgramme()
+    {
+        if (Archive.Active) SeekTo(0);
+        else if (CurrentLiveProgramme is { } item) PlayProgramme(item);
+    }
+
+    public bool CanRestart => SelectedChannel is not null && (Archive.Active || CurrentLiveProgramme is not null);
+
+    private GuideItem? CurrentLiveProgramme => Guide.Items.FirstOrDefault(i => i.IsCurrent && i.Programme is not null && i.CanReplay);
 
     private void OnPlayerPosition(TimeSpan p) => _dq.TryEnqueue(() =>
     {

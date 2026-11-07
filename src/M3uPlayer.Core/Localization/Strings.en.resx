@@ -561,4 +561,13 @@
   <data name="Reset_Failed" xml:space="preserve">
     <value>The data could not be deleted. Close other copies of the app and start it again. The deletion will be retried.</value>
   </data>
+  <data name="Live_Badge" xml:space="preserve">
+    <value>LIVE</value>
+  </data>
+  <data name="Live_Restart" xml:space="preserve">
+    <value>From the start</value>
+  </data>
+  <data name="Live_RestartKey" xml:space="preserve">
+    <value>From the start (Home)</value>
+  </data>
 </root>

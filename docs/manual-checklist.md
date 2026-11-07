@@ -81,3 +81,11 @@ Sprawdzone przez agenta na opublikowanym `M3uPlayer.App.exe`, na świeżym folde
 4. Kanały ukrytej kategorii nie są w „Wszystkie”, ale są w wyszukiwarce i w „Ulubione”.
 5. Ustawienia → Kategorie: pola „Przypięta”/„Ukryta” wykluczają się; „Pokaż wszystkie kategorie” (z potwierdzeniem) przywraca ukryte; powrót na Na żywo pokazuje zmiany.
 6. Ukrycie wszystkich kategorii: panel ma tylko „Wszystkie” (0) i „Ulubione”. **[do sprawdzenia przez właściciela]**
+
+
+## Od początku i wskaźnik na żywo
+
+1. Na żywo na kanale z archiwum: na pasku „● NA ŻYWO” i przycisk „Od początku”; Home i przycisk otwierają bieżący program od początku.
+2. Strzałka w lewo na żywo: archiwum bieżącego programu ok. 70 s za transmisją; „Wróć na żywo” wraca.
+3. W archiwum: wskaźnika brak; „Od początku” i Home przewijają na początek programu.
+4. Kanał bez archiwum lub bez EPG: przycisku brak, Home i strzałka w lewo nic nie robią.

@@ -303,8 +303,19 @@
                                 </Button>
                                 <Slider x:Name="VolumeSlider" Grid.Column="2" Width="100" Minimum="0" Maximum="100" VerticalAlignment="Center"
                                         Value="{x:Bind Vm.Volume, Mode=TwoWay}" AutomationProperties.Name="{l:Tr Key=Live_Volume}" />
-                                <Button Grid.Column="4" Content="{l:Tr Key=Live_BackToLive}" Click="GoLive_Click" Margin="0,0,8,0" VerticalAlignment="Center"
-                                        Visibility="{x:Bind Vm.Archive.Active, Mode=OneWay}" />
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Margin="12,0,0,0" VerticalAlignment="Center"
+                                            Visibility="{x:Bind Vm.ShowLiveBadge, Mode=OneWay}" AutomationProperties.Name="{l:Tr Key=Live_Badge}">
+                                    <Ellipse Width="8" Height="8" Fill="#E81123" VerticalAlignment="Center" />
+                                    <TextBlock Text="{l:Tr Key=Live_Badge}" Style="{ThemeResource CaptionTextBlockStyle}" FontWeight="SemiBold" CharacterSpacing="60" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource BarButtonStyle}" Click="Restart_Click" Visibility="{x:Bind Vm.CanRestart, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{l:Tr Key=Live_RestartKey}" AutomationProperties.Name="{l:Tr Key=Live_Restart}">
+                                        <FontIcon Glyph="&#xE892;" FontSize="16" />
+                                    </Button>
+                                    <Button Content="{l:Tr Key=Live_BackToLive}" Click="GoLive_Click" VerticalAlignment="Center"
+                                            Visibility="{x:Bind Vm.Archive.Active, Mode=OneWay}" />
+                                </StackPanel>
                                 <Button x:Name="AudioButton" Grid.Column="5" Style="{StaticResource BarButtonStyle}" IsEnabled="False"
                                         ToolTipService.ToolTip="{l:Tr Key=Live_AudioTrack}" AutomationProperties.Name="{l:Tr Key=Live_AudioTrack}">
                                     <FontIcon Glyph="&#xE8D6;" FontSize="16" />
