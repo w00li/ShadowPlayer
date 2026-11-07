@@ -26,6 +26,10 @@ Każdy build `Release` tworzy `artifacts/installer/ShadowPlayer-Setup.exe` (buil
 
 Instalator wymaga uprawnień administratora. Domyślnie instaluje aplikację w `C:\Program Files\ShadowPlayer`, a miejsce można zmienić przy pierwszej instalacji. Nowszy instalator uruchomiony na starszej wersji zamyka działającą aplikację i zastępuje poprzednią instalację w tym samym folderze; inne pliki w tym folderze zostają. Listy i ustawienia są w profilu użytkownika i zostają, także po odinstalowaniu. Numer wersji powstaje z daty i godziny buildu.
 
+## Języki
+
+Teksty są w `src/M3uPlayer.Core/Localization/Strings.resx` (polski, domyślny) i `Strings.en.resx`. Język wybiera się w Ustawieniach; bez wyboru aplikacja bierze język Windows, a gdy go nie zna, angielski. Nowy język: skopiuj `Strings.en.resx` jako `Strings.<kod>.resx`, przetłumacz wartości i dopisz `("<kod>", "<nazwa w tym języku>")` w `Languages.All` (`Localization/Languages.cs`). Test `LocalizationTests` sprawdza, czy każdy język ma wszystkie teksty z tymi samymi `{0}`.
+
 ## Gdzie są dane
 
 `%LocalAppData%\M3uPlayer` (nazwa sprzed zmiany na ShadowPlayer, zostawiona, żeby nie przenosić danych): baza `m3u.db`, pamięć podręczna logo (`logos`), pliki tymczasowe (`tmp`) i dziennik `app.log`. Usunięcie folderu przywraca aplikację do stanu początkowego. Dziennik nie zawiera tokenów, ale komunikaty o błędach połączenia mogą zawierać nazwę serwera.

@@ -53,3 +53,9 @@ Sprawdzone przez agenta na opublikowanym `M3uPlayer.App.exe`, na świeżym folde
 2. Brak sieci: źródło z nieosiągalnym adresem pokazuje błąd przy źródle; lista wczytana wcześniej zachowuje stare kanały i dostaje błąd, gdy serwer przestaje odpowiadać (odświeżanie trwa ok. 2,5 min z powodu ponowień). **[zweryfikowane przez agenta]**
 3. Odświeżanie źródła EPG z prawdziwego adresu: drugie odświeżenie kończy się powodzeniem, zapisany jest ETag; aplikacja nie pokazuje komunikatu „nie zmieniono”, więc odpowiedzi 304 nie widać w interfejsie. **[zweryfikowane częściowo]**
 4. Dźwięk, synchronizacja obrazu i dźwięku, motyw jasny, płynność przewijania, skróty klawiaturowe i fokus Tab. **[do sprawdzenia przez właściciela]**
+
+## Wersje językowe
+
+1. Ustawienia → Język: zmiana Polski ↔ English zamyka aplikację i uruchamia ją ponownie w wybranym języku; wraca ten sam kanał i kategoria.
+2. Po angielsku: lista kanałów, ramówka (nazwy dni), archiwum (podpis i pasek), Ustawienia, dodawanie i usuwanie źródła, komunikat błędu odtwarzania. Żaden tekst nie zostaje po polsku i nigdzie nie widać nazwy klucza zamiast tekstu.
+3. Pierwsze uruchomienie bez zapisanego języka: polski Windows daje polski, każdy inny angielski. **[do sprawdzenia przez właściciela]**
