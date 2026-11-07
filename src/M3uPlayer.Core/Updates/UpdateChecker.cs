@@ -17,7 +17,7 @@ public sealed partial class UpdateChecker(HttpClient http, Version current)
     public const string LatestUrl = "https://api.github.com/repos/w00li/ShadowPlayer/releases/latest";
     private const string DownloadPrefix = "https://github.com/w00li/ShadowPlayer/releases/download/";
 
-    [GeneratedRegex(@"^v(\d{1,5})\.(\d{1,5})\.(\d{1,5})$")]
+    [GeneratedRegex(@"^v([0-9]{1,5})\.([0-9]{1,5})\.([0-9]{1,5})$")]
     private static partial Regex Tag();
 
     [GeneratedRegex("^sha256:([0-9a-f]{64})$")]
@@ -50,8 +50,9 @@ public sealed partial class UpdateChecker(HttpClient http, Version current)
             {
                 if (a.ValueKind != JsonValueKind.Object || Str(a, "name") != fileName) continue;
                 if (Str(a, "digest") is not { } digest || Digest().Match(digest) is not { Success: true } d) return null;
-                if (Str(a, "browser_download_url") is not { } url || !url.StartsWith(DownloadPrefix, StringComparison.Ordinal)
-                    || !Uri.TryCreate(url, UriKind.Absolute, out var download)) return null;
+                // Checked after Uri has resolved any "../", so the address cannot climb out of this repository.
+                if (Str(a, "browser_download_url") is not { } url || !Uri.TryCreate(url, UriKind.Absolute, out var download)
+                    || !download.AbsoluteUri.StartsWith(DownloadPrefix, StringComparison.Ordinal)) return null;
                 return new UpdateInfo(version, fileName, download, d.Groups[1].Value, pageUri);
             }
             return null;
@@ -110,13 +111,25 @@ public sealed partial class UpdateChecker(HttpClient http, Version current)
         }
     }
 
+    /// <summary>
+    /// The installer opened so it cannot be changed, renamed or deleted, and only when its hash matches. Keep it open until the
+    /// installer has been started, so nothing can swap the file between the check and the run.
+    /// </summary>
+    public static FileStream? OpenVerified(string path, string sha256)
+    {
+        var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (Convert.ToHexStringLower(SHA256.HashData(file)) == sha256) return file;
+        file.Dispose();
+        return null;
+    }
+
     public static bool Verify(string path, string sha256)
     {
         using var file = File.OpenRead(path);
         return Convert.ToHexStringLower(SHA256.HashData(file)) == sha256;
     }
 
-    [GeneratedRegex(@"^ShadowPlayer-Setup-(\d{1,5})\.(\d{1,5})\.(\d{1,5})\.exe$")]
+    [GeneratedRegex(@"^ShadowPlayer-Setup-([0-9]{1,5})\.([0-9]{1,5})\.([0-9]{1,5})\.exe$")]
     private static partial Regex InstallerName();
 
     /// <summary>Removes everything in the folder except an installer newer than the running version (verified again before it runs).</summary>

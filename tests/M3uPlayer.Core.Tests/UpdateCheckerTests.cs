@@ -218,4 +218,36 @@ public sealed class UpdateCheckerTests : IDisposable
         UpdateChecker.Clean(_dir, Current);
         Assert.Equal(["ShadowPlayer-Setup-1.1.0.exe"], Files());
     }
+
+    // ---- review fixes ----
+
+    [Fact]
+    public void Clean_survives_a_name_with_other_digits()
+    {
+        File.WriteAllText(Path.Combine(_dir, "ShadowPlayer-Setup-١.٠.٠.exe"), "x"); // Arabic-Indic digits
+        UpdateChecker.Clean(_dir, Current);
+        Assert.Empty(Files());
+    }
+
+    [Fact]
+    public void A_tag_with_other_digits_is_no_update() =>
+        Assert.Null(UpdateChecker.Parse(Release("v١.١.٠", name: "ShadowPlayer-Setup-1.1.0.exe"), Current));
+
+    [Fact]
+    public void A_download_url_that_climbs_out_of_the_repo_is_no_update() =>
+        Assert.Null(UpdateChecker.Parse(Release(url: Repo + "../../../../someone/other/releases/download/v1.1.0/ShadowPlayer-Setup-1.1.0.exe"), Current));
+
+    [Fact]
+    public void OpenVerified_holds_the_file_against_changes_until_disposed()
+    {
+        var path = Path.Combine(_dir, "ShadowPlayer-Setup-1.1.0.exe");
+        File.WriteAllText(path, "abc");
+        using (var held = UpdateChecker.OpenVerified(path, Sha("abc")))
+        {
+            Assert.NotNull(held);
+            Assert.ThrowsAny<IOException>(() => File.WriteAllText(path, "evil"));
+            Assert.ThrowsAny<IOException>(() => File.Delete(path));
+        }
+        Assert.Null(UpdateChecker.OpenVerified(path, Sha("other")));
+    }
 }
