@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Alles löschen</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Oben anheften</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Lösen</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Ausblenden</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>„{0}“ ausgeblendet. In Einstellungen → Kategorien wieder einblenden.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Kategorien</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Angeheftet</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Ausgeblendet</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, angeheftet</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, ausgeblendet</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Alle Kategorien einblenden</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Alle Kategorien einblenden?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>Alle ausgeblendeten Kategorien kehren in die Leiste zurück.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Alle einblenden</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>Keine Kategorien. Fügen Sie eine Liste hinzu, um sie zu sehen.</value>
+  </data>
 </root>

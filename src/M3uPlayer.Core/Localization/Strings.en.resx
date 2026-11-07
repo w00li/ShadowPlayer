@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Delete everything</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Pin to top</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Unpin</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>“{0}” is hidden. Bring it back in Settings → Categories.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Pinned</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, pinned</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, hidden</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Show all categories</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Show all categories?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>All hidden categories will return to the panel.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>No categories. Add a list to see them.</value>
+  </data>
 </root>

@@ -8,6 +8,10 @@
     xmlns:vlc="using:LibVLCSharp.Platforms.Windows"
     NavigationCacheMode="Required">
     <Page.Resources>
+        <MenuFlyout x:Key="CategoryMenu">
+            <MenuFlyoutItem Click="CategoryPin_Click" />
+            <MenuFlyoutItem Text="{l:Tr Key=Categories_Hide}" Click="CategoryHide_Click" />
+        </MenuFlyout>
         <Style x:Key="PaneCardStyle" TargetType="Border">
             <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
             <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
@@ -142,7 +146,7 @@
                     <TextBlock Text="{l:Tr Key=Live_Categories}" Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="12,0,12,4" />
                     <ListView x:Name="CategoryList" Grid.Row="1" ItemsSource="{x:Bind Vm.Categories}" ItemTemplate="{StaticResource CategoryTemplate}"
                               ItemContainerStyle="{StaticResource RowItemStyle}" SelectionMode="Single"
-                              SelectedItem="{x:Bind Vm.SelectedCategory, Mode=OneWay}" SelectionChanged="CategoryList_SelectionChanged"
+                              SelectedItem="{x:Bind Vm.SelectedCategory, Mode=OneWay}" SelectionChanged="CategoryList_SelectionChanged" ContextRequested="Category_ContextRequested"
                               AutomationProperties.Name="{l:Tr Key=Live_Categories}" />
                 </Grid>
             </Border>
@@ -151,6 +155,7 @@
             <Border x:Name="ChannelCard" Grid.Column="1" Style="{StaticResource PaneCardStyle}">
                 <Grid RowSpacing="8" Padding="8,8,8,4">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -169,12 +174,14 @@
                     </Grid>
                     <ComboBox x:Name="CategoryCombo" Grid.Row="1" HorizontalAlignment="Stretch" Visibility="Collapsed"
                               ItemsSource="{x:Bind Vm.Categories}" DisplayMemberPath="Name" SelectedItem="{x:Bind Vm.SelectedCategory, Mode=OneWay}"
-                              SelectionChanged="CategoryCombo_SelectionChanged" AutomationProperties.Name="{l:Tr Key=Live_Category}" />
-                    <ListView x:Name="ChannelList" Grid.Row="2" SingleSelectionFollowsFocus="False" ItemsSource="{x:Bind Vm.Channels}" ItemTemplate="{StaticResource ChannelTemplate}"
+                              SelectionChanged="CategoryCombo_SelectionChanged" ContextRequested="Category_ContextRequested" AutomationProperties.Name="{l:Tr Key=Live_Category}" />
+                    <InfoBar Grid.Row="2" Severity="Informational" IsClosable="True" IsOpen="{x:Bind Vm.HasNotice, Mode=OneWay}"
+                             Message="{x:Bind Vm.Notice, Mode=OneWay}" Closed="Notice_Closed" />
+                    <ListView x:Name="ChannelList" Grid.Row="3" SingleSelectionFollowsFocus="False" ItemsSource="{x:Bind Vm.Channels}" ItemTemplate="{StaticResource ChannelTemplate}"
                               ItemContainerStyle="{StaticResource RowItemStyle}" SelectionMode="Single"
                               ContainerContentChanging="ChannelList_ContainerContentChanging" IsItemClickEnabled="True" ItemClick="ChannelList_ItemClick"
                               AutomationProperties.Name="{l:Tr Key=Live_Channels}" />
-                    <StackPanel Grid.Row="2" Visibility="{x:Bind Vm.HasListMessage, Mode=OneWay}" Spacing="12" Padding="16"
+                    <StackPanel Grid.Row="3" Visibility="{x:Bind Vm.HasListMessage, Mode=OneWay}" Spacing="12" Padding="16"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="{x:Bind Vm.ListMessage, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />

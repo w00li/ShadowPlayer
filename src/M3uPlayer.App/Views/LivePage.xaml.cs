@@ -1,5 +1,6 @@
 using M3uPlayer.App.Player;
 using M3uPlayer.App.ViewModels;
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Media;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
@@ -87,6 +88,35 @@ public sealed partial class LivePage : Page
     {
         if (CategoryCombo.SelectedItem is CategoryItem c) { Vm.SelectCategory(c); FocusVideoAfterPointer(CategoryCombo); }
     }
+
+    private CategoryItem? _menuCategory;
+
+    /// <summary>Right click, Shift+F10 or the Menu key on a list category; the drop-down of a narrow window acts on its chosen category.</summary>
+    private void Category_ContextRequested(UIElement sender, ContextRequestedEventArgs e)
+    {
+        var source = e.OriginalSource as FrameworkElement;
+        var item = ReferenceEquals(sender, CategoryCombo) ? Vm.SelectedCategory
+            : source?.DataContext as CategoryItem ?? (source as ListViewItem)?.Content as CategoryItem;
+        if (item is not { CanManage: true } || source is null) return;
+        e.Handled = true;
+        _menuCategory = item;
+        var menu = (MenuFlyout)Resources["CategoryMenu"];
+        ((MenuFlyoutItem)menu.Items[0]).Text = item.IsPinned ? Strings.Categories_Unpin : Strings.Categories_Pin;
+        if (e.TryGetPosition(source, out var at)) menu.ShowAt(source, new FlyoutShowOptions { Position = at });
+        else menu.ShowAt(source);
+    }
+
+    private void CategoryPin_Click(object sender, RoutedEventArgs e)
+    {
+        if (_menuCategory is { } c) Safe.Run(() => Vm.SetCategoryPrefAsync(c, !c.IsPinned, false));
+    }
+
+    private void CategoryHide_Click(object sender, RoutedEventArgs e)
+    {
+        if (_menuCategory is { } c) Safe.Run(() => Vm.SetCategoryPrefAsync(c, false, true));
+    }
+
+    private void Notice_Closed(InfoBar sender, InfoBarClosedEventArgs args) => Vm.CloseNotice();
 
     private void CategoryToggle_Click(object sender, RoutedEventArgs e)
     {

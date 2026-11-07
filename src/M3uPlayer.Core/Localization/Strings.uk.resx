@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Видалити все</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Закріпити вгорі</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Відкріпити</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Сховати</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>«{0}» сховано. Повернути можна в Налаштування → Категорії.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Категорії</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Закріплена</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Схована</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, закріплена</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, схована</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Показати всі категорії</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Показати всі категорії?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>Усі сховані категорії повернуться на панель.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Показати всі</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>Немає категорій. Додайте список, щоб їх побачити.</value>
+  </data>
 </root>

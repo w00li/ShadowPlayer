@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Tout supprimer</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Épingler en haut</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Désépingler</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Masquer</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>« {0} » masquée. Rétablissez-la dans Paramètres → Catégories.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Catégories</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Épinglée</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Masquée</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, épinglée</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, masquée</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Afficher toutes les catégories</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Afficher toutes les catégories ?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>Toutes les catégories masquées reviendront dans le panneau.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Tout afficher</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>Aucune catégorie. Ajoutez une liste pour les voir.</value>
+  </data>
 </root>

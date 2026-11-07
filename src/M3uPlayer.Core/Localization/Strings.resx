@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Usuń wszystko</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Przypnij na górze</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Odepnij</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Ukryj</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>Ukryto „{0}”. Przywrócisz ją w Ustawieniach → Kategorie.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Przypięta</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Ukryta</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, przypięta</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, ukryta</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Pokaż wszystkie kategorie</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Pokazać wszystkie kategorie?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>Wszystkie ukryte kategorie wrócą do panelu.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Pokaż wszystkie</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>Brak kategorii. Dodaj listę, żeby je zobaczyć.</value>
+  </data>
 </root>

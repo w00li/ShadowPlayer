@@ -286,14 +286,15 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     private void ApplyCategories(IReadOnlyList<CategoryCount> cats, int all, int fav)
     {
-        var wanted = new List<(string Key, string Name, int Count)> { (CategoryItem.AllKey, Strings.Live_All, all), (CategoryItem.FavoritesKey, Strings.Live_Favorites, fav) };
-        wanted.AddRange(cats.Select(c => ("c:" + c.Name, c.Name, c.Count)));
+        var wanted = new List<(string Key, string Name, int Count, bool Pinned)>
+            { (CategoryItem.AllKey, Strings.Live_All, all, false), (CategoryItem.FavoritesKey, Strings.Live_Favorites, fav, false) };
+        wanted.AddRange(cats.Where(c => !c.Hidden).Select(c => ("c:" + c.Name, c.Name, c.Count, c.Pinned)));
         if (Categories.Select(c => c.Key).SequenceEqual(wanted.Select(w => w.Key)))
-            for (var i = 0; i < wanted.Count; i++) Categories[i].SetCount(wanted[i].Count);
+            for (var i = 0; i < wanted.Count; i++) { Categories[i].SetCount(wanted[i].Count); Categories[i].SetPinned(wanted[i].Pinned); }
         else
         {
             Categories.Clear();
-            foreach (var w in wanted) Categories.Add(new CategoryItem(w.Key, w.Name, w.Count));
+            foreach (var w in wanted) Categories.Add(new CategoryItem(w.Key, w.Name, w.Count, w.Pinned));
         }
         var selected = Categories.FirstOrDefault(c => c.Key == (SelectedCategory?.Key ?? _startCategory)) ?? Categories[0];
         if (!ReferenceEquals(selected, SelectedCategory)) { SelectedCategory = selected; Raise(nameof(SelectedCategory)); }
@@ -311,6 +312,40 @@ public sealed partial class LiveViewModel : Observable, IDisposable
 
     public void ClearSearch() => SearchText = "";
 
+    // ---- managing categories ----
+    private int _noticeVersion;
+
+    /// <summary>A short message over the channel list; empty when there is none.</summary>
+    public string Notice { get; private set; } = "";
+    public bool HasNotice => Notice.Length > 0;
+
+    /// <summary>Hiding the open category goes to "All"; whatever plays keeps playing.</summary>
+    public async Task SetCategoryPrefAsync(CategoryItem item, bool pinned, bool hidden)
+    {
+        if (item.StoredName is not { } name) return;
+        await Task.Run(() => _channels.SetCategoryPref(name, pinned, hidden));
+        if (hidden && SelectedCategory?.Key == item.Key && Categories.FirstOrDefault(c => c.Key == CategoryItem.AllKey) is { } all) SelectCategory(all);
+        if (hidden) ShowNotice(string.Format(Strings.Categories_HiddenNotice, item.Name));
+        await ReloadAsync();
+    }
+
+    public void CloseNotice() => SetNotice("");
+
+    private async void ShowNotice(string text)
+    {
+        var version = SetNotice(text);
+        await Task.Delay(TimeSpan.FromSeconds(6));
+        if (version == _noticeVersion) SetNotice("");
+    }
+
+    private int SetNotice(string text)
+    {
+        Notice = text;
+        Raise(nameof(Notice));
+        Raise(nameof(HasNotice));
+        return ++_noticeVersion;
+    }
+
     // ---- restoring the last session ----
     private bool _restored;
     private string _startCategory = SessionRestore.AllKey;
@@ -323,7 +358,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
         {
             var key = _db.GetSetting(ChannelSetting);
             return (Category: _db.GetSetting(CategorySetting), Channel: key is null ? null : _channels.Find(key),
-                Known: _channels.Categories().Select(c => "c:" + c.Name).ToHashSet(), Volume: _db.GetSetting(VolumeSetting),
+                Known: _channels.Categories().Where(c => !c.Hidden).Select(c => "c:" + c.Name).ToHashSet(), Volume: _db.GetSetting(VolumeSetting),
                 Muted: _db.GetSetting(MutedSetting), Collapsed: _db.GetSetting(PaneCollapsedSetting));
         });
         if (_disposed) return;

@@ -513,4 +513,46 @@
   <data name="Settings_ClearAllConfirm" xml:space="preserve">
     <value>Elimina tutto</value>
   </data>
+  <data name="Categories_Pin" xml:space="preserve">
+    <value>Fissa in alto</value>
+  </data>
+  <data name="Categories_Unpin" xml:space="preserve">
+    <value>Sblocca</value>
+  </data>
+  <data name="Categories_Hide" xml:space="preserve">
+    <value>Nascondi</value>
+  </data>
+  <data name="Categories_HiddenNotice" xml:space="preserve">
+    <value>«{0}» nascosta. Puoi ripristinarla in Impostazioni → Categorie.</value>
+  </data>
+  <data name="Settings_TabCategories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="Settings_CategoryPinned" xml:space="preserve">
+    <value>Fissata</value>
+  </data>
+  <data name="Settings_CategoryHidden" xml:space="preserve">
+    <value>Nascosta</value>
+  </data>
+  <data name="Settings_CategoryPinnedName" xml:space="preserve">
+    <value>{0}, fissata</value>
+  </data>
+  <data name="Settings_CategoryHiddenName" xml:space="preserve">
+    <value>{0}, nascosta</value>
+  </data>
+  <data name="Settings_ShowAllCategories" xml:space="preserve">
+    <value>Mostra tutte le categorie</value>
+  </data>
+  <data name="Settings_ShowAllQuestion" xml:space="preserve">
+    <value>Mostrare tutte le categorie?</value>
+  </data>
+  <data name="Settings_ShowAllBody" xml:space="preserve">
+    <value>Tutte le categorie nascoste torneranno nel pannello.</value>
+  </data>
+  <data name="Settings_ShowAllConfirm" xml:space="preserve">
+    <value>Mostra tutte</value>
+  </data>
+  <data name="Settings_NoCategories" xml:space="preserve">
+    <value>Nessuna categoria. Aggiungi un elenco per vederle.</value>
+  </data>
 </root>

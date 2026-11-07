@@ -7,13 +7,25 @@ using M3uPlayer.Core.Text;
 
 namespace M3uPlayer.App.ViewModels;
 
-public sealed class CategoryItem(string key, string name, int count) : Observable
+public sealed class CategoryItem(string key, string name, int count, bool pinned = false) : Observable
 {
     public const string AllKey = SessionRestore.AllKey, FavoritesKey = SessionRestore.FavoritesKey;
 
     public string Key { get; } = key;
     public string Name { get; } = name == M3uParser.DefaultCategory ? Strings.Category_Other : name;
     public int Count { get; private set; } = count;
+    public bool IsPinned { get; private set; } = pinned;
+
+    /// <summary>The name kept in the database for a list category; null for "All" and "Favourites", which cannot be pinned or hidden.</summary>
+    public string? StoredName => Key.StartsWith("c:", StringComparison.Ordinal) ? Key[2..] : null;
+    public bool CanManage => StoredName is not null;
+
+    public void SetPinned(bool pinned)
+    {
+        if (pinned == IsPinned) return;
+        IsPinned = pinned;
+        Raise();
+    }
     public string CountText => Count.ToString();
     public string AutomationName => $"{Name}, {Count}";
 
