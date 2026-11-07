@@ -114,4 +114,108 @@ public sealed class UpdateCheckerTests : IDisposable
         var h = new Handler(_ => Task.FromResult(Text("boom", HttpStatusCode.InternalServerError)));
         await Assert.ThrowsAsync<HttpRequestException>(() => new UpdateChecker(new HttpClient(h), Current).CheckAsync(CancellationToken.None));
     }
+
+    // ---- downloading ----
+
+    private static UpdateInfo Info(string content = "abc") =>
+        new(new Version(1, 1, 0), "ShadowPlayer-Setup-1.1.0.exe", new Uri(Repo + "v1.1.0/ShadowPlayer-Setup-1.1.0.exe"), Sha(content),
+            new Uri("https://github.com/w00li/ShadowPlayer/releases/tag/v1.1.0"));
+
+    private UpdateChecker Serving(Func<HttpRequestMessage, Task<HttpResponseMessage>> respond) => new(new HttpClient(new Handler(respond)), Current);
+
+    private string[] Files() => [.. Directory.GetFiles(_dir).Select(Path.GetFileName).Order()!];
+
+    private sealed class Progress : IProgress<double>
+    {
+        public readonly List<double> Values = [];
+        public void Report(double value) => Values.Add(value);
+    }
+
+    [Fact]
+    public async Task Matching_hash_leaves_the_installer_in_place()
+    {
+        var progress = new Progress();
+        var path = await Serving(_ => Task.FromResult(Text("abc"))).DownloadAsync(Info(), _dir, progress, CancellationToken.None);
+        Assert.Equal(Path.Combine(_dir, "ShadowPlayer-Setup-1.1.0.exe"), path);
+        Assert.Equal(["ShadowPlayer-Setup-1.1.0.exe"], Files());
+        Assert.Equal(1.0, progress.Values[^1]);
+    }
+
+    [Fact]
+    public async Task Mismatching_hash_removes_the_file()
+    {
+        await Assert.ThrowsAsync<InvalidDataException>(() => Serving(_ => Task.FromResult(Text("not abc"))).DownloadAsync(Info(), _dir, null, CancellationToken.None));
+        Assert.Empty(Files());
+    }
+
+    [Fact]
+    public async Task Cancelling_removes_the_part_file()
+    {
+        using var cts = new CancellationTokenSource();
+        var stalled = new StalledContent(cts);
+        var checker = Serving(_ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = stalled }));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => checker.DownloadAsync(Info(), _dir, null, cts.Token));
+        Assert.Empty(Files());
+    }
+
+    /// <summary>Sends a few bytes, then cancels the download and waits.</summary>
+    private sealed class StalledContent(CancellationTokenSource cts) : HttpContent
+    {
+        protected override async Task SerializeToStreamAsync(Stream stream, System.Net.TransportContext? context)
+        {
+            await stream.WriteAsync("ab"u8.ToArray());
+            await stream.FlushAsync();
+            await cts.CancelAsync();
+            await Task.Delay(Timeout.Infinite, cts.Token);
+        }
+
+        protected override bool TryComputeLength(out long length) { length = 3; return true; }
+    }
+
+    [Fact]
+    public async Task Network_failure_removes_the_part_file()
+    {
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            Serving(_ => Task.FromResult(Text("gone", HttpStatusCode.NotFound))).DownloadAsync(Info(), _dir, null, CancellationToken.None));
+        Assert.Empty(Files());
+    }
+
+    [Fact]
+    public async Task Download_follows_a_redirect_and_verifies()
+    {
+        var checker = Serving(r => Task.FromResult(r.RequestUri!.Host == "github.com"
+            ? new HttpResponseMessage(HttpStatusCode.Found) { Headers = { Location = new Uri("https://objects.githubusercontent.com/x") } }
+            : Text("abc")));
+        // The fake handler does not follow redirects; the checker must.
+        var path = await checker.DownloadAsync(Info(), _dir, null, CancellationToken.None);
+        Assert.True(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task Existing_file_is_verified_again()
+    {
+        File.WriteAllText(Path.Combine(_dir, "ShadowPlayer-Setup-1.1.0.exe"), "tampered");
+        var calls = 0;
+        var path = await Serving(_ => { calls++; return Task.FromResult(Text("abc")); }).DownloadAsync(Info(), _dir, null, CancellationToken.None);
+        Assert.Equal(1, calls);
+        Assert.Equal("abc", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public async Task A_verified_file_is_not_downloaded_again()
+    {
+        File.WriteAllText(Path.Combine(_dir, "ShadowPlayer-Setup-1.1.0.exe"), "abc");
+        var calls = 0;
+        await Serving(_ => { calls++; return Task.FromResult(Text("abc")); }).DownloadAsync(Info(), _dir, null, CancellationToken.None);
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public void Clean_keeps_only_an_installer_newer_than_the_running_version()
+    {
+        foreach (var f in new[] { "ShadowPlayer-Setup-1.0.0.exe", "ShadowPlayer-Setup-1.1.0.exe", "ShadowPlayer-Setup-1.1.0.exe.part", "notes.txt" })
+            File.WriteAllText(Path.Combine(_dir, f), "x");
+        UpdateChecker.Clean(_dir, Current);
+        Assert.Equal(["ShadowPlayer-Setup-1.1.0.exe"], Files());
+    }
 }
