@@ -1,0 +1,447 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Guide_Today" xml:space="preserve">
+    <value>Oggi</value>
+  </data>
+  <data name="Guide_Tomorrow" xml:space="preserve">
+    <value>Domani</value>
+  </data>
+  <data name="Guide_Yesterday" xml:space="preserve">
+    <value>Ieri</value>
+  </data>
+  <data name="Guide_DayDate" xml:space="preserve">
+    <value>{0} {1} {2}</value>
+  </data>
+  <data name="Archive_Caption" xml:space="preserve">
+    <value>Archivio: {0}</value>
+  </data>
+  <data name="Archive_Position" xml:space="preserve">
+    <value>Posizione nel programma: {0} di {1}</value>
+  </data>
+  <data name="Live_Reconnecting" xml:space="preserve">
+    <value>Riconnessione…</value>
+  </data>
+  <data name="Live_PlayFailed" xml:space="preserve">
+    <value>Impossibile riprodurre il canale.</value>
+  </data>
+  <data name="Live_TryAgain" xml:space="preserve">
+    <value>Riprova</value>
+  </data>
+  <data name="Live_Paused" xml:space="preserve">
+    <value>In pausa</value>
+  </data>
+  <data name="Live_ContinueWatching" xml:space="preserve">
+    <value>Continua a guardare</value>
+  </data>
+  <data name="Live_Watch" xml:space="preserve">
+    <value>Guarda</value>
+  </data>
+  <data name="Live_PickChannel" xml:space="preserve">
+    <value>Scegli un canale dall’elenco</value>
+  </data>
+  <data name="Live_SearchMatch" xml:space="preserve">
+    <value>Trovato: {0}{1} {2}</value>
+  </data>
+  <data name="Category_Other" xml:space="preserve">
+    <value>Altro</value>
+  </data>
+  <data name="Playlist_NotM3u" xml:space="preserve">
+    <value>Questo non sembra un elenco M3U (manca l’intestazione #EXTM3U). I dati precedenti sono stati mantenuti.</value>
+  </data>
+  <data name="Refresh_NotModifiedNoData" xml:space="preserve">
+    <value>Il server non ha segnalato modifiche, ma i dati non sono ancora stati caricati. Riproveremo al prossimo aggiornamento.</value>
+  </data>
+  <data name="Refresh_NoChannels" xml:space="preserve">
+    <value>L’elenco non contiene canali, quindi i dati precedenti sono stati mantenuti.</value>
+  </data>
+  <data name="Refresh_ListShrank" xml:space="preserve">
+    <value>Voci ora: {0}, prima: {1}, quindi l’elenco non è stato applicato. Rimuovi l’elenco e aggiungilo di nuovo se deve essere più piccolo.</value>
+  </data>
+  <data name="Fetch_UnsupportedSource" xml:space="preserve">
+    <value>Indirizzo della sorgente non supportato. Rimuovi questa sorgente e aggiungila di nuovo.</value>
+  </data>
+  <data name="Fetch_NoResponse" xml:space="preserve">
+    <value>Il server non risponde. Riproveremo al prossimo aggiornamento.</value>
+  </data>
+  <data name="Fetch_HttpError" xml:space="preserve">
+    <value>Il server ha risposto con l’errore HTTP {0}. Riproveremo al prossimo aggiornamento.</value>
+  </data>
+  <data name="Fetch_BadRedirect" xml:space="preserve">
+    <value>Il server ha reindirizzato a un indirizzo non supportato. Controlla l’indirizzo della sorgente.</value>
+  </data>
+  <data name="Fetch_FileNotFound" xml:space="preserve">
+    <value>File non trovato. Controlla che non sia stato spostato o eliminato.</value>
+  </data>
+  <data name="Fetch_FileUnreadable" xml:space="preserve">
+    <value>Impossibile leggere il file. Controlla che nessun altro programma lo stia usando e di avervi accesso.</value>
+  </data>
+  <data name="Fetch_TempWriteFailed" xml:space="preserve">
+    <value>Impossibile scrivere un file temporaneo. Controlla lo spazio libero su disco e i permessi.</value>
+  </data>
+  <data name="Fetch_TooLarge" xml:space="preserve">
+    <value>La sorgente supera il limite consentito di 500 MB, quindi non è stata caricata.</value>
+  </data>
+  <data name="Source_EnterAddress" xml:space="preserve">
+    <value>Inserisci un indirizzo che inizia con http:// o https://, oppure scegli un file dal disco.</value>
+  </data>
+  <data name="Source_UnsupportedAddress" xml:space="preserve">
+    <value>Questo indirizzo non è supportato. Inserisci un indirizzo completo che inizia con http:// o https://.</value>
+  </data>
+  <data name="Source_WebAddress" xml:space="preserve">
+    <value>Indirizzo web</value>
+  </data>
+  <data name="Source_LocalFile" xml:space="preserve">
+    <value>File locale</value>
+  </data>
+  <data name="Source_File" xml:space="preserve">
+    <value>File: {0}</value>
+  </data>
+  <data name="Epg_NoProgrammes" xml:space="preserve">
+    <value>Il file EPG non contiene programmi utilizzabili. I dati precedenti sono stati mantenuti.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Lingua</value>
+  </data>
+  <data name="Settings_LanguageRestart" xml:space="preserve">
+    <value>L’app verrà riavviata.</value>
+  </data>
+  <data name="Restart_Failed" xml:space="preserve">
+    <value>Impossibile riavviare l’app. Avviala manualmente. Verrà usata la lingua scelta.</value>
+  </data>
+  <data name="Main_Live" xml:space="preserve">
+    <value>In diretta</value>
+  </data>
+  <data name="Main_Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="AddSource_Add" xml:space="preserve">
+    <value>Aggiungi</value>
+  </data>
+  <data name="AddSource_Cancel" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="AddSource_WebAddress" xml:space="preserve">
+    <value>Indirizzo web</value>
+  </data>
+  <data name="AddSource_Or" xml:space="preserve">
+    <value>oppure</value>
+  </data>
+  <data name="AddSource_PickFile" xml:space="preserve">
+    <value>Scegli un file dal disco</value>
+  </data>
+  <data name="AddSource_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Live_NoEpg" xml:space="preserve">
+    <value>Nessun EPG</value>
+  </data>
+  <data name="Live_InArchive" xml:space="preserve">
+    <value>Disponibile nell’archivio</value>
+  </data>
+  <data name="Live_NoListTitle" xml:space="preserve">
+    <value>Non hai ancora nessun elenco</value>
+  </data>
+  <data name="Live_NoListBody" xml:space="preserve">
+    <value>Aggiungi un elenco M3U da un indirizzo web o da un file e i canali appariranno qui.</value>
+  </data>
+  <data name="Live_NoListEpgHint" xml:space="preserve">
+    <value>Dopo aver aggiunto un elenco, puoi aggiungere anche una sorgente EPG nelle Impostazioni per vedere la guida TV.</value>
+  </data>
+  <data name="Live_AddList" xml:space="preserve">
+    <value>Aggiungi elenco</value>
+  </data>
+  <data name="Live_Categories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="Live_ToggleCategories" xml:space="preserve">
+    <value>Mostra o nascondi le categorie</value>
+  </data>
+  <data name="Live_Search" xml:space="preserve">
+    <value>Cerca un canale o un programma</value>
+  </data>
+  <data name="Live_Category" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="Live_Channels" xml:space="preserve">
+    <value>Canali</value>
+  </data>
+  <data name="Live_Clear" xml:space="preserve">
+    <value>Cancella</value>
+  </data>
+  <data name="Live_Guide" xml:space="preserve">
+    <value>Guida TV</value>
+  </data>
+  <data name="Live_WatchFromStart" xml:space="preserve">
+    <value>Guarda dall’inizio</value>
+  </data>
+  <data name="Live_Video" xml:space="preserve">
+    <value>Immagine</value>
+  </data>
+  <data name="Live_Connecting" xml:space="preserve">
+    <value>Connessione</value>
+  </data>
+  <data name="Live_AtRecordingEnd" xml:space="preserve">
+    <value>Fine della registrazione: da qui solo in diretta</value>
+  </data>
+  <data name="Live_ProgrammePosition" xml:space="preserve">
+    <value>Posizione nel programma</value>
+  </data>
+  <data name="Live_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Live_BackToLive" xml:space="preserve">
+    <value>Torna alla diretta</value>
+  </data>
+  <data name="Live_AudioTrack" xml:space="preserve">
+    <value>Traccia audio</value>
+  </data>
+  <data name="Live_Subtitles" xml:space="preserve">
+    <value>Sottotitoli</value>
+  </data>
+  <data name="Live_FullScreenKey" xml:space="preserve">
+    <value>Schermo intero (F)</value>
+  </data>
+  <data name="Live_FullScreen" xml:space="preserve">
+    <value>Schermo intero</value>
+  </data>
+  <data name="Settings_Refreshing" xml:space="preserve">
+    <value>Aggiornamento in corso</value>
+  </data>
+  <data name="Settings_MoveUp" xml:space="preserve">
+    <value>Sposta su</value>
+  </data>
+  <data name="Settings_MoveDown" xml:space="preserve">
+    <value>Sposta giù</value>
+  </data>
+  <data name="Settings_RefreshEvery" xml:space="preserve">
+    <value>Aggiorna ogni</value>
+  </data>
+  <data name="Interval_1h" xml:space="preserve">
+    <value>1 ora</value>
+  </data>
+  <data name="Interval_3h" xml:space="preserve">
+    <value>3 ore</value>
+  </data>
+  <data name="Interval_6h" xml:space="preserve">
+    <value>6 ore</value>
+  </data>
+  <data name="Interval_12h" xml:space="preserve">
+    <value>12 ore</value>
+  </data>
+  <data name="Interval_24h" xml:space="preserve">
+    <value>24 ore</value>
+  </data>
+  <data name="Interval_48h" xml:space="preserve">
+    <value>48 ore</value>
+  </data>
+  <data name="Interval_7d" xml:space="preserve">
+    <value>7 giorni</value>
+  </data>
+  <data name="Settings_AutoRefresh" xml:space="preserve">
+    <value>Aggiornamento automatico</value>
+  </data>
+  <data name="Settings_On" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="Settings_Off" xml:space="preserve">
+    <value>Disattivo</value>
+  </data>
+  <data name="Settings_RefreshNow" xml:space="preserve">
+    <value>Aggiorna ora</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Settings_Lists" xml:space="preserve">
+    <value>Elenchi</value>
+  </data>
+  <data name="Settings_AddList" xml:space="preserve">
+    <value>Aggiungi elenco</value>
+  </data>
+  <data name="Settings_NoLists" xml:space="preserve">
+    <value>Nessun elenco. Aggiungi il primo per vedere i canali.</value>
+  </data>
+  <data name="Settings_EpgSources" xml:space="preserve">
+    <value>Sorgenti EPG</value>
+  </data>
+  <data name="Settings_AddEpg" xml:space="preserve">
+    <value>Aggiungi sorgente EPG</value>
+  </data>
+  <data name="Settings_NoEpgs" xml:space="preserve">
+    <value>Nessuna sorgente EPG. Aggiungine per vedere la guida TV. L’ordine conta: vince la sorgente più in alto.</value>
+  </data>
+  <data name="Startup_Failed" xml:space="preserve">
+    <value>Impossibile avviare l’app. I dettagli sono stati salvati nel registro, nella cartella M3uPlayer dei dati locali. Chiudi le altre copie dell’app e riprova.</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Qualcosa è andato storto</value>
+  </data>
+  <data name="Error_Body" xml:space="preserve">
+    <value>L’app ha riscontrato un problema imprevisto. I dettagli sono stati salvati nel registro. Riprova l’azione; se il problema si ripresenta, riavvia l’app.</value>
+  </data>
+  <data name="Error_Close" xml:space="preserve">
+    <value>Chiudi messaggio</value>
+  </data>
+  <data name="Player_TrackOff" xml:space="preserve">
+    <value>Disattivati</value>
+  </data>
+  <data name="Player_ProgrammeFailed" xml:space="preserve">
+    <value>Impossibile riprodurre questo programma.</value>
+  </data>
+  <data name="Player_StreamFailed" xml:space="preserve">
+    <value>Impossibile riprodurre lo stream.</value>
+  </data>
+  <data name="Player_ConnectFailed" xml:space="preserve">
+    <value>Impossibile connettersi al canale. Riprova più tardi.</value>
+  </data>
+  <data name="Player_Stalled" xml:space="preserve">
+    <value>Tempo di attesa dello stream scaduto.</value>
+  </data>
+  <data name="Player_Error" xml:space="preserve">
+    <value>Si è verificato un errore del lettore.</value>
+  </data>
+  <data name="Guide_PickChannel" xml:space="preserve">
+    <value>Scegli un canale per vedere la sua guida TV.</value>
+  </data>
+  <data name="Guide_Empty" xml:space="preserve">
+    <value>Nessuna guida TV per questo canale.</value>
+  </data>
+  <data name="Guide_NoArchive" xml:space="preserve">
+    <value>Nessun archivio per questo programma</value>
+  </data>
+  <data name="Guide_NoArchiveAddress" xml:space="preserve">
+    <value>Impossibile creare l’indirizzo dell’archivio per questo programma.</value>
+  </data>
+  <data name="Live_AddFavorite" xml:space="preserve">
+    <value>Aggiungi ai preferiti</value>
+  </data>
+  <data name="Live_RemoveFavorite" xml:space="preserve">
+    <value>Rimuovi dai preferiti</value>
+  </data>
+  <data name="Live_Next" xml:space="preserve">
+    <value>Dopo {0} {1}</value>
+  </data>
+  <data name="Live_Now" xml:space="preserve">
+    <value>. Ora</value>
+  </data>
+  <data name="Live_Past" xml:space="preserve">
+    <value>. Terminato</value>
+  </data>
+  <data name="Live_Replayable" xml:space="preserve">
+    <value>. Disponibile nell’archivio</value>
+  </data>
+  <data name="Live_Play" xml:space="preserve">
+    <value>Riproduci</value>
+  </data>
+  <data name="Live_Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="Live_Unmute" xml:space="preserve">
+    <value>Riattiva audio</value>
+  </data>
+  <data name="Live_Mute" xml:space="preserve">
+    <value>Disattiva audio</value>
+  </data>
+  <data name="Live_NoResults" xml:space="preserve">
+    <value>Nessun risultato per «{0}»</value>
+  </data>
+  <data name="Live_NoFavorites" xml:space="preserve">
+    <value>Non hai ancora preferiti. Passa il mouse su un canale e fai clic sulla stella per farlo apparire qui.</value>
+  </data>
+  <data name="Live_EmptyCategory" xml:space="preserve">
+    <value>Non ci sono canali in questa categoria.</value>
+  </data>
+  <data name="Live_All" xml:space="preserve">
+    <value>Tutti</value>
+  </data>
+  <data name="Live_Favorites" xml:space="preserve">
+    <value>Preferiti</value>
+  </data>
+  <data name="Live_ExitFullScreenKey" xml:space="preserve">
+    <value>Esci da schermo intero (F, Esc)</value>
+  </data>
+  <data name="Live_ExitFullScreen" xml:space="preserve">
+    <value>Esci da schermo intero</value>
+  </data>
+  <data name="Live_Track" xml:space="preserve">
+    <value>Traccia {0}</value>
+  </data>
+  <data name="Settings_Remove" xml:space="preserve">
+    <value>Rimuovi {0}</value>
+  </data>
+  <data name="Settings_AutoAdded" xml:space="preserve">
+    <value>Aggiunta automaticamente dall’elenco «{0}». Rimuovi l’elenco per rimuovere questa sorgente.</value>
+  </data>
+  <data name="Settings_LastRefresh" xml:space="preserve">
+    <value>Ultimo aggiornamento: {0}</value>
+  </data>
+  <data name="Settings_NeverRefreshed" xml:space="preserve">
+    <value>Non ancora aggiornato</value>
+  </data>
+  <data name="Settings_Matched" xml:space="preserve">
+    <value>Canali abbinati: {0} di {1}</value>
+  </data>
+  <data name="Settings_ChannelCount" xml:space="preserve">
+    <value>Canali: {0}, con guida TV: {1}</value>
+  </data>
+  <data name="Settings_Skipped" xml:space="preserve">
+    <value>Voci danneggiate saltate: {0}</value>
+  </data>
+  <data name="Settings_Error" xml:space="preserve">
+    <value>Errore: {0}</value>
+  </data>
+  <data name="Settings_SaveScheduleFailed" xml:space="preserve">
+    <value>Impossibile salvare l’impostazione di aggiornamento. Riprova.</value>
+  </data>
+  <data name="Settings_RemoveEpgConsequence" xml:space="preserve">
+    <value>I canali degli elenchi restano.</value>
+  </data>
+  <data name="Settings_RemoveListConsequence" xml:space="preserve">
+    <value>I canali di questo elenco spariranno dall’app e verrà rimossa anche la sorgente EPG aggiunta automaticamente da questo elenco. I preferiti restano e torneranno quando aggiungerai di nuovo lo stesso elenco.</value>
+  </data>
+  <data name="Settings_RemoveQuestion" xml:space="preserve">
+    <value>Rimuovere «{0}»?</value>
+  </data>
+  <data name="AddSource_AddEpgTitle" xml:space="preserve">
+    <value>Aggiungi sorgente EPG</value>
+  </data>
+  <data name="AddSource_AddListTitle" xml:space="preserve">
+    <value>Aggiungi elenco</value>
+  </data>
+  <data name="AddSource_FileNotLocal" xml:space="preserve">
+    <value>Questo file non è disponibile sul disco (ad esempio è solo nel cloud). Scaricalo sul disco o scegline un altro.</value>
+  </data>
+  <data name="AddSource_PickerFailed" xml:space="preserve">
+    <value>Impossibile aprire la finestra di selezione file. Riprova o inserisci un indirizzo.</value>
+  </data>
+  <data name="AddSource_NameRequired" xml:space="preserve">
+    <value>Inserisci un nome con cui riconoscerai questa sorgente.</value>
+  </data>
+  <data name="Live_RowNow" xml:space="preserve">
+    <value>. Ora: {0}</value>
+  </data>
+  <data name="Live_RowNoEpg" xml:space="preserve">
+    <value>. Nessun EPG</value>
+  </data>
+  <data name="Live_RowPlaying" xml:space="preserve">
+    <value>. In riproduzione</value>
+  </data>
+  <data name="Live_PlayKey" xml:space="preserve">
+    <value>{0} (Spazio)</value>
+  </data>
+  <data name="Source_DefaultListName" xml:space="preserve">
+    <value>Elenco</value>
+  </data>
+</root>

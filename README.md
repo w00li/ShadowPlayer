@@ -28,7 +28,7 @@ Instalator wymaga uprawnień administratora. Domyślnie instaluje aplikację w `
 
 ## Języki
 
-Teksty są w `src/M3uPlayer.Core/Localization/Strings.resx` (polski, domyślny) i `Strings.en.resx`. Język wybiera się w Ustawieniach; bez wyboru aplikacja bierze język Windows, a gdy go nie zna, angielski. Nowy język: skopiuj `Strings.en.resx` jako `Strings.<kod>.resx`, przetłumacz wartości i dopisz `("<kod>", "<nazwa w tym języku>")` w `Languages.All` (`Localization/Languages.cs`). Test `LocalizationTests` sprawdza, czy każdy język ma wszystkie teksty z tymi samymi `{0}`.
+Teksty są w `src/M3uPlayer.Core/Localization/Strings.resx` (polski, domyślny) i w `Strings.<kod>.resx` dla angielskiego, niemieckiego, hiszpańskiego, francuskiego, włoskiego i ukraińskiego. Tłumaczenia poza polskim i angielskim nie były sprawdzane przez osoby mówiące tymi językami. Język wybiera się w Ustawieniach; bez wyboru aplikacja bierze język Windows, a gdy go nie zna, angielski. Nowy język: skopiuj `Strings.en.resx` jako `Strings.<kod>.resx`, przetłumacz wartości i dopisz `("<kod>", "<nazwa w tym języku>")` w `Languages.All` (`Localization/Languages.cs`). Test `LocalizationTests` sprawdza, czy każdy język ma wszystkie teksty z tymi samymi `{0}`.
 
 ## Gdzie są dane
 

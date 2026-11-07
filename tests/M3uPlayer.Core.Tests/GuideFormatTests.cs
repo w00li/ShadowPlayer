@@ -31,6 +31,16 @@ public class GuideFormatTests
         Assert.Equal(expected, GuideFormat.DayLabel(new DateTimeOffset(2026, 11, day, 10, 0, 0, TimeSpan.FromHours(2)), Now, Tz));
     }
 
+    [Theory]
+    [InlineData("de", "Samstag, 7. November")]
+    [InlineData("es", "sábado, 7 de noviembre")]
+    [InlineData("uk", "субота, 7 листопада")]
+    public void DayLabel_uses_each_language_date_pattern(string code, string expected)
+    {
+        using var _ = TestCulture.Use(code);
+        Assert.Equal(expected, GuideFormat.DayLabel(new DateTimeOffset(2026, 11, 7, 10, 0, 0, TimeSpan.FromHours(2)), Now, Tz));
+    }
+
     [Fact]
     public void DayLabel_uses_local_day_not_utc_day()
     {

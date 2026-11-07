@@ -6,7 +6,10 @@ namespace M3uPlayer.Core.Localization;
 public static class Languages
 {
     /// <summary>Each name is written in its own language, so a viewer can find their way back from one they cannot read.</summary>
-    public static readonly IReadOnlyList<(string Code, string Name)> All = [("pl", "Polski"), ("en", "English")];
+    public static readonly IReadOnlyList<(string Code, string Name)> All = 
+    [
+        ("pl", "Polski"), ("en", "English"), ("de", "Deutsch"), ("es", "Español"), ("fr", "Français"), ("it", "Italiano"), ("uk", "Українська"),
+    ];
 
     /// <summary>The saved choice while it is still offered, else the system language when offered, else English.</summary>
     public static string Resolve(string? saved, CultureInfo system) =>

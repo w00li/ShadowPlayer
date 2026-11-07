@@ -40,7 +40,7 @@ public class LocalizationTests
         Assert.Equal(expected, Languages.Resolve(saved, new CultureInfo(system)));
 
     [Fact]
-    public void Resolve_falls_back_to_english() => Assert.Equal("en", Languages.Resolve(null, new CultureInfo("de-DE")));
+    public void Resolve_falls_back_to_english() => Assert.Equal("en", Languages.Resolve(null, new CultureInfo("ja-JP")));
 
     [Fact]
     public void Resolve_ignores_unknown_saved_code() => Assert.Equal("pl", Languages.Resolve("xx", new CultureInfo("pl-PL")));

@@ -1,0 +1,447 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Guide_Today" xml:space="preserve">
+    <value>Сьогодні</value>
+  </data>
+  <data name="Guide_Tomorrow" xml:space="preserve">
+    <value>Завтра</value>
+  </data>
+  <data name="Guide_Yesterday" xml:space="preserve">
+    <value>Вчора</value>
+  </data>
+  <data name="Guide_DayDate" xml:space="preserve">
+    <value>{0}, {1} {2}</value>
+  </data>
+  <data name="Archive_Caption" xml:space="preserve">
+    <value>Архів: {0}</value>
+  </data>
+  <data name="Archive_Position" xml:space="preserve">
+    <value>Позиція в програмі: {0} з {1}</value>
+  </data>
+  <data name="Live_Reconnecting" xml:space="preserve">
+    <value>Повторне підключення…</value>
+  </data>
+  <data name="Live_PlayFailed" xml:space="preserve">
+    <value>Не вдалося відтворити канал.</value>
+  </data>
+  <data name="Live_TryAgain" xml:space="preserve">
+    <value>Спробувати ще раз</value>
+  </data>
+  <data name="Live_Paused" xml:space="preserve">
+    <value>Призупинено</value>
+  </data>
+  <data name="Live_ContinueWatching" xml:space="preserve">
+    <value>Дивитися далі</value>
+  </data>
+  <data name="Live_Watch" xml:space="preserve">
+    <value>Дивитися</value>
+  </data>
+  <data name="Live_PickChannel" xml:space="preserve">
+    <value>Виберіть канал зі списку</value>
+  </data>
+  <data name="Live_SearchMatch" xml:space="preserve">
+    <value>Знайдено: {0}{1} {2}</value>
+  </data>
+  <data name="Category_Other" xml:space="preserve">
+    <value>Інше</value>
+  </data>
+  <data name="Playlist_NotM3u" xml:space="preserve">
+    <value>Це не схоже на список M3U (немає заголовка #EXTM3U). Попередні дані збережено.</value>
+  </data>
+  <data name="Refresh_NotModifiedNoData" xml:space="preserve">
+    <value>Сервер не повідомив про зміни, але дані ще не завантажено. Спробуємо ще раз під час наступного оновлення.</value>
+  </data>
+  <data name="Refresh_NoChannels" xml:space="preserve">
+    <value>Список не містить каналів, тому попередні дані збережено.</value>
+  </data>
+  <data name="Refresh_ListShrank" xml:space="preserve">
+    <value>Записів зараз: {0}, раніше: {1}, тому список не застосовано. Видаліть список і додайте його знову, якщо він має бути меншим.</value>
+  </data>
+  <data name="Fetch_UnsupportedSource" xml:space="preserve">
+    <value>Непідтримувана адреса джерела. Видаліть це джерело й додайте його знову.</value>
+  </data>
+  <data name="Fetch_NoResponse" xml:space="preserve">
+    <value>Сервер не відповідає. Спробуємо ще раз під час наступного оновлення.</value>
+  </data>
+  <data name="Fetch_HttpError" xml:space="preserve">
+    <value>Сервер відповів помилкою HTTP {0}. Спробуємо ще раз під час наступного оновлення.</value>
+  </data>
+  <data name="Fetch_BadRedirect" xml:space="preserve">
+    <value>Сервер переспрямував на непідтримувану адресу. Перевірте адресу джерела.</value>
+  </data>
+  <data name="Fetch_FileNotFound" xml:space="preserve">
+    <value>Файл не знайдено. Перевірте, чи його не переміщено або не видалено.</value>
+  </data>
+  <data name="Fetch_FileUnreadable" xml:space="preserve">
+    <value>Не вдається прочитати файл. Перевірте, чи його не використовує інша програма і чи маєте ви до нього доступ.</value>
+  </data>
+  <data name="Fetch_TempWriteFailed" xml:space="preserve">
+    <value>Не вдається записати тимчасовий файл. Перевірте вільне місце на диску та дозволи.</value>
+  </data>
+  <data name="Fetch_TooLarge" xml:space="preserve">
+    <value>Джерело перевищує дозволені 500 МБ, тому його не завантажено.</value>
+  </data>
+  <data name="Source_EnterAddress" xml:space="preserve">
+    <value>Введіть адресу, що починається з http:// або https://, або виберіть файл на диску.</value>
+  </data>
+  <data name="Source_UnsupportedAddress" xml:space="preserve">
+    <value>Ця адреса не підтримується. Введіть повну адресу, що починається з http:// або https://.</value>
+  </data>
+  <data name="Source_WebAddress" xml:space="preserve">
+    <value>Вебадреса</value>
+  </data>
+  <data name="Source_LocalFile" xml:space="preserve">
+    <value>Локальний файл</value>
+  </data>
+  <data name="Source_File" xml:space="preserve">
+    <value>Файл: {0}</value>
+  </data>
+  <data name="Epg_NoProgrammes" xml:space="preserve">
+    <value>Файл EPG не містить придатних програм. Попередні дані збережено.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Мова</value>
+  </data>
+  <data name="Settings_LanguageRestart" xml:space="preserve">
+    <value>Застосунок перезапуститься.</value>
+  </data>
+  <data name="Restart_Failed" xml:space="preserve">
+    <value>Не вдалося перезапустити застосунок. Запустіть його вручну. Буде використано вибрану мову.</value>
+  </data>
+  <data name="Main_Live" xml:space="preserve">
+    <value>Наживо</value>
+  </data>
+  <data name="Main_Settings" xml:space="preserve">
+    <value>Налаштування</value>
+  </data>
+  <data name="AddSource_Add" xml:space="preserve">
+    <value>Додати</value>
+  </data>
+  <data name="AddSource_Cancel" xml:space="preserve">
+    <value>Скасувати</value>
+  </data>
+  <data name="AddSource_WebAddress" xml:space="preserve">
+    <value>Вебадреса</value>
+  </data>
+  <data name="AddSource_Or" xml:space="preserve">
+    <value>або</value>
+  </data>
+  <data name="AddSource_PickFile" xml:space="preserve">
+    <value>Вибрати файл на диску</value>
+  </data>
+  <data name="AddSource_Name" xml:space="preserve">
+    <value>Назва</value>
+  </data>
+  <data name="Live_NoEpg" xml:space="preserve">
+    <value>Немає EPG</value>
+  </data>
+  <data name="Live_InArchive" xml:space="preserve">
+    <value>Доступно в архіві</value>
+  </data>
+  <data name="Live_NoListTitle" xml:space="preserve">
+    <value>У вас ще немає жодного списку</value>
+  </data>
+  <data name="Live_NoListBody" xml:space="preserve">
+    <value>Додайте список M3U з вебадреси або з файлу, і канали з’являться тут.</value>
+  </data>
+  <data name="Live_NoListEpgHint" xml:space="preserve">
+    <value>Після додавання списку ви також можете додати джерело EPG у Налаштуваннях, щоб бачити телепрограму.</value>
+  </data>
+  <data name="Live_AddList" xml:space="preserve">
+    <value>Додати список</value>
+  </data>
+  <data name="Live_Categories" xml:space="preserve">
+    <value>Категорії</value>
+  </data>
+  <data name="Live_ToggleCategories" xml:space="preserve">
+    <value>Показати або сховати категорії</value>
+  </data>
+  <data name="Live_Search" xml:space="preserve">
+    <value>Пошук каналу або програми</value>
+  </data>
+  <data name="Live_Category" xml:space="preserve">
+    <value>Категорія</value>
+  </data>
+  <data name="Live_Channels" xml:space="preserve">
+    <value>Канали</value>
+  </data>
+  <data name="Live_Clear" xml:space="preserve">
+    <value>Очистити</value>
+  </data>
+  <data name="Live_Guide" xml:space="preserve">
+    <value>Телепрограма</value>
+  </data>
+  <data name="Live_WatchFromStart" xml:space="preserve">
+    <value>Дивитися з початку</value>
+  </data>
+  <data name="Live_Video" xml:space="preserve">
+    <value>Зображення</value>
+  </data>
+  <data name="Live_Connecting" xml:space="preserve">
+    <value>Підключення</value>
+  </data>
+  <data name="Live_AtRecordingEnd" xml:space="preserve">
+    <value>Кінець запису: далі лише наживо</value>
+  </data>
+  <data name="Live_ProgrammePosition" xml:space="preserve">
+    <value>Позиція в програмі</value>
+  </data>
+  <data name="Live_Volume" xml:space="preserve">
+    <value>Гучність</value>
+  </data>
+  <data name="Live_BackToLive" xml:space="preserve">
+    <value>Повернутися наживо</value>
+  </data>
+  <data name="Live_AudioTrack" xml:space="preserve">
+    <value>Звукова доріжка</value>
+  </data>
+  <data name="Live_Subtitles" xml:space="preserve">
+    <value>Субтитри</value>
+  </data>
+  <data name="Live_FullScreenKey" xml:space="preserve">
+    <value>Повноекранний режим (F)</value>
+  </data>
+  <data name="Live_FullScreen" xml:space="preserve">
+    <value>Повноекранний режим</value>
+  </data>
+  <data name="Settings_Refreshing" xml:space="preserve">
+    <value>Триває оновлення</value>
+  </data>
+  <data name="Settings_MoveUp" xml:space="preserve">
+    <value>Перемістити вище</value>
+  </data>
+  <data name="Settings_MoveDown" xml:space="preserve">
+    <value>Перемістити нижче</value>
+  </data>
+  <data name="Settings_RefreshEvery" xml:space="preserve">
+    <value>Оновлювати кожні</value>
+  </data>
+  <data name="Interval_1h" xml:space="preserve">
+    <value>1 година</value>
+  </data>
+  <data name="Interval_3h" xml:space="preserve">
+    <value>3 години</value>
+  </data>
+  <data name="Interval_6h" xml:space="preserve">
+    <value>6 годин</value>
+  </data>
+  <data name="Interval_12h" xml:space="preserve">
+    <value>12 годин</value>
+  </data>
+  <data name="Interval_24h" xml:space="preserve">
+    <value>24 години</value>
+  </data>
+  <data name="Interval_48h" xml:space="preserve">
+    <value>48 годин</value>
+  </data>
+  <data name="Interval_7d" xml:space="preserve">
+    <value>7 днів</value>
+  </data>
+  <data name="Settings_AutoRefresh" xml:space="preserve">
+    <value>Автоматичне оновлення</value>
+  </data>
+  <data name="Settings_On" xml:space="preserve">
+    <value>Увімкнено</value>
+  </data>
+  <data name="Settings_Off" xml:space="preserve">
+    <value>Вимкнено</value>
+  </data>
+  <data name="Settings_RefreshNow" xml:space="preserve">
+    <value>Оновити зараз</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Налаштування</value>
+  </data>
+  <data name="Settings_Lists" xml:space="preserve">
+    <value>Списки</value>
+  </data>
+  <data name="Settings_AddList" xml:space="preserve">
+    <value>Додати список</value>
+  </data>
+  <data name="Settings_NoLists" xml:space="preserve">
+    <value>Немає списків. Додайте перший, щоб побачити канали.</value>
+  </data>
+  <data name="Settings_EpgSources" xml:space="preserve">
+    <value>Джерела EPG</value>
+  </data>
+  <data name="Settings_AddEpg" xml:space="preserve">
+    <value>Додати джерело EPG</value>
+  </data>
+  <data name="Settings_NoEpgs" xml:space="preserve">
+    <value>Немає джерел EPG. Додайте їх, щоб бачити телепрограму. Порядок має значення: перемагає вище джерело.</value>
+  </data>
+  <data name="Startup_Failed" xml:space="preserve">
+    <value>Не вдалося запустити застосунок. Подробиці збережено в журналі в папці M3uPlayer у локальних даних. Закрийте інші копії застосунку й спробуйте ще раз.</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Щось пішло не так</value>
+  </data>
+  <data name="Error_Body" xml:space="preserve">
+    <value>Застосунок натрапив на неочікувану проблему. Подробиці збережено в журналі. Спробуйте повторити дію; якщо проблема повертається, перезапустіть застосунок.</value>
+  </data>
+  <data name="Error_Close" xml:space="preserve">
+    <value>Закрити повідомлення</value>
+  </data>
+  <data name="Player_TrackOff" xml:space="preserve">
+    <value>Вимкнено</value>
+  </data>
+  <data name="Player_ProgrammeFailed" xml:space="preserve">
+    <value>Не вдалося відтворити цю програму.</value>
+  </data>
+  <data name="Player_StreamFailed" xml:space="preserve">
+    <value>Не вдалося відтворити потік.</value>
+  </data>
+  <data name="Player_ConnectFailed" xml:space="preserve">
+    <value>Не вдалося підключитися до каналу. Спробуйте пізніше.</value>
+  </data>
+  <data name="Player_Stalled" xml:space="preserve">
+    <value>Перевищено час очікування потоку.</value>
+  </data>
+  <data name="Player_Error" xml:space="preserve">
+    <value>Сталася помилка програвача.</value>
+  </data>
+  <data name="Guide_PickChannel" xml:space="preserve">
+    <value>Виберіть канал, щоб побачити його телепрограму.</value>
+  </data>
+  <data name="Guide_Empty" xml:space="preserve">
+    <value>Немає телепрограми для цього каналу.</value>
+  </data>
+  <data name="Guide_NoArchive" xml:space="preserve">
+    <value>Архів для цієї програми недоступний</value>
+  </data>
+  <data name="Guide_NoArchiveAddress" xml:space="preserve">
+    <value>Не вдалося створити адресу архіву для цієї програми.</value>
+  </data>
+  <data name="Live_AddFavorite" xml:space="preserve">
+    <value>Додати до обраного</value>
+  </data>
+  <data name="Live_RemoveFavorite" xml:space="preserve">
+    <value>Видалити з обраного</value>
+  </data>
+  <data name="Live_Next" xml:space="preserve">
+    <value>Далі {0} {1}</value>
+  </data>
+  <data name="Live_Now" xml:space="preserve">
+    <value>. Зараз</value>
+  </data>
+  <data name="Live_Past" xml:space="preserve">
+    <value>. Минула</value>
+  </data>
+  <data name="Live_Replayable" xml:space="preserve">
+    <value>. Доступна в архіві</value>
+  </data>
+  <data name="Live_Play" xml:space="preserve">
+    <value>Відтворити</value>
+  </data>
+  <data name="Live_Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="Live_Unmute" xml:space="preserve">
+    <value>Увімкнути звук</value>
+  </data>
+  <data name="Live_Mute" xml:space="preserve">
+    <value>Вимкнути звук</value>
+  </data>
+  <data name="Live_NoResults" xml:space="preserve">
+    <value>Немає результатів для «{0}»</value>
+  </data>
+  <data name="Live_NoFavorites" xml:space="preserve">
+    <value>У вас ще немає обраного. Наведіть курсор на канал і натисніть зірочку, і він з’явиться тут.</value>
+  </data>
+  <data name="Live_EmptyCategory" xml:space="preserve">
+    <value>У цій категорії немає каналів.</value>
+  </data>
+  <data name="Live_All" xml:space="preserve">
+    <value>Усі</value>
+  </data>
+  <data name="Live_Favorites" xml:space="preserve">
+    <value>Обране</value>
+  </data>
+  <data name="Live_ExitFullScreenKey" xml:space="preserve">
+    <value>Вийти з повноекранного режиму (F, Esc)</value>
+  </data>
+  <data name="Live_ExitFullScreen" xml:space="preserve">
+    <value>Вийти з повноекранного режиму</value>
+  </data>
+  <data name="Live_Track" xml:space="preserve">
+    <value>Доріжка {0}</value>
+  </data>
+  <data name="Settings_Remove" xml:space="preserve">
+    <value>Видалити {0}</value>
+  </data>
+  <data name="Settings_AutoAdded" xml:space="preserve">
+    <value>Додано автоматично зі списку «{0}». Видаліть список, щоб видалити це джерело.</value>
+  </data>
+  <data name="Settings_LastRefresh" xml:space="preserve">
+    <value>Останнє оновлення: {0}</value>
+  </data>
+  <data name="Settings_NeverRefreshed" xml:space="preserve">
+    <value>Ще не оновлено</value>
+  </data>
+  <data name="Settings_Matched" xml:space="preserve">
+    <value>Зіставлено каналів: {0} з {1}</value>
+  </data>
+  <data name="Settings_ChannelCount" xml:space="preserve">
+    <value>Каналів: {0}, з телепрограмою: {1}</value>
+  </data>
+  <data name="Settings_Skipped" xml:space="preserve">
+    <value>Пропущено пошкоджених записів: {0}</value>
+  </data>
+  <data name="Settings_Error" xml:space="preserve">
+    <value>Помилка: {0}</value>
+  </data>
+  <data name="Settings_SaveScheduleFailed" xml:space="preserve">
+    <value>Не вдалося зберегти налаштування оновлення. Спробуйте ще раз.</value>
+  </data>
+  <data name="Settings_RemoveEpgConsequence" xml:space="preserve">
+    <value>Канали зі списків залишаться.</value>
+  </data>
+  <data name="Settings_RemoveListConsequence" xml:space="preserve">
+    <value>Канали з цього списку зникнуть із застосунку, а джерело EPG, додане автоматично з цього списку, також буде видалено. Обране залишиться й повернеться, коли ви знову додасте той самий список.</value>
+  </data>
+  <data name="Settings_RemoveQuestion" xml:space="preserve">
+    <value>Видалити «{0}»?</value>
+  </data>
+  <data name="AddSource_AddEpgTitle" xml:space="preserve">
+    <value>Додати джерело EPG</value>
+  </data>
+  <data name="AddSource_AddListTitle" xml:space="preserve">
+    <value>Додати список</value>
+  </data>
+  <data name="AddSource_FileNotLocal" xml:space="preserve">
+    <value>Цей файл недоступний на диску (наприклад, він лише в хмарі). Завантажте його на диск або виберіть інший.</value>
+  </data>
+  <data name="AddSource_PickerFailed" xml:space="preserve">
+    <value>Не вдалося відкрити вікно вибору файлу. Спробуйте ще раз або введіть адресу.</value>
+  </data>
+  <data name="AddSource_NameRequired" xml:space="preserve">
+    <value>Введіть назву, за якою ви впізнаєте це джерело.</value>
+  </data>
+  <data name="Live_RowNow" xml:space="preserve">
+    <value>. Зараз: {0}</value>
+  </data>
+  <data name="Live_RowNoEpg" xml:space="preserve">
+    <value>. Немає EPG</value>
+  </data>
+  <data name="Live_RowPlaying" xml:space="preserve">
+    <value>. Відтворюється</value>
+  </data>
+  <data name="Live_PlayKey" xml:space="preserve">
+    <value>{0} (Пробіл)</value>
+  </data>
+  <data name="Source_DefaultListName" xml:space="preserve">
+    <value>Список</value>
+  </data>
+</root>
