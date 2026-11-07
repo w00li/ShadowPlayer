@@ -570,4 +570,43 @@
   <data name="Live_RestartKey" xml:space="preserve">
     <value>From the start (Home)</value>
   </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>A new version is available: {0}.</value>
+  </data>
+  <data name="Update_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Update_Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Update_WhatsNew" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Downloading… {0}%</value>
+  </data>
+  <data name="Update_Damaged" xml:space="preserve">
+    <value>The downloaded file is damaged. Try again.</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Could not download the update. Try again.</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>The update was cancelled.</value>
+  </data>
+  <data name="Update_CheckNow" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Update_CheckAtStart" xml:space="preserve">
+    <value>Check for updates at start</value>
+  </data>
+  <data name="Update_Latest" xml:space="preserve">
+    <value>You have the latest version ({0}).</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Checking…</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Could not check for updates. Try again later.</value>
+  </data>
 </root>

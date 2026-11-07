@@ -570,4 +570,43 @@
   <data name="Live_RestartKey" xml:space="preserve">
     <value>Od początku (Home)</value>
   </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>Dostępna jest wersja {0}.</value>
+  </data>
+  <data name="Update_Update" xml:space="preserve">
+    <value>Zaktualizuj</value>
+  </data>
+  <data name="Update_Later" xml:space="preserve">
+    <value>Później</value>
+  </data>
+  <data name="Update_WhatsNew" xml:space="preserve">
+    <value>Co nowego</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Pobieranie… {0}%</value>
+  </data>
+  <data name="Update_Damaged" xml:space="preserve">
+    <value>Pobrany plik jest uszkodzony. Spróbuj ponownie.</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Nie udało się pobrać aktualizacji. Spróbuj ponownie.</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Aktualizacja została anulowana.</value>
+  </data>
+  <data name="Update_CheckNow" xml:space="preserve">
+    <value>Sprawdź aktualizacje</value>
+  </data>
+  <data name="Update_CheckAtStart" xml:space="preserve">
+    <value>Sprawdzaj aktualizacje przy uruchomieniu</value>
+  </data>
+  <data name="Update_Latest" xml:space="preserve">
+    <value>Masz najnowszą wersję ({0}).</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Sprawdzanie…</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Nie udało się sprawdzić aktualizacji. Spróbuj później.</value>
+  </data>
 </root>

@@ -570,4 +570,43 @@
   <data name="Live_RestartKey" xml:space="preserve">
     <value>Dall’inizio (Home)</value>
   </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>È disponibile la versione {0}.</value>
+  </data>
+  <data name="Update_Update" xml:space="preserve">
+    <value>Aggiorna</value>
+  </data>
+  <data name="Update_Later" xml:space="preserve">
+    <value>Più tardi</value>
+  </data>
+  <data name="Update_WhatsNew" xml:space="preserve">
+    <value>Novità</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Download in corso… {0}%</value>
+  </data>
+  <data name="Update_Damaged" xml:space="preserve">
+    <value>Il file scaricato è danneggiato. Riprova.</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Impossibile scaricare l’aggiornamento. Riprova.</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>L’aggiornamento è stato annullato.</value>
+  </data>
+  <data name="Update_CheckNow" xml:space="preserve">
+    <value>Cerca aggiornamenti</value>
+  </data>
+  <data name="Update_CheckAtStart" xml:space="preserve">
+    <value>Cerca aggiornamenti all’avvio</value>
+  </data>
+  <data name="Update_Latest" xml:space="preserve">
+    <value>Hai la versione più recente ({0}).</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Ricerca in corso…</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Impossibile cercare aggiornamenti. Riprova più tardi.</value>
+  </data>
 </root>

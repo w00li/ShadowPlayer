@@ -7,6 +7,7 @@ using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Media;
 using M3uPlayer.Core.Refresh;
 using M3uPlayer.Core.Storage;
+using M3uPlayer.Core.Updates;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -26,6 +27,7 @@ public partial class App : Application
         public static VlcPlayer Player { get; internal set; } = null!;
         public static LogoCache Logos { get; internal set; } = null!;
         public static Preferences Prefs { get; internal set; } = null!;
+        public static ViewModels.UpdateModel Updates { get; internal set; } = null!;
     }
 
     private static readonly CancellationTokenSource Stop = new();
@@ -85,6 +87,12 @@ public partial class App : Application
         Services.Player = new VlcPlayer(Services.Log);
         Services.Logos = new LogoCache(new HttpClient { Timeout = TimeSpan.FromSeconds(10) }, Path.Combine(dir, "logos"));
 
+        var updates = Path.Combine(dir, "updates");
+        var version = typeof(App).Assembly.GetName().Version ?? new Version(0, 0, 0);
+        var current = new Version(version.Major, version.Minor, Math.Max(0, version.Build));
+        UpdateChecker.Clean(updates, current);
+        Services.Updates = new ViewModels.UpdateModel(new UpdateChecker(new HttpClient { Timeout = TimeSpan.FromMinutes(10) }, current), updates, current, Services.Log);
+
         _window = new MainWindow();
         // RunAsync parses and imports synchronously between awaits, so keep it off the UI thread.
         var loop = Task.Run(async () =>
@@ -95,6 +103,7 @@ public partial class App : Application
         });
         _window.Closed += (_, _) =>
         {
+            Services.Updates.Cancel();
             Stop.Cancel();
             DisplayAwake.Set(false);
             Services.Player.Dispose(); // on the UI thread, as the player requires
@@ -102,6 +111,15 @@ public partial class App : Application
             if (_restart) StartAgain();
         };
         _window.ApplyTheme(Services.Prefs.Theme);
+        if (Services.Prefs.CheckUpdates)
+        {
+            // A while after start, so the check never competes with opening the list and the first channel.
+            var check = _window.DispatcherQueue.CreateTimer();
+            check.Interval = TimeSpan.FromSeconds(10);
+            check.IsRepeating = false;
+            check.Tick += (_, _) => ViewModels.Safe.Run(() => Services.Updates.CheckAsync(userAsked: false));
+            check.Start();
+        }
         _window.Activate();
         LogStartupOnce("okno");
     }
@@ -113,6 +131,9 @@ public partial class App : Application
         Languages.Apply(code); // the failure message below is then already in the chosen language
         Restart();
     }
+
+    /// <summary>The installer is running: close the usual way (session saved, player stopped) and let the installer start the new version.</summary>
+    public static void CloseForUpdate() => MainWindow?.Close();
 
     /// <summary>Closes the window the usual way; once the player and the refresh loop have stopped, the app starts again.</summary>
     public static void Restart()

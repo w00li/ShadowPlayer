@@ -11,6 +11,7 @@ namespace M3uPlayer.App.Views;
 public sealed partial class SettingsPage : Page
 {
     private readonly SettingsViewModel _vm = new();
+    public UpdateModel Updates => App.Services.Updates;
     private readonly Action _onDataChanged;
 
     public SettingsPage()
@@ -74,6 +75,7 @@ public sealed partial class SettingsPage : Page
         Toggle(AutostartSwitch, p.Autostart, v => p.Autostart = v);
         Toggle(FullscreenSwitch, p.StartFullscreen, v => p.StartFullscreen = v);
         Toggle(HwSwitch, p.HwDecoding, v => p.HwDecoding = v);
+        Toggle(CheckUpdatesSwitch, p.CheckUpdates, v => p.CheckUpdates = v);
     }
 
     // A save that fails puts the control back on the saved value, so it never shows what is not in effect.
@@ -166,6 +168,9 @@ public sealed partial class SettingsPage : Page
         }
         return null;
     }
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) => await Guard(() => Updates.CheckAsync(userAsked: true));
+    private async void Update_Click(object sender, RoutedEventArgs e) => await Guard(Updates.UpdateAsync);
 
     private async void ClearLogos_Click(object sender, RoutedEventArgs e) => await Guard(async () =>
     {

@@ -88,6 +88,14 @@
                 <ComboBox x:Name="LanguageBox" MinWidth="240" Header="{l:Tr Key=Settings_Language}" />
                 <TextBlock Text="{l:Tr Key=Settings_LanguageRestart}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <ComboBox x:Name="ThemeBox" MinWidth="240" Header="{l:Tr Key=Settings_Theme}" Margin="0,16,0,0" />
+                <ToggleSwitch x:Name="CheckUpdatesSwitch" Header="{l:Tr Key=Update_CheckAtStart}" Margin="0,16,0,0"
+                              OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="{l:Tr Key=Update_CheckNow}" Click="CheckUpdates_Click" IsEnabled="{x:Bind Updates.CanCheck, Mode=OneWay}" />
+                    <Button Content="{l:Tr Key=Update_Update}" Style="{ThemeResource AccentButtonStyle}" Click="Update_Click"
+                            Visibility="{x:Bind Updates.CanUpdate, Mode=OneWay}" />
+                </StackPanel>
+                <TextBlock Text="{x:Bind Updates.Status, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
 
             <StackPanel x:Name="PlaybackTab" Spacing="8" Visibility="Collapsed">

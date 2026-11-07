@@ -570,4 +570,43 @@
   <data name="Live_RestartKey" xml:space="preserve">
     <value>Depuis le début (Début)</value>
   </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>La version {0} est disponible.</value>
+  </data>
+  <data name="Update_Update" xml:space="preserve">
+    <value>Mettre à jour</value>
+  </data>
+  <data name="Update_Later" xml:space="preserve">
+    <value>Plus tard</value>
+  </data>
+  <data name="Update_WhatsNew" xml:space="preserve">
+    <value>Nouveautés</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Téléchargement… {0} %</value>
+  </data>
+  <data name="Update_Damaged" xml:space="preserve">
+    <value>Le fichier téléchargé est endommagé. Réessayez.</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Impossible de télécharger la mise à jour. Réessayez.</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>La mise à jour a été annulée.</value>
+  </data>
+  <data name="Update_CheckNow" xml:space="preserve">
+    <value>Rechercher des mises à jour</value>
+  </data>
+  <data name="Update_CheckAtStart" xml:space="preserve">
+    <value>Rechercher les mises à jour au démarrage</value>
+  </data>
+  <data name="Update_Latest" xml:space="preserve">
+    <value>Vous avez la dernière version ({0}).</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Recherche…</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Impossible de rechercher les mises à jour. Réessayez plus tard.</value>
+  </data>
 </root>

@@ -570,4 +570,43 @@
   <data name="Live_RestartKey" xml:space="preserve">
     <value>Von Anfang an (Pos1)</value>
   </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>Version {0} ist verfügbar.</value>
+  </data>
+  <data name="Update_Update" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="Update_Later" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="Update_WhatsNew" xml:space="preserve">
+    <value>Neuigkeiten</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Wird heruntergeladen… {0} %</value>
+  </data>
+  <data name="Update_Damaged" xml:space="preserve">
+    <value>Die heruntergeladene Datei ist beschädigt. Versuchen Sie es erneut.</value>
+  </data>
+  <data name="Update_DownloadFailed" xml:space="preserve">
+    <value>Das Update konnte nicht heruntergeladen werden. Versuchen Sie es erneut.</value>
+  </data>
+  <data name="Update_Cancelled" xml:space="preserve">
+    <value>Das Update wurde abgebrochen.</value>
+  </data>
+  <data name="Update_CheckNow" xml:space="preserve">
+    <value>Nach Updates suchen</value>
+  </data>
+  <data name="Update_CheckAtStart" xml:space="preserve">
+    <value>Beim Start nach Updates suchen</value>
+  </data>
+  <data name="Update_Latest" xml:space="preserve">
+    <value>Sie haben die neueste Version ({0}).</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Wird gesucht…</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Updates konnten nicht gesucht werden. Versuchen Sie es später erneut.</value>
+  </data>
 </root>

@@ -175,8 +175,24 @@
                     <ComboBox x:Name="CategoryCombo" Grid.Row="1" HorizontalAlignment="Stretch" Visibility="Collapsed"
                               ItemsSource="{x:Bind Vm.Categories}" DisplayMemberPath="Name" SelectedItem="{x:Bind Vm.SelectedCategory, Mode=OneWay}"
                               SelectionChanged="CategoryCombo_SelectionChanged" ContextRequested="Category_ContextRequested" AutomationProperties.Name="{l:Tr Key=Live_Category}" />
-                    <InfoBar Grid.Row="2" Severity="Informational" IsClosable="True" IsOpen="{x:Bind Vm.HasNotice, Mode=OneWay}"
-                             Message="{x:Bind Vm.Notice, Mode=OneWay}" Closed="Notice_Closed" />
+                    <StackPanel Grid.Row="2" Spacing="8">
+                        <InfoBar Severity="Informational" IsClosable="True" IsOpen="{x:Bind Vm.HasNotice, Mode=OneWay}"
+                                 Message="{x:Bind Vm.Notice, Mode=OneWay}" Closed="Notice_Closed" />
+                        <InfoBar Severity="Informational" IsClosable="False" IsOpen="{x:Bind Updates.IsBarOpen, Mode=OneWay}"
+                                 Message="{x:Bind Updates.Status, Mode=OneWay}">
+                            <StackPanel Spacing="8" Margin="0,0,0,12">
+                                <ProgressBar Value="{x:Bind Updates.Percent, Mode=OneWay}" Maximum="100" Visibility="{x:Bind Updates.IsDownloading, Mode=OneWay}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="{l:Tr Key=Update_Update}" Style="{ThemeResource AccentButtonStyle}" Click="Update_Click"
+                                            Visibility="{x:Bind Updates.CanUpdate, Mode=OneWay}" />
+                                    <Button Content="{l:Tr Key=Update_Later}" Click="UpdateLater_Click" Visibility="{x:Bind Updates.CanUpdate, Mode=OneWay}" />
+                                    <Button Content="{l:Tr Key=AddSource_Cancel}" Click="UpdateCancel_Click" Visibility="{x:Bind Updates.IsDownloading, Mode=OneWay}" />
+                                    <HyperlinkButton Content="{l:Tr Key=Update_WhatsNew}" NavigateUri="{x:Bind Updates.ReleasePage, Mode=OneWay}"
+                                                     Visibility="{x:Bind Updates.CanUpdate, Mode=OneWay}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </InfoBar>
+                    </StackPanel>
                     <ListView x:Name="ChannelList" Grid.Row="3" SingleSelectionFollowsFocus="False" ItemsSource="{x:Bind Vm.Channels}" ItemTemplate="{StaticResource ChannelTemplate}"
                               ItemContainerStyle="{StaticResource RowItemStyle}" SelectionMode="Single"
                               ContainerContentChanging="ChannelList_ContainerContentChanging" IsItemClickEnabled="True" ItemClick="ChannelList_ItemClick"
