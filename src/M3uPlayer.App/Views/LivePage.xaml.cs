@@ -1,5 +1,6 @@
 using M3uPlayer.App.Player;
 using M3uPlayer.App.ViewModels;
+using M3uPlayer.Core.Epg;
 using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Media;
 using Microsoft.UI.Dispatching;
@@ -233,6 +234,20 @@ public sealed partial class LivePage : Page
         if (_fullscreen) return;
         // 16:9, but never more than 60% of the column so the guide keeps room.
         VideoBox.Height = Math.Max(120, Math.Min(RightColumn.ActualWidth * 9 / 16, RightColumn.ActualHeight * 0.6));
+        // The programme list keeps its room on short windows; the description takes a share and scrolls.
+        var card = RightColumn.ActualHeight - VideoBox.Height - RightColumn.RowSpacing;
+        DetailBox.MaxHeight = GuideLayout.DetailMaxHeight(card);
+        _roomForPicture = GuideLayout.RoomForPicture(card);
+        ShowDetailPicture();
+    }
+
+    private bool _roomForPicture = true, _hasPicture;
+
+    private void ShowDetailPicture()
+    {
+        var show = _hasPicture && _roomForPicture;
+        DetailPicture.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        DetailGrid.ColumnSpacing = show ? 12 : 0;
     }
 
     // ---- guide ----
@@ -246,8 +261,8 @@ public sealed partial class LivePage : Page
         {
             var items = Vm.Guide.Items;
             if (items.Count == 0) return;
-            // Two programmes of the past stay in view above the current one.
-            var at = current is null ? items.Count - 1 : Math.Max(0, items.IndexOf(current) - 2);
+            // Programmes of the past stay in view above the current one, as many as the list has room for.
+            var at = current is null ? items.Count - 1 : Math.Max(0, items.IndexOf(current) - GuideLayout.PastRowsAbove(GuideList.ActualHeight));
             // From the top first: ScrollIntoView from a stale offset can stop short of the item.
             GuideList.UpdateLayout();
             GuideList.ScrollIntoView(items[0]);
@@ -291,7 +306,8 @@ public sealed partial class LivePage : Page
         _pictureCts?.Cancel();
         _pictureCts?.Dispose();
         DetailPicture.Source = null;
-        DetailPicture.Visibility = Visibility.Collapsed;
+        _hasPicture = false;
+        ShowDetailPicture();
         if (string.IsNullOrWhiteSpace(url)) return;
         var cts = _pictureCts = new CancellationTokenSource();
         try
@@ -299,13 +315,18 @@ public sealed partial class LivePage : Page
             var path = await App.Services.Logos.GetAsync(url, cts.Token);
             if (path is null || cts.IsCancellationRequested) return;
             DetailPicture.Source = new BitmapImage(new Uri(path)) { DecodePixelWidth = 240 };
-            DetailPicture.Visibility = Visibility.Visible;
+            _hasPicture = true;
+            ShowDetailPicture();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { App.Services.Log.Write("Programme picture failed: " + ex.GetType().Name); }
     }
 
-    private void DetailPicture_Failed(object sender, ExceptionRoutedEventArgs e) => DetailPicture.Visibility = Visibility.Collapsed;
+    private void DetailPicture_Failed(object sender, ExceptionRoutedEventArgs e)
+    {
+        _hasPicture = false;
+        ShowDetailPicture();
+    }
 
     private void AddPlaylist_Click(object sender, RoutedEventArgs e) => App.MainWindow!.Navigate(typeof(SettingsPage), "add");
 }

@@ -215,9 +215,9 @@
                                   AutomationProperties.Name="{l:Tr Key=Live_Guide}" />
                         <TextBlock Grid.Row="1" Text="{x:Bind Vm.Guide.Message, Mode=OneWay}" Visibility="{x:Bind Vm.Guide.HasMessage, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        <Border Grid.Row="2" Visibility="{x:Bind Vm.Guide.DetailVisible, Mode=OneWay}" MaxHeight="190"
+                        <Border x:Name="DetailBox" Grid.Row="2" Visibility="{x:Bind Vm.Guide.DetailVisible, Mode=OneWay}" MaxHeight="190"
                                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Padding="12">
-                            <Grid ColumnSpacing="12">
+                            <Grid x:Name="DetailGrid" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
