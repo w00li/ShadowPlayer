@@ -30,6 +30,23 @@ public sealed class StorageTests : IDisposable
         foreach (var f in Directory.GetFiles(Path.GetTempPath(), Path.GetFileName(_path) + "*")) File.Delete(f);
     }
 
+    [Fact]
+    public void New_sources_take_the_default_interval()
+    {
+        new Preferences(_db).DefaultIntervalMinutes = 1440;
+        var pl = _sources.Add(SourceKind.Playlist, "p", "P");
+        _sources.Add(SourceKind.Epg, "e", "E", pl);
+        Assert.Equal(1440, _sources.List(SourceKind.Playlist).Single().IntervalMinutes);
+        Assert.Equal(1440, _sources.List(SourceKind.Epg).Single().IntervalMinutes);
+    }
+
+    [Fact]
+    public void New_sources_without_a_default_get_twelve_hours()
+    {
+        _sources.Add(SourceKind.Playlist, "p", "P");
+        Assert.Equal(720, _sources.List(SourceKind.Playlist).Single().IntervalMinutes);
+    }
+
     private static M3uEntry Entry(string key, string name = "Chan", string category = "News", double shift = 0, int days = 0,
         string? tvgId = null) =>
         new(key, name, "http://example.invalid/" + key, tvgId, null, null, shift, category, null, null, days, null, null);

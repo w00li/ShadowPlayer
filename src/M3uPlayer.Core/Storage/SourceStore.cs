@@ -13,6 +13,7 @@ public class SourceStore(Database db)
 {
     public long Add(SourceKind kind, string location, string name, long? parentPlaylistId = null)
     {
+        var interval = new Preferences(db).DefaultIntervalMinutes; // read before the transaction, on its own connection
         using var c = db.Open();
         using var tx = c.BeginTransaction();
         // Manual EPG sources go above the url-tvg children, so a guide the user chose outranks the playlist's own.
@@ -21,9 +22,9 @@ public class SourceStore(Database db)
             : null;
         if (at is not null) Database.Exec(c, "UPDATE source SET position=position+1 WHERE kind=@0 AND position>=@1", (int)kind, at);
         var id = (long)Database.Exec(c,
-            "INSERT INTO source(kind,location,name,position,parent_playlist_id) " +
-            "VALUES(@0,@1,@2,COALESCE(@4,(SELECT COALESCE(MAX(position),-1)+1 FROM source WHERE kind=@0)),@3) RETURNING id",
-            (int)kind, location, name, parentPlaylistId, at)!;
+            "INSERT INTO source(kind,location,name,position,parent_playlist_id,interval_minutes) " +
+            "VALUES(@0,@1,@2,COALESCE(@4,(SELECT COALESCE(MAX(position),-1)+1 FROM source WHERE kind=@0)),@3,@5) RETURNING id",
+            (int)kind, location, name, parentPlaylistId, at, interval)!;
         tx.Commit();
         return id;
     }
