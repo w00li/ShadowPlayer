@@ -59,3 +59,15 @@ Sprawdzone przez agenta na opublikowanym `M3uPlayer.App.exe`, na świeżym folde
 1. Ustawienia → Język: zmiana Polski ↔ English zamyka aplikację i uruchamia ją ponownie w wybranym języku; wraca ten sam kanał i kategoria.
 2. Po angielsku: lista kanałów, ramówka (nazwy dni), archiwum (podpis i pasek), Ustawienia, dodawanie i usuwanie źródła, komunikat błędu odtwarzania. Żaden tekst nie zostaje po polsku i nigdzie nie widać nazwy klucza zamiast tekstu.
 3. Pierwsze uruchomienie bez zapisanego języka: polski Windows daje polski, każdy inny angielski. **[do sprawdzenia przez właściciela]**
+
+
+## Ustawienia
+
+1. Zakładki Ogólne, Odtwarzanie, Źródła, Dane przełączają się; „Dodaj listę” z ekranu Na żywo otwiera zakładkę Źródła.
+2. Motyw Jasny/Ciemny/Systemowy działa od razu, także w oknie dodawania źródła; pasek nad wideo zostaje ciemny.
+3. Autostart + pełny ekran: po ponownym uruchomieniu ostatni kanał gra w pełnym ekranie; bez list nic się nie dzieje.
+4. Bufor i dekodowanie sprzętowe działają od następnego kanału (log LibVLC: „no hw decoder modules matched” przy wyłączonym).
+5. Skok przewijania i czas chowania paska na kanale z archiwum.
+6. Domyślny interwał: nowa lista dostaje wybrany interwał.
+7. Wyczyść pamięć logo: logo pobierają się ponownie. Wyczyść wszystkie dane: po potwierdzeniu aplikacja wraca pusta, `app.log` zostaje.
+8. Po niemiecku w oknie 900 px etykiety mieszczą się lub zawijają. **[do sprawdzenia przez właściciela]**
