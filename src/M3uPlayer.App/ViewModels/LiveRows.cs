@@ -64,7 +64,7 @@ public sealed class ChannelRow : Observable
     public string StarName => $"{StarTip}: {Name}";
 
     public string AutomationName =>
-        $"{Name}{(HasNow ? ". Teraz: " + NowTitle : NoEpg ? ". Brak EPG" : "")}{(IsPlaying ? ". Odtwarzany" : "")}";
+        $"{Name}{(HasNow ? string.Format(Strings.Live_RowNow, NowTitle) : NoEpg ? Strings.Live_RowNoEpg : "")}{(IsPlaying ? Strings.Live_RowPlaying : "")}";
 
     public void Update(Channel channel, bool playing)
     {

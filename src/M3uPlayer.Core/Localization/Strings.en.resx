@@ -67,7 +67,7 @@
     <value>The list contains no channels, so the previous data was kept.</value>
   </data>
   <data name="Refresh_ListShrank" xml:space="preserve">
-    <value>The list now has {0} entries, down from {1}, so it was not applied. Remove the list and add it again if it is meant to be smaller.</value>
+    <value>Entries now: {0}, before: {1}, so the list was not applied. Remove the list and add it again if it is meant to be smaller.</value>
   </data>
   <data name="Fetch_UnsupportedSource" xml:space="preserve">
     <value>Unsupported source address. Remove this source and add it again.</value>
@@ -391,13 +391,13 @@
     <value>Not refreshed yet</value>
   </data>
   <data name="Settings_Matched" xml:space="preserve">
-    <value>Matched {0} of {1} channels</value>
+    <value>Channels matched: {0} of {1}</value>
   </data>
   <data name="Settings_ChannelCount" xml:space="preserve">
-    <value>{0} channels, with TV guide: {1}</value>
+    <value>Channels: {0}, with TV guide: {1}</value>
   </data>
   <data name="Settings_Skipped" xml:space="preserve">
-    <value>Skipped {0} damaged entries</value>
+    <value>Damaged entries skipped: {0}</value>
   </data>
   <data name="Settings_Error" xml:space="preserve">
     <value>Error: {0}</value>
@@ -428,5 +428,20 @@
   </data>
   <data name="AddSource_NameRequired" xml:space="preserve">
     <value>Enter a name you will recognise this source by.</value>
+  </data>
+  <data name="Live_RowNow" xml:space="preserve">
+    <value>. Now: {0}</value>
+  </data>
+  <data name="Live_RowNoEpg" xml:space="preserve">
+    <value>. No EPG</value>
+  </data>
+  <data name="Live_RowPlaying" xml:space="preserve">
+    <value>. Playing</value>
+  </data>
+  <data name="Live_PlayKey" xml:space="preserve">
+    <value>{0} (Space)</value>
+  </data>
+  <data name="Source_DefaultListName" xml:space="preserve">
+    <value>List</value>
   </data>
 </root>

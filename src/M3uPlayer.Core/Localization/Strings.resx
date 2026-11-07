@@ -429,4 +429,19 @@
   <data name="AddSource_NameRequired" xml:space="preserve">
     <value>Wpisz nazwę, po której rozpoznasz to źródło.</value>
   </data>
+  <data name="Live_RowNow" xml:space="preserve">
+    <value>. Teraz: {0}</value>
+  </data>
+  <data name="Live_RowNoEpg" xml:space="preserve">
+    <value>. Brak EPG</value>
+  </data>
+  <data name="Live_RowPlaying" xml:space="preserve">
+    <value>. Odtwarzany</value>
+  </data>
+  <data name="Live_PlayKey" xml:space="preserve">
+    <value>{0} (Spacja)</value>
+  </data>
+  <data name="Source_DefaultListName" xml:space="preserve">
+    <value>Lista</value>
+  </data>
 </root>

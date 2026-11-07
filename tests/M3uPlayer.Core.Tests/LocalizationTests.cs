@@ -52,4 +52,14 @@ public class LocalizationTests
         Assert.Equal("Other", Strings.Category_Other);
         Assert.Equal("Inne", M3uParser.DefaultCategory); // saved sessions keep "c:Inne", whatever the language
     }
+
+    [Fact]
+    public void English_counts_read_right_for_one()
+    {
+        // English has a separate singular, so a count next to a plural noun ("1 channels") is wrong; keys word counts plural-free instead.
+        var bad = Read(new CultureInfo("en")).Where(e => e.Value.Contains("{0}"))
+            .Select(e => (e.Key, Text: string.Format(e.Value, 1, 1, 1)))
+            .Where(e => Regex.IsMatch(e.Text, @"\b1 (\w+ )?\w+s\b")).Select(e => e.Key + ": " + e.Text).ToList();
+        Assert.Empty(bad);
+    }
 }

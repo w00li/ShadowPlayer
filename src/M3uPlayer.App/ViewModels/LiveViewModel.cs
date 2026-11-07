@@ -112,7 +112,7 @@ public sealed partial class LiveViewModel : Observable, IDisposable
     private bool ShowsPlay => _state is PlayerState.Paused or PlayerState.Idle or PlayerState.Failed;
     public string PlayGlyph => ShowsPlay ? "\uE768" : "\uE769";
     public string PlayName => ShowsPlay ? Strings.Live_Play : Strings.Live_Pause;
-    public string PlayTip => PlayName + " (Spacja)";
+    public string PlayTip => string.Format(Strings.Live_PlayKey, PlayName);
     public string MuteGlyph => Muted ? "\uE74F" : "\uE767";
     public string MuteName => Muted ? Strings.Live_Unmute : Strings.Live_Mute;
     public string MuteTip => MuteName + " (M)";

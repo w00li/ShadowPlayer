@@ -140,7 +140,7 @@ public sealed class SettingsViewModel
 
     public string SuggestName(SourceKind kind, string? filePath = null)
     {
-        var prefix = kind == SourceKind.Epg ? "EPG" : "Lista";
+        var prefix = kind == SourceKind.Epg ? "EPG" : Strings.Source_DefaultListName;
         return filePath is null ? SourceInput.NextDefaultName(prefix, ExistingNames) : SourceInput.DefaultNameForFile(filePath, prefix, ExistingNames);
     }
 
