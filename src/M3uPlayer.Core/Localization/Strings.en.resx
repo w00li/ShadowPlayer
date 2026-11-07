@@ -111,4 +111,13 @@
   <data name="Epg_NoProgrammes" xml:space="preserve">
     <value>The EPG file contains no usable programmes. The previous data was kept.</value>
   </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageRestart" xml:space="preserve">
+    <value>The app will restart.</value>
+  </data>
+  <data name="Restart_Failed" xml:space="preserve">
+    <value>The app could not be restarted. Start it manually. The chosen language will be used.</value>
+  </data>
 </root>

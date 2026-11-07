@@ -1,4 +1,6 @@
+using System.Globalization;
 using M3uPlayer.App.ViewModels;
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Storage;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,6 +18,14 @@ public sealed partial class SettingsPage : Page
         InitializeComponent();
         PlaylistList.ItemsSource = _vm.Playlists;
         EpgList.ItemsSource = _vm.Epgs;
+        var current = Languages.Resolve(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, CultureInfo.CurrentUICulture);
+        LanguageBox.ItemsSource = Languages.All.Select(l => l.Name).ToList();
+        LanguageBox.SelectedIndex = Languages.All.ToList().FindIndex(l => l.Code == current);
+        // Attached after the first selection, so showing the current language does not restart the app.
+        LanguageBox.SelectionChanged += (_, _) =>
+        {
+            if (LanguageBox.SelectedIndex >= 0 && Languages.All[LanguageBox.SelectedIndex].Code is var code && code != current) App.RestartForLanguage(code);
+        };
         _vm.Playlists.CollectionChanged += (_, _) => NoPlaylists.Visibility = _vm.Playlists.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         _vm.Epgs.CollectionChanged += (_, _) => NoEpgs.Visibility = _vm.Epgs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         // DataChanged fires on a worker thread.

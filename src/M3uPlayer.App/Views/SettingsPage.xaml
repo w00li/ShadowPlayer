@@ -2,7 +2,8 @@
     x:Class="M3uPlayer.App.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="using:M3uPlayer.App.ViewModels">
+    xmlns:vm="using:M3uPlayer.App.ViewModels"
+    xmlns:l="using:M3uPlayer.App">
     <Page.Resources>
         <DataTemplate x:Key="SourceRowTemplate" x:DataType="vm:SourceRow">
             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -82,6 +83,10 @@
             <TextBlock x:Name="NoEpgs" Text="Brak źródeł EPG. Dodaj je, żeby zobaczyć ramówkę. Kolejność ma znaczenie: wyższe źródło wygrywa."
                        TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+
+            <TextBlock Text="{l:Tr Key=Settings_Language}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,24,0,0" />
+            <ComboBox x:Name="LanguageBox" MinWidth="200" AutomationProperties.Name="{l:Tr Key=Settings_Language}" />
+            <TextBlock Text="{l:Tr Key=Settings_LanguageRestart}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
     </ScrollViewer>
 </Page>

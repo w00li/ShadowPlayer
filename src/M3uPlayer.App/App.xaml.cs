@@ -1,6 +1,9 @@
+using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using M3uPlayer.App.Player;
 using M3uPlayer.Core.Diagnostics;
+using M3uPlayer.Core.Localization;
 using M3uPlayer.Core.Media;
 using M3uPlayer.Core.Refresh;
 using M3uPlayer.Core.Storage;
@@ -25,6 +28,8 @@ public partial class App : Application
     }
 
     private static readonly CancellationTokenSource Stop = new();
+    public const string LanguageSetting = "language";
+    private static bool _restart;
     private static readonly HashSet<string> LoggedStages = [];
     private static Task? _dialogClosed;
     private MainWindow? _window;
@@ -57,6 +62,7 @@ public partial class App : Application
         Directory.CreateDirectory(dir);
         Services.Log = new FileLog(Path.Combine(dir, "app.log"));
         Services.Db = new Database(Path.Combine(dir, "m3u.db"));
+        Languages.Apply(Languages.Resolve(Services.Db.GetSetting(LanguageSetting), CultureInfo.CurrentUICulture));
         Services.Sources = new SourceStore(Services.Db);
         Services.Channels = new ChannelStore(Services.Db);
         Services.Programmes = new ProgrammeStore(Services.Db);
@@ -82,9 +88,29 @@ public partial class App : Application
             DisplayAwake.Set(false);
             Services.Player.Dispose(); // on the UI thread, as the player requires
             try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
+            if (_restart) StartAgain();
         };
         _window.Activate();
         LogStartupOnce("okno");
+    }
+
+    /// <summary>Saves the language and closes the window; the app starts again in it once the player and the refresh loop are stopped.</summary>
+    public static void RestartForLanguage(string code)
+    {
+        Services.Db.SetSetting(LanguageSetting, code);
+        Languages.Apply(code); // the failure message below is then already in the chosen language
+        _restart = true;
+        MainWindow?.Close();
+    }
+
+    private static void StartAgain()
+    {
+        try { Process.Start(Environment.ProcessPath!); }
+        catch (Exception ex)
+        {
+            SafeLog("Restart failed: " + ex.Message);
+            MessageBoxW(0, Strings.Restart_Failed, "ShadowPlayer", 0x10);
+        }
     }
 
     /// <summary>How long each stage of the app start took, for a start that feels slow.</summary>
