@@ -444,4 +444,73 @@
   <data name="Source_DefaultListName" xml:space="preserve">
     <value>Liste</value>
   </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Settings_TabPlayback" xml:space="preserve">
+    <value>Wiedergabe</value>
+  </data>
+  <data name="Settings_TabSources" xml:space="preserve">
+    <value>Quellen</value>
+  </data>
+  <data name="Settings_TabData" xml:space="preserve">
+    <value>Daten</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Design</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="Settings_Autostart" xml:space="preserve">
+    <value>Letzten Sender beim Start abspielen</value>
+  </data>
+  <data name="Settings_StartFullscreen" xml:space="preserve">
+    <value>Im Vollbild starten</value>
+  </data>
+  <data name="Settings_Buffer" xml:space="preserve">
+    <value>Netzwerkpuffer</value>
+  </data>
+  <data name="Settings_HwDecoding" xml:space="preserve">
+    <value>Hardwaredekodierung</value>
+  </data>
+  <data name="Settings_NextChannelNote" xml:space="preserve">
+    <value>Gilt ab dem nächsten geöffneten Sender.</value>
+  </data>
+  <data name="Settings_SeekStep" xml:space="preserve">
+    <value>Sprungweite</value>
+  </data>
+  <data name="Settings_HideControls" xml:space="preserve">
+    <value>Steuerleiste ausblenden nach</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Settings_DefaultInterval" xml:space="preserve">
+    <value>Standardintervall für neue Quellen</value>
+  </data>
+  <data name="Settings_ClearLogos" xml:space="preserve">
+    <value>Logo-Cache leeren</value>
+  </data>
+  <data name="Settings_LogosCleared" xml:space="preserve">
+    <value>Logo-Cache geleert.</value>
+  </data>
+  <data name="Settings_ClearAll" xml:space="preserve">
+    <value>Alle Daten löschen</value>
+  </data>
+  <data name="Settings_ClearAllQuestion" xml:space="preserve">
+    <value>Alle Daten löschen?</value>
+  </data>
+  <data name="Settings_ClearAllBody" xml:space="preserve">
+    <value>Alle Listen, Favoriten, das Programm und die Einstellungen werden gelöscht. Die App startet neu wie nach der Installation.</value>
+  </data>
+  <data name="Settings_ClearAllConfirm" xml:space="preserve">
+    <value>Alles löschen</value>
+  </data>
 </root>

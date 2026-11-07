@@ -9,6 +9,14 @@ namespace M3uPlayer.App;
 
 public sealed partial class MainWindow : Window
 {
+    /// <summary>"system", "light" or "dark", as Preferences.Theme holds it. The overlay over the video stays dark on its own.</summary>
+    public void ApplyTheme(string theme) => Nav.RequestedTheme = theme switch
+    {
+        "light" => ElementTheme.Light,
+        "dark" => ElementTheme.Dark,
+        _ => ElementTheme.Default,
+    };
+
     private const int MinWidth = 900, MinHeight = 600; // device-independent pixels
     private delegate nint SubclassProc(nint hwnd, uint msg, nint wParam, nint lParam, nuint id, nuint data);
     private readonly SubclassProc _subclass; // kept in a field so the GC cannot free the native callback

@@ -30,6 +30,7 @@ public partial class App : Application
 
     private static readonly CancellationTokenSource Stop = new();
     public const string LanguageSetting = "language";
+    public static string DataDir { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "M3uPlayer");
     private static bool _restart;
     private static readonly HashSet<string> LoggedStages = [];
     private static Task? _dialogClosed;
@@ -59,9 +60,10 @@ public partial class App : Application
 
     private void Start()
     {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "M3uPlayer");
+        var dir = DataDir;
         Directory.CreateDirectory(dir);
         Services.Log = new FileLog(Path.Combine(dir, "app.log"));
+        DataReset.RunIfRequested(dir); // before anything opens the files it removes (the log stays); a failure ends the start, marker kept
         Services.Db = new Database(Path.Combine(dir, "m3u.db"));
         Services.Prefs = new Preferences(Services.Db);
         Languages.Apply(Languages.Resolve(Services.Db.GetSetting(LanguageSetting), CultureInfo.CurrentUICulture));
@@ -92,6 +94,7 @@ public partial class App : Application
             try { loop.Wait(TimeSpan.FromSeconds(2)); } catch (Exception) { }
             if (_restart) StartAgain();
         };
+        _window.ApplyTheme(Services.Prefs.Theme);
         _window.Activate();
         LogStartupOnce("okno");
     }
@@ -101,6 +104,12 @@ public partial class App : Application
     {
         Services.Db.SetSetting(LanguageSetting, code);
         Languages.Apply(code); // the failure message below is then already in the chosen language
+        Restart();
+    }
+
+    /// <summary>Closes the window the usual way; once the player and the refresh loop have stopped, the app starts again.</summary>
+    public static void Restart()
+    {
         _restart = true;
         MainWindow?.Close();
     }
@@ -151,6 +160,7 @@ public partial class App : Application
         while (_dialogClosed is { } open) await open;
         var done = new TaskCompletionSource();
         _dialogClosed = done.Task;
+        if (MainWindow?.Content is FrameworkElement root) dialog.RequestedTheme = root.RequestedTheme; // a dialog does not inherit the theme from the window
         try { return await dialog.ShowAsync(); }
         finally { _dialogClosed = null; done.SetResult(); }
     }

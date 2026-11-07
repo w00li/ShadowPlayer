@@ -444,4 +444,73 @@
   <data name="Source_DefaultListName" xml:space="preserve">
     <value>Список</value>
   </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>Загальні</value>
+  </data>
+  <data name="Settings_TabPlayback" xml:space="preserve">
+    <value>Відтворення</value>
+  </data>
+  <data name="Settings_TabSources" xml:space="preserve">
+    <value>Джерела</value>
+  </data>
+  <data name="Settings_TabData" xml:space="preserve">
+    <value>Дані</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Системна</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Світла</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Темна</value>
+  </data>
+  <data name="Settings_Autostart" xml:space="preserve">
+    <value>Відтворювати останній канал під час запуску</value>
+  </data>
+  <data name="Settings_StartFullscreen" xml:space="preserve">
+    <value>Запускати в повноекранному режимі</value>
+  </data>
+  <data name="Settings_Buffer" xml:space="preserve">
+    <value>Мережевий буфер</value>
+  </data>
+  <data name="Settings_HwDecoding" xml:space="preserve">
+    <value>Апаратне декодування</value>
+  </data>
+  <data name="Settings_NextChannelNote" xml:space="preserve">
+    <value>Діє з наступного відкритого каналу.</value>
+  </data>
+  <data name="Settings_SeekStep" xml:space="preserve">
+    <value>Крок перемотування</value>
+  </data>
+  <data name="Settings_HideControls" xml:space="preserve">
+    <value>Ховати панель керування через</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="Settings_DefaultInterval" xml:space="preserve">
+    <value>Типовий інтервал для нових джерел</value>
+  </data>
+  <data name="Settings_ClearLogos" xml:space="preserve">
+    <value>Очистити кеш логотипів</value>
+  </data>
+  <data name="Settings_LogosCleared" xml:space="preserve">
+    <value>Кеш логотипів очищено.</value>
+  </data>
+  <data name="Settings_ClearAll" xml:space="preserve">
+    <value>Очистити всі дані</value>
+  </data>
+  <data name="Settings_ClearAllQuestion" xml:space="preserve">
+    <value>Видалити всі дані?</value>
+  </data>
+  <data name="Settings_ClearAllBody" xml:space="preserve">
+    <value>Усі списки, обране, телепрограму й налаштування буде видалено. Застосунок перезапуститься, як після встановлення.</value>
+  </data>
+  <data name="Settings_ClearAllConfirm" xml:space="preserve">
+    <value>Видалити все</value>
+  </data>
 </root>

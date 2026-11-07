@@ -66,27 +66,59 @@
 
     <ScrollViewer>
         <StackPanel Padding="32,24" Spacing="8" MaxWidth="960" HorizontalAlignment="Left">
-            <TextBlock Text="{l:Tr Key=Settings_Title}" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,0,0,16" />
+            <TextBlock Text="{l:Tr Key=Settings_Title}" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,0,0,8" />
+            <SelectorBar x:Name="Tabs" SelectionChanged="Tabs_SelectionChanged" Margin="0,0,0,16">
+                <SelectorBarItem x:Name="GeneralItem" Text="{l:Tr Key=Settings_TabGeneral}" IsSelected="True" />
+                <SelectorBarItem x:Name="PlaybackItem" Text="{l:Tr Key=Settings_TabPlayback}" />
+                <SelectorBarItem x:Name="SourcesItem" Text="{l:Tr Key=Settings_TabSources}" />
+                <SelectorBarItem x:Name="DataItem" Text="{l:Tr Key=Settings_TabData}" />
+            </SelectorBar>
 
-            <Grid>
-                <TextBlock Text="{l:Tr Key=Settings_Lists}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
-                <Button x:Name="AddPlaylistButton" Content="{l:Tr Key=Settings_AddList}" HorizontalAlignment="Right" Click="AddPlaylist_Click" />
-            </Grid>
-            <TextBlock x:Name="NoPlaylists" Text="{l:Tr Key=Settings_NoLists}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            <ItemsControl x:Name="PlaylistList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+            <StackPanel x:Name="GeneralTab" Spacing="8">
+                <ComboBox x:Name="LanguageBox" MinWidth="240" Header="{l:Tr Key=Settings_Language}" />
+                <TextBlock Text="{l:Tr Key=Settings_LanguageRestart}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ComboBox x:Name="ThemeBox" MinWidth="240" Header="{l:Tr Key=Settings_Theme}" Margin="0,16,0,0" />
+            </StackPanel>
 
-            <Grid Margin="0,24,0,0">
-                <TextBlock Text="{l:Tr Key=Settings_EpgSources}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
-                <Button x:Name="AddEpgButton" Content="{l:Tr Key=Settings_AddEpg}" HorizontalAlignment="Right" Click="AddEpg_Click" />
-            </Grid>
-            <TextBlock x:Name="NoEpgs" Text="{l:Tr Key=Settings_NoEpgs}"
-                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+            <StackPanel x:Name="PlaybackTab" Spacing="8" Visibility="Collapsed">
+                <ToggleSwitch x:Name="AutostartSwitch" Header="{l:Tr Key=Settings_Autostart}"
+                              OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" />
+                <ToggleSwitch x:Name="FullscreenSwitch" Header="{l:Tr Key=Settings_StartFullscreen}"
+                              OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" />
+                <ComboBox x:Name="BufferBox" MinWidth="240" Header="{l:Tr Key=Settings_Buffer}" Margin="0,16,0,0" />
+                <ToggleSwitch x:Name="HwSwitch" Header="{l:Tr Key=Settings_HwDecoding}"
+                              OnContent="{l:Tr Key=Settings_On}" OffContent="{l:Tr Key=Settings_Off}" />
+                <TextBlock Text="{l:Tr Key=Settings_NextChannelNote}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ComboBox x:Name="SeekBox" MinWidth="240" Header="{l:Tr Key=Settings_SeekStep}" Margin="0,16,0,0" />
+                <ComboBox x:Name="HideBox" MinWidth="240" Header="{l:Tr Key=Settings_HideControls}" />
+            </StackPanel>
 
-            <TextBlock Text="{l:Tr Key=Settings_Language}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,24,0,0" />
-            <ComboBox x:Name="LanguageBox" MinWidth="200" AutomationProperties.Name="{l:Tr Key=Settings_Language}" />
-            <TextBlock Text="{l:Tr Key=Settings_LanguageRestart}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <StackPanel x:Name="SourcesTab" Spacing="8" Visibility="Collapsed">
+                <Grid>
+                    <TextBlock Text="{l:Tr Key=Settings_Lists}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                    <Button x:Name="AddPlaylistButton" Content="{l:Tr Key=Settings_AddList}" HorizontalAlignment="Right" Click="AddPlaylist_Click" />
+                </Grid>
+                <TextBlock x:Name="NoPlaylists" Text="{l:Tr Key=Settings_NoLists}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ItemsControl x:Name="PlaylistList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+
+                <Grid Margin="0,24,0,0">
+                    <TextBlock Text="{l:Tr Key=Settings_EpgSources}" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                    <Button x:Name="AddEpgButton" Content="{l:Tr Key=Settings_AddEpg}" HorizontalAlignment="Right" Click="AddEpg_Click" />
+                </Grid>
+                <TextBlock x:Name="NoEpgs" Text="{l:Tr Key=Settings_NoEpgs}"
+                           TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <ItemsControl x:Name="EpgList" ItemTemplate="{StaticResource SourceRowTemplate}" />
+
+                <ComboBox x:Name="DefaultIntervalBox" MinWidth="240" Header="{l:Tr Key=Settings_DefaultInterval}" Margin="0,24,0,0" />
+            </StackPanel>
+
+            <StackPanel x:Name="DataTab" Spacing="8" Visibility="Collapsed">
+                <Button x:Name="ClearLogosButton" Content="{l:Tr Key=Settings_ClearLogos}" Click="ClearLogos_Click" />
+                <TextBlock x:Name="LogosCleared" Text="{l:Tr Key=Settings_LogosCleared}" Visibility="Collapsed"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Button x:Name="ClearAllButton" Content="{l:Tr Key=Settings_ClearAll}" Click="ClearAll_Click" Margin="0,16,0,0" />
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>

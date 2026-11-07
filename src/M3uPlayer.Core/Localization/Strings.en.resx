@@ -444,4 +444,73 @@
   <data name="Source_DefaultListName" xml:space="preserve">
     <value>List</value>
   </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_TabPlayback" xml:space="preserve">
+    <value>Playback</value>
+  </data>
+  <data name="Settings_TabSources" xml:space="preserve">
+    <value>Sources</value>
+  </data>
+  <data name="Settings_TabData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>System default</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_Autostart" xml:space="preserve">
+    <value>Play the last channel at start</value>
+  </data>
+  <data name="Settings_StartFullscreen" xml:space="preserve">
+    <value>Start in full screen</value>
+  </data>
+  <data name="Settings_Buffer" xml:space="preserve">
+    <value>Network buffer</value>
+  </data>
+  <data name="Settings_HwDecoding" xml:space="preserve">
+    <value>Hardware decoding</value>
+  </data>
+  <data name="Settings_NextChannelNote" xml:space="preserve">
+    <value>Takes effect from the next channel you open.</value>
+  </data>
+  <data name="Settings_SeekStep" xml:space="preserve">
+    <value>Seek step</value>
+  </data>
+  <data name="Settings_HideControls" xml:space="preserve">
+    <value>Hide the control bar after</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Settings_DefaultInterval" xml:space="preserve">
+    <value>Default interval for new sources</value>
+  </data>
+  <data name="Settings_ClearLogos" xml:space="preserve">
+    <value>Clear logo cache</value>
+  </data>
+  <data name="Settings_LogosCleared" xml:space="preserve">
+    <value>Logo cache cleared.</value>
+  </data>
+  <data name="Settings_ClearAll" xml:space="preserve">
+    <value>Clear all data</value>
+  </data>
+  <data name="Settings_ClearAllQuestion" xml:space="preserve">
+    <value>Delete all data?</value>
+  </data>
+  <data name="Settings_ClearAllBody" xml:space="preserve">
+    <value>All lists, favourites, the TV guide and settings will be deleted. The app will restart as if freshly installed.</value>
+  </data>
+  <data name="Settings_ClearAllConfirm" xml:space="preserve">
+    <value>Delete everything</value>
+  </data>
 </root>

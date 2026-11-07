@@ -444,4 +444,73 @@
   <data name="Source_DefaultListName" xml:space="preserve">
     <value>Liste</value>
   </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="Settings_TabPlayback" xml:space="preserve">
+    <value>Lecture</value>
+  </data>
+  <data name="Settings_TabSources" xml:space="preserve">
+    <value>Sources</value>
+  </data>
+  <data name="Settings_TabData" xml:space="preserve">
+    <value>Données</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Thème</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Thème du système</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Clair</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Sombre</value>
+  </data>
+  <data name="Settings_Autostart" xml:space="preserve">
+    <value>Lire la dernière chaîne au démarrage</value>
+  </data>
+  <data name="Settings_StartFullscreen" xml:space="preserve">
+    <value>Démarrer en plein écran</value>
+  </data>
+  <data name="Settings_Buffer" xml:space="preserve">
+    <value>Tampon réseau</value>
+  </data>
+  <data name="Settings_HwDecoding" xml:space="preserve">
+    <value>Décodage matériel</value>
+  </data>
+  <data name="Settings_NextChannelNote" xml:space="preserve">
+    <value>S’applique à partir de la prochaine chaîne ouverte.</value>
+  </data>
+  <data name="Settings_SeekStep" xml:space="preserve">
+    <value>Pas de déplacement</value>
+  </data>
+  <data name="Settings_HideControls" xml:space="preserve">
+    <value>Masquer la barre de contrôle après</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Settings_DefaultInterval" xml:space="preserve">
+    <value>Intervalle par défaut des nouvelles sources</value>
+  </data>
+  <data name="Settings_ClearLogos" xml:space="preserve">
+    <value>Vider le cache des logos</value>
+  </data>
+  <data name="Settings_LogosCleared" xml:space="preserve">
+    <value>Cache des logos vidé.</value>
+  </data>
+  <data name="Settings_ClearAll" xml:space="preserve">
+    <value>Effacer toutes les données</value>
+  </data>
+  <data name="Settings_ClearAllQuestion" xml:space="preserve">
+    <value>Supprimer toutes les données ?</value>
+  </data>
+  <data name="Settings_ClearAllBody" xml:space="preserve">
+    <value>Toutes les listes, les favoris, le guide TV et les paramètres seront supprimés. L’application redémarrera comme après l’installation.</value>
+  </data>
+  <data name="Settings_ClearAllConfirm" xml:space="preserve">
+    <value>Tout supprimer</value>
+  </data>
 </root>
