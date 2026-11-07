@@ -19,6 +19,15 @@ public sealed class LogoCache(HttpClient http, string dir, TimeProvider? time = 
     private readonly Dictionary<string, Task<string?>> _inFlight = [];
     private readonly Dictionary<string, DateTimeOffset> _failed = [];
 
+    /// <summary>Removes the cached files and forgets failed downloads, so every logo is fetched again. Files in use are skipped.</summary>
+    public void Clear()
+    {
+        lock (_lock) _failed.Clear();
+        if (!Directory.Exists(dir)) return;
+        foreach (var file in Directory.EnumerateFiles(dir))
+            try { File.Delete(file); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+    }
+
     /// <returns>The cached file's path, or null when there is no usable logo.</returns>
     public async Task<string?> GetAsync(string? url, CancellationToken ct)
     {

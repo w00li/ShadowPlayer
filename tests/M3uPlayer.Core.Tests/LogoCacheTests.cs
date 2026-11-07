@@ -185,4 +185,27 @@ public sealed class LogoCacheTests : IDisposable
         Assert.Null(await cache.GetAsync("https://example.invalid/a.png", CancellationToken.None));
         Assert.Empty(Directory.Exists(_dir) ? Directory.GetFiles(_dir) : []);
     }
+
+    [Fact]
+    public async Task Clear_removes_files_and_downloads_again()
+    {
+        var (cache, h) = Make(() => Png());
+        var path = await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None);
+        Assert.True(File.Exists(path));
+        cache.Clear();
+        Assert.Empty(Directory.GetFiles(_dir));
+        Assert.NotNull(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        Assert.Equal(2, h.Calls);
+    }
+
+    [Fact]
+    public async Task Clear_forgets_failed_downloads()
+    {
+        var ok = false;
+        var (cache, h) = Make(() => ok ? Png() : new HttpResponseMessage(HttpStatusCode.NotFound));
+        Assert.Null(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None));
+        ok = true;
+        cache.Clear();
+        Assert.NotNull(await cache.GetAsync("http://example.invalid/a.png", CancellationToken.None)); // no hour-long wait after a clear
+    }
 }
