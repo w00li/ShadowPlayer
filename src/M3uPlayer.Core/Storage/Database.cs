@@ -18,6 +18,7 @@ public class Database
             user_agent TEXT, referrer TEXT, tvg_id TEXT, tvg_name TEXT);
         CREATE INDEX channel_source ON channel(source_id);
         CREATE TABLE favorite(channel_key TEXT PRIMARY KEY);
+        CREATE TABLE category_pref(name TEXT PRIMARY KEY, pinned INTEGER NOT NULL DEFAULT 0, hidden INTEGER NOT NULL DEFAULT 0);
         CREATE TABLE epg_channel(
             source_id INTEGER NOT NULL REFERENCES source(id) ON DELETE CASCADE,
             ord INTEGER NOT NULL, id TEXT NOT NULL, names_json TEXT NOT NULL, PRIMARY KEY(source_id, ord));
@@ -45,7 +46,14 @@ public class Database
         {
             using var tx = c.BeginTransaction();
             Exec(c, Schema);
-            Exec(c, "PRAGMA user_version=1");
+            Exec(c, "PRAGMA user_version=2");
+            tx.Commit();
+        }
+        else if (version < 2)
+        {
+            using var tx = c.BeginTransaction();
+            Exec(c, "CREATE TABLE IF NOT EXISTS category_pref(name TEXT PRIMARY KEY, pinned INTEGER NOT NULL DEFAULT 0, hidden INTEGER NOT NULL DEFAULT 0)");
+            Exec(c, "PRAGMA user_version=2");
             tx.Commit();
         }
     }

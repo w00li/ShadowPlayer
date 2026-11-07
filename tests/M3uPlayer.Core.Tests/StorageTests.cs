@@ -83,7 +83,7 @@ public sealed class StorageTests : IDisposable
         var again = new Database(_path);
         Assert.Single(new SourceStore(again).List(SourceKind.Playlist));
         using var c = again.Open();
-        Assert.Equal(1L, Scalar(c, "PRAGMA user_version"));
+        Assert.Equal(2L, Scalar(c, "PRAGMA user_version"));
         Assert.Equal("wal", Scalar(c, "PRAGMA journal_mode"));
     }
 

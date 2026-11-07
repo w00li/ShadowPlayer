@@ -9,7 +9,7 @@ public record Channel(
     string Key, long SourceId, string Name, string Url, string? Logo, string Category, double ShiftHours,
     CatchupInfo Catchup, string? UserAgent, string? Referrer, bool IsFavorite);
 
-public record CategoryCount(string Name, int Count);
+public record CategoryCount(string Name, int Count, bool Pinned = false, bool Hidden = false);
 
 public class ChannelStore(Database db)
 {
@@ -65,15 +65,33 @@ public class ChannelStore(Database db)
     {
         using var c = db.Open();
         return Database.Rows(c,
-            "SELECT category, COUNT(*) FROM (SELECT c.category, ROW_NUMBER() OVER (ORDER BY s.position, c.rowid) rn " +
-            "FROM channel c JOIN source s ON s.id=c.source_id) GROUP BY category ORDER BY MIN(rn)",
-            r => new CategoryCount(r.GetString(0), r.GetInt32(1)));
+            "SELECT x.category, COUNT(*), COALESCE(MAX(p.pinned),0), COALESCE(MAX(p.hidden),0) FROM (SELECT c.category, " +
+            "ROW_NUMBER() OVER (ORDER BY s.position, c.rowid) rn FROM channel c JOIN source s ON s.id=c.source_id) x " +
+            "LEFT JOIN category_pref p ON p.name=x.category GROUP BY x.category ORDER BY COALESCE(MAX(p.pinned),0) DESC, MIN(rn)",
+            r => new CategoryCount(r.GetString(0), r.GetInt32(1), r.GetInt64(2) != 0, r.GetInt64(3) != 0));
+    }
+
+    /// <summary>Pinned and hidden exclude each other; with neither the row goes. Kept by name, so it outlives a refresh of the list.</summary>
+    public void SetCategoryPref(string name, bool pinned, bool hidden)
+    {
+        if (pinned && hidden) throw new ArgumentException("A category cannot be both pinned and hidden.", nameof(hidden));
+        using var c = db.Open();
+        if (!pinned && !hidden) Database.Exec(c, "DELETE FROM category_pref WHERE name=@0", name);
+        else Database.Exec(c, "INSERT INTO category_pref(name,pinned,hidden) VALUES(@0,@1,@2) " +
+            "ON CONFLICT(name) DO UPDATE SET pinned=excluded.pinned, hidden=excluded.hidden", name, pinned ? 1 : 0, hidden ? 1 : 0);
+    }
+
+    public void ShowAllCategories()
+    {
+        using var c = db.Open();
+        Database.Exec(c, "DELETE FROM category_pref WHERE pinned=0");
+        Database.Exec(c, "UPDATE category_pref SET hidden=0");
     }
 
     public int CountAll()
     {
         using var c = db.Open();
-        return Convert.ToInt32(Database.Exec(c, "SELECT COUNT(*) FROM channel"));
+        return Convert.ToInt32(Database.Exec(c, "SELECT COUNT(*) FROM channel c WHERE " + Visible));
     }
 
     public int CountFavorites()
@@ -84,7 +102,10 @@ public class ChannelStore(Database db)
 
     public IReadOnlyList<Channel> ByCategory(string name) => Query("WHERE c.category=@0", name);
 
-    public IReadOnlyList<Channel> All() => Query("");
+    public IReadOnlyList<Channel> All() => Query("WHERE " + Visible);
+
+    // Channels of hidden categories stay out of "All"; search, favourites and the category itself still show them.
+    private const string Visible = "c.category NOT IN (SELECT name FROM category_pref WHERE hidden=1)";
 
     public Channel? Find(string key) => Query("WHERE c.key=@0", key).FirstOrDefault();
 
