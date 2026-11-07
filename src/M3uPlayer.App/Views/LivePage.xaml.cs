@@ -41,6 +41,8 @@ public sealed partial class LivePage : Page
         _onDataChanged = () => DispatcherQueue.TryEnqueue(() => Safe.Run(Vm.OnDataChangedAsync));
         Loaded += (_, _) =>
         {
+            // Read once per visit, not on every pointer move; coming back from Settings fires Loaded again.
+            _hideTimer.Interval = TimeSpan.FromSeconds(App.Services.Prefs.HideControlsSeconds);
             App.Services.Refresh.DataChanged += _onDataChanged;
             if (App.MainWindow is { } w) { w.FullscreenChanged += OnFullscreenChanged; w.Closed += OnWindowClosed; }
             UpdateCategoryPane();

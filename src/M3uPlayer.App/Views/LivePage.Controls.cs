@@ -99,7 +99,6 @@ public sealed partial class LivePage
         RefreshTrackButtons();
         _trackTimer.Start();
         _hideTimer.Stop();
-        _hideTimer.Interval = TimeSpan.FromSeconds(App.Services.Prefs.HideControlsSeconds);
         _hideTimer.Start();
     }
 

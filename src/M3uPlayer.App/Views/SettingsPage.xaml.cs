@@ -47,6 +47,7 @@ public sealed partial class SettingsPage : Page
 
     private void Tabs_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
+        if (DataTab is null) return; // the first selection can arrive while the XAML is still loading
         GeneralTab.Visibility = Shown(GeneralItem);
         PlaybackTab.Visibility = Shown(PlaybackItem);
         SourcesTab.Visibility = Shown(SourcesItem);
