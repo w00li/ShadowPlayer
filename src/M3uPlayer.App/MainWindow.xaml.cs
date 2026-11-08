@@ -10,7 +10,7 @@ namespace M3uPlayer.App;
 public sealed partial class MainWindow : Window
 {
     /// <summary>"system", "light" or "dark", as Preferences.Theme holds it. The overlay over the video stays dark on its own.</summary>
-    public void ApplyTheme(string theme) => Nav.RequestedTheme = theme switch
+    public void ApplyTheme(string theme) => Root.RequestedTheme = theme switch
     {
         "light" => ElementTheme.Light,
         "dark" => ElementTheme.Dark,
@@ -24,6 +24,16 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // The toast leaves on its own (like Later) 20 s after it opens or changes, but never during a download.
+        _toastTimer = DispatcherQueue.CreateTimer();
+        _toastTimer.Interval = TimeSpan.FromSeconds(20);
+        _toastTimer.IsRepeating = false;
+        _toastTimer.Tick += (_, _) => { if (!Updates.IsDownloading) Updates.Later(); };
+        Updates.PropertyChanged += (_, _) =>
+        {
+            _toastTimer.Stop();
+            if (Updates.IsBarOpen && !Updates.IsDownloading) _toastTimer.Start();
+        };
         // The .exe's own icon does not reach the title bar and taskbar of an unpackaged window.
         var icon = Path.Combine(AppContext.BaseDirectory, "Assets", "ShadowPlayer.ico");
         if (File.Exists(icon)) AppWindow.SetIcon(icon);
@@ -42,6 +52,13 @@ public sealed partial class MainWindow : Window
         SetWindowSubclass(WindowNative.GetWindowHandle(this), _subclass, 1, 0);
         Navigate(typeof(LivePage));
     }
+
+    public ViewModels.UpdateModel Updates => App.Services.Updates;
+    private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _toastTimer; // a field: an unreferenced timer is collected and never ticks
+
+    private void Update_Click(object sender, RoutedEventArgs e) => ViewModels.Safe.Run(Updates.UpdateAsync);
+    private void UpdateLater_Click(object sender, RoutedEventArgs e) => Updates.Later();
+    private void UpdateCancel_Click(object sender, RoutedEventArgs e) => Updates.Cancel();
 
     private bool _syncing;
     private AppWindowPresenter? _windowed;

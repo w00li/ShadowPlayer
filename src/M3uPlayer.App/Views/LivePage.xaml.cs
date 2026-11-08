@@ -26,7 +26,6 @@ public sealed partial class LivePage : Page
     private string? _pictureUrl;
 
     public LiveViewModel Vm { get; }
-    public UpdateModel Updates => App.Services.Updates;
 
     public LivePage()
     {
@@ -127,10 +126,6 @@ public sealed partial class LivePage : Page
         CategoryList.ScrollIntoView(item);
         DispatcherQueue.TryEnqueue(() => (CategoryList.ContainerFromItem(item) as Control)?.Focus(FocusState.Programmatic)); // after the containers exist
     }
-
-    private void Update_Click(object sender, RoutedEventArgs e) => Safe.Run(Updates.UpdateAsync);
-    private void UpdateLater_Click(object sender, RoutedEventArgs e) => Updates.Later();
-    private void UpdateCancel_Click(object sender, RoutedEventArgs e) => Updates.Cancel();
 
     private void Notice_Closed(InfoBar sender, InfoBarClosedEventArgs args) => Vm.CloseNotice();
 
