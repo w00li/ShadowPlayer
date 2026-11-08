@@ -34,6 +34,7 @@ public partial class App : Application
     public const string LanguageSetting = "language";
     public static string DataDir { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "M3uPlayer");
     private static bool _restart;
+    private static Microsoft.UI.Dispatching.DispatcherQueueTimer? _updateCheck; // held: an unreferenced timer is collected and never ticks
     private static readonly HashSet<string> LoggedStages = [];
     private static Task? _dialogClosed;
     private MainWindow? _window;
@@ -114,7 +115,7 @@ public partial class App : Application
         if (Services.Prefs.CheckUpdates)
         {
             // A while after start, so the check never competes with opening the list and the first channel.
-            var check = _window.DispatcherQueue.CreateTimer();
+            var check = _updateCheck = _window.DispatcherQueue.CreateTimer();
             check.Interval = TimeSpan.FromSeconds(10);
             check.IsRepeating = false;
             check.Tick += (_, _) => ViewModels.Safe.Run(() => Services.Updates.CheckAsync(userAsked: false));
