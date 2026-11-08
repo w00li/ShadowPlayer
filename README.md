@@ -37,6 +37,8 @@ The version is set in one place: `<Version>` in `src/M3uPlayer.App/M3uPlayer.App
 
 Tags follow `v<major>.<minor>.<patch>`.
 
+The app checks for updates through GitHub's "latest release" (drafts and pre-releases are skipped). It offers a release only when its tag is `v<major>.<minor>.<patch>` and higher than the running version, and the release has an asset named exactly `ShadowPlayer-Setup-<major>.<minor>.<patch>.exe` with GitHub's SHA-256 digest. The installer is downloaded, its hash is checked, and it runs silently, then starts the app again. A release published another way (a different file name, a zip, a tag without `v`) is not offered.
+
 ## Languages
 
 Texts live in `src/M3uPlayer.Core/Localization/Strings.resx` (Polish, the default) and in `Strings.<code>.resx` for English, German, Spanish, French, Italian and Ukrainian. Translations other than Polish and English have not been checked by native speakers. The language is chosen in Settings; without a choice the app uses the Windows language, or English when it does not know it. To add a language: copy `Strings.en.resx` as `Strings.<code>.resx`, translate the values and add `("<code>", "<name in that language>")` to `Languages.All` (`Localization/Languages.cs`). The `LocalizationTests` test checks that every language has every text with the same `{0}` placeholders.

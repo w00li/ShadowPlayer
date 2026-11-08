@@ -89,3 +89,15 @@ Sprawdzone przez agenta na opublikowanym `M3uPlayer.App.exe`, na świeżym folde
 2. Strzałka w lewo na żywo: archiwum bieżącego programu ok. 70 s za transmisją; „Wróć na żywo” wraca.
 3. W archiwum: wskaźnika brak; „Od początku” i Home przewijają na początek programu.
 4. Kanał bez archiwum lub bez EPG: przycisku brak, Home i strzałka w lewo nic nie robią.
+
+## Aktualizacje
+
+Bez publikowania czegokolwiek: zbuduj aplikację z niższą wersją (`dotnet publish src/M3uPlayer.App -c Release -r win-x64 -p:Platform=x64 --self-contained -p:Version=0.9.0 -o <katalog>`) i uruchom `ShadowPlayer.exe` z tego katalogu; najnowsze wydanie na GitHubie jest dla niej „nowszą wersją”. Pełną instalację (kroki 4–5) sprawdza się na wydaniu testowym, które potem się usuwa (`gh release delete v<x.y.z> --cleanup-tag`).
+
+1. Ok. 10 s po starcie w prawym górnym rogu okna pojawia się toast „Dostępna jest wersja …” z „Zaktualizuj”, „Później” i „Co nowego”; tak samo na stronie Ustawień i na pełnym ekranie.
+2. Toast znika sam po 20 s; „Później” zamyka go od razu. Aktualizacja zostaje w Ustawieniach → Ogólne.
+3. Po „Później” skróty klawiszowe na Na żywo działają (spacja, strzałki, F).
+4. „Zaktualizuj” → postęp pobierania w toaście (w tym czasie toast nie znika) → UAC odrzucony: „Aktualizacja została anulowana.”, aplikacja zostaje otwarta.
+5. „Zaktualizuj” → UAC zatwierdzony: aplikacja się zamyka, instaluje po cichu i wraca w nowej wersji z tym samym kanałem.
+6. Ustawienia → Ogólne: wyłączony przełącznik „Sprawdzaj aktualizacje przy uruchomieniu” — toast się nie pojawia; „Sprawdź aktualizacje” nadal działa i pokazuje stan.
+7. Bez sieci: przy starcie nic się nie pokazuje (wpis w `app.log`); „Sprawdź aktualizacje” pokazuje błąd sprawdzania.
